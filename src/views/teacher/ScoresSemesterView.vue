@@ -48,14 +48,14 @@ async function loadData() {
   if (classData) {
     classInfo.value = classData
     
-    // 1. Get Subjects assigned to this class
+    // 1. Get Subjects
     const { data: subData } = await supabase
       .from('class_subjects')
       .select('subjects(*)')
       .eq('class_id', classData.id)
     subjects.value = subData?.map(s => s.subjects) || []
 
-    // 2. Get All Students
+    // 2. Get Students
     const { data: stuData } = await supabase
       .from('students')
       .select('id, full_name')
@@ -82,7 +82,7 @@ async function fetchAllScores() {
   
   examScores.value = examData || []
 
-  // 2. Fetch Monthly Scores for the semester months
+  // 2. Fetch Monthly Scores
   const { data: mData } = await supabase
     .from('scores')
     .select('*')
@@ -96,7 +96,6 @@ async function fetchAllScores() {
 
 function buildMatrix() {
   const matrix = students.value.map(student => {
-    // Semester Exam Subjects
     const examSubMap = {}
     subjects.value.forEach(sub => {
       const match = examScores.value.find(s => s.student_id === student.id && s.subject_id === sub.id)
@@ -106,7 +105,6 @@ function buildMatrix() {
       }
     })
 
-    // Monthly Averages (Read-only)
     const mAvgs = semesterMonths.value.map(m => {
       const monthScores = monthlyScores.value
         .filter(s => s.student_id === student.id && s.month === m)
@@ -118,7 +116,7 @@ function buildMatrix() {
       student_id: student.id,
       full_name: student.full_name,
       examSubjects: examSubMap,
-      monthlyAverages: mAvgs, // [M1_avg, M2_avg, M3_avg]
+      monthlyAverages: mAvgs,
       examAverage: 0,
       monthlyTotalAverage: 0,
       finalAverage: 0,
@@ -132,26 +130,21 @@ function buildMatrix() {
 
 function calculateAll() {
   scoreMatrix.value.forEach(row => {
-    // 1. Semester Exam Average
     const examArray = Object.values(row.examSubjects)
       .filter(s => s.score !== '')
       .map(s => ({ score: s.score }))
     row.examAverage = computeMonthlyAverage(examArray)
 
-    // 2. Monthly Total Average (Avg of the 3 months)
     const validMonths = row.monthlyAverages.filter(m => m > 0)
     row.monthlyTotalAverage = validMonths.length > 0 
       ? Number((validMonths.reduce((a, b) => a + b, 0) / validMonths.length).toFixed(2))
       : 0
 
-    // 3. Final Semester Average
     row.finalAverage = computeSemesterAverage(row.monthlyAverages, row.examAverage)
   })
 
-  // 4. Calculate Ranks based on finalAverage
   const ranked = computeRank(scoreMatrix.value.map(r => ({ ...r, average: r.finalAverage })))
   
-  // Map ranks back
   scoreMatrix.value.forEach(row => {
     const match = ranked.find(r => r.student_id === row.student_id)
     row.rank = match?.rank ?? 0
@@ -184,7 +177,7 @@ async function saveAll() {
   if (toUpsert.length > 0) {
     const { error } = await supabase.from('scores').upsert(toUpsert)
     if (error) showToast(error.message, 'error')
-    else showToast('Semester exam scores saved!', 'success')
+    else showToast('រក្សាទុកពិន្ទុឆមាសបានជោគជ័យ!', 'success')
   }
 
   saving.value = false
@@ -195,16 +188,16 @@ const printArea = ref(null)
 async function handleExport() {
   if (!printArea.value) return
   const metadata = {
-    schoolName: 'Primary School',
+    schoolName: 'សាលាបឋមសិក្សា',
     className: classInfo.value?.class_name,
     semester: selectedSemester.value,
     year: classInfo.value?.academic_years?.year_name
   }
   try {
     await generateSemesterScorePDF(printArea.value, metadata)
-    showToast('PDF Generated!', 'success')
+    showToast('បង្កើត PDF បានជោគជ័យ!', 'success')
   } catch (e) {
-    showToast('Failed to generate PDF', 'error')
+    showToast('មិនអាចបង្កើត PDF បានទេ', 'error')
   }
 }
 
@@ -219,21 +212,30 @@ watch(selectedSemester, fetchAllScores)
 <template>
   <div class="scores-semester-view">
     <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`"><CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" /><XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}</div>
+      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
+        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
+        <XCircleIcon v-else class="w-4 h-4" /> 
+        {{ toast.msg }}
+      </div>
     </div>
 
     <div class="page-header no-print">
       <div>
-        <h1 class="page-title">Semester Exam Entry</h1>
-        <p class="page-subtitle" v-if="classInfo">Managing <strong>{{ classInfo.class_name }}</strong> ({{ classInfo.academic_years?.year_name }})</p>
+        <h1 class="page-title">បញ្ចូលពិន្ទុប្រឡងឆមាស</h1>
+        <p class="page-subtitle" v-if="classInfo">
+          គ្រប់គ្រងថ្នាក់ <strong>{{ classInfo.class_name }}</strong> ({{ classInfo.academic_years?.year_name }})
+        </p>
       </div>
       <div style="display:flex; gap:12px;">
         <button class="btn btn-secondary" @click="handleExport" :disabled="loading || scoreMatrix.length === 0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Print PDF
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          ទាញយក PDF
         </button>
         <button class="btn btn-primary" @click="saveAll" :disabled="saving || loading">
-          <ArrowDownTrayIcon class="w-4 h-4" /> {{ saving ? 'Saving…' : 'Save Exam Scores' }}
+          <ArrowDownTrayIcon class="w-4 h-4" /> 
+          {{ saving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកពិន្ទុឆមាស' }}
         </button>
       </div>
     </div>
@@ -244,18 +246,18 @@ watch(selectedSemester, fetchAllScores)
 
     <div v-else-if="!classInfo" class="empty-state">
       <BuildingOfficeIcon class="w-12 h-12 text-gray-400" />
-      <p class="empty-state-title">No Class Assigned</p>
+      <p class="empty-state-title">មិនទាន់មានថ្នាក់ត្រូវបានចាត់តាំង</p>
     </div>
 
     <div v-else>
       <!-- Filters -->
       <div class="card no-print" style="margin-bottom:20px;">
         <div class="card-body">
-          <div class="form-group" style="width:240px;">
-            <label class="form-label">Select Semester</label>
+          <div class="form-group" style="width:280px;">
+            <label class="form-label">ជ្រើសរើសឆមាស</label>
             <select class="form-select" v-model="selectedSemester">
-              <option :value="1">Semester 1 (Months 1-3)</option>
-              <option :value="2">Semester 2 (Months 4-6)</option>
+              <option :value="1">ឆមាសទី១ (ខែ ១-៣)</option>
+              <option :value="2">ឆមាសទី២ (ខែ ៤-៦)</option>
             </select>
           </div>
         </div>
@@ -264,11 +266,11 @@ watch(selectedSemester, fetchAllScores)
       <!-- Score Matrix -->
       <div class="card" ref="printArea">
         <div class="print-header only-print">
-          <h2>បញ្ជីពិន្ទុឆមាស (Semester Score Report)</h2>
+          <h2>បញ្ជីពិន្ទុឆមាស</h2>
           <div style="display:flex; justify-content:space-between; margin-top:10px;">
-            <span>ថ្នាក់: {{ classInfo.class_name }}</span>
-            <span>ឆមាសទី: {{ selectedSemester }}</span>
-            <span>ឆ្នាំសិក្សា: {{ classInfo.academic_years?.year_name }}</span>
+            <span>ថ្នាក់៖ {{ classInfo.class_name }}</span>
+            <span>ឆមាសទី៖ {{ selectedSemester }}</span>
+            <span>ឆ្នាំសិក្សា៖ {{ classInfo.academic_years?.year_name }}</span>
           </div>
         </div>
 
@@ -278,18 +280,18 @@ watch(selectedSemester, fetchAllScores)
               <tr>
                 <th rowspan="2" style="width:40px;">ល.រ</th>
                 <th rowspan="2" style="min-width:160px; text-align:left;">ឈ្មោះសិស្ស</th>
-                <th :colspan="subjects.length" class="text-center">ពិន្ទុប្រឡងឆមាស (Exam)</th>
-                <th rowspan="2" class="summary-col">មធ្យម<br/>ប្រឡង</th>
+                <th :colspan="subjects.length" class="text-center">ពិន្ទុប្រឡងឆមាស</th>
+                <th rowspan="2" class="summary-col">មធ្យមភាគ<br/>ប្រឡង</th>
                 <th colspan="3" class="text-center">មធ្យមភាគប្រចាំខែ</th>
-                <th rowspan="2" class="summary-col">មធ្យម<br/>ខែ</th>
-                <th rowspan="2" class="summary-col highlight">មធ្យម<br/>ឆមាស</th>
+                <th rowspan="2" class="summary-col">មធ្យមភាគ<br/>ខែ</th>
+                <th rowspan="2" class="summary-col highlight">មធ្យមភាគ<br/>ឆមាស</th>
                 <th rowspan="2" class="summary-col highlight">លំដាប់</th>
               </tr>
               <tr>
                 <th v-for="sub in subjects" :key="sub.id" class="sub-col small">
                   <div class="vertical-text small">{{ sub.subject_name }}</div>
                 </th>
-                <th v-for="m in semesterMonths" :key="m" class="month-col">ម.{{ m }}</th>
+                <th v-for="m in semesterMonths" :key="m" class="month-col">ខែ {{ m }}</th>
               </tr>
             </thead>
             <tbody>
@@ -301,7 +303,8 @@ watch(selectedSemester, fetchAllScores)
                     type="number" 
                     class="score-input"
                     v-model="row.examSubjects[sub.id].score"
-                    min="0" max="100"
+                    min="0" 
+                    max="100"
                     @input="calculateAll"
                   />
                 </td>
@@ -319,7 +322,7 @@ watch(selectedSemester, fetchAllScores)
 
         <div class="print-footer only-print" style="margin-top:40px; display:flex; justify-content:flex-end; padding:20px;">
           <div style="text-align:center;">
-            <p>ថ្ងៃទី........ ខែ........ ឆ្នាំ២០........</p>
+            <p>ថ្ងៃទី ........ ខែ ........ ឆ្នាំ២០........</p>
             <p style="margin-top:10px; font-weight:700;">ហត្ថលេខាគ្រូបន្ទុកថ្នាក់</p>
             <div style="height:60px;"></div>
           </div>

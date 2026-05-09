@@ -19,7 +19,6 @@ onMounted(async () => {
   if (auth.teacherProfile) {
     await Promise.all([loadData(), loadCheckInStatus()])
   } else {
-    // Wait for auth to init if needed
     setTimeout(async () => {
       if (auth.teacherProfile) await Promise.all([loadData(), loadCheckInStatus()])
       else loading.value = false
@@ -47,7 +46,6 @@ async function handleCheckIn() {
   if (error) {
     alert(error.message)
   } else {
-    // RPC returns {status, check_in_time, turn, threshold}
     myAttendanceToday.value = data
   }
 }
@@ -55,25 +53,19 @@ async function handleCheckIn() {
 async function loadData() {
   loading.value = true
   const teacherId = auth.teacherProfile.id
-  console.log('TeacherDashboard: Loading data for teacherId:', teacherId)
   
-  // 1. Get Class Info (Filter by active academic year to avoid multiple rows)
-  const { data: classData, error: classError } = await supabase
+  // 1. Get Class Info
+  const { data: classData } = await supabase
     .from('classes')
     .select('*, academic_years!inner(year_name, status)')
     .eq('teacher_id', teacherId)
     .eq('academic_years.status', 'active')
     .maybeSingle()
-  
-  if (classError) {
-    console.error('TeacherDashboard: Error fetching class:', classError)
-  }
 
   if (classData) {
-    console.log('TeacherDashboard: Class found:', classData)
     classInfo.value = classData
     
-    // 2. Get Student Count
+    // 2. Student Count
     const { count } = await supabase
       .from('students')
       .select('*', { count: 'exact', head: true })
@@ -84,9 +76,9 @@ async function loadData() {
     const today = new Date().toISOString().split('T')[0]
     const { data: attData } = await supabase
       .from('attendances')
-      .select('status, student_id, students!inner(class_id)')
+      .select('status, student_id')
       .eq('date', today)
-      .eq('students.class_id', classData.id)
+      .eq('class_id', classData.id)
     
     if (attData) {
       attendanceToday.value.total = studentsCount.value
@@ -116,26 +108,43 @@ const attendancePercent = computed(() => {
   <div>
     <div class="page-header">
       <div>
-        <h1 class="page-title">Teacher Dashboard</h1>
-        <p class="page-subtitle" v-if="classInfo">Welcome back! Managing <strong>{{ classInfo.class_name }}</strong> ({{ classInfo.academic_years?.year_name }})</p>
-        <p class="page-subtitle" v-else>Welcome back! You are not assigned to any class yet.</p>
+        <h1 class="page-title">ផ្ទាំងគ្រប់គ្រងគ្រូ</h1>
+        <p class="page-subtitle" v-if="classInfo">
+          សូមស្វាគមន៍មកវិញ! កំពុងគ្រប់គ្រងថ្នាក់ <strong>{{ classInfo.class_name }}</strong> ({{ classInfo.academic_years?.year_name }})
+        </p>
+        <p class="page-subtitle" v-else>សូមស្វាគមន៍មកវិញ! អ្នកមិនទាន់ត្រូវបានចាត់តាំងថ្នាក់ណាមួយនៅឡើយ។</p>
       </div>
       <div style="display:flex; gap:10px; align-items:center;">
         <!-- Check-in Status -->
-        <div v-if="myAttendanceToday" class="badge" :class="myAttendanceToday.status === 'present' ? 'badge-green' : 'badge-yellow'" style="padding:10px 16px; flex-direction:column; align-items:flex-start; gap:2px; height:auto;">
-          <div style="font-weight:700;"><template v-if="myAttendanceToday.status === 'present'"><CheckIcon class="w-4 h-4" /> មានវត្តមាន</template><template v-else><ExclamationCircleIcon class="w-4 h-4" /> យឺត</template></div>
+        <div v-if="myAttendanceToday" class="badge" :class="myAttendanceToday.status === 'present' ? 'badge-green' : 'badge-yellow'" 
+             style="padding:10px 16px; flex-direction:column; align-items:flex-start; gap:2px; height:auto;">
+          <div style="font-weight:700;">
+            <template v-if="myAttendanceToday.status === 'present'">
+              <CheckIcon class="w-4 h-4" /> មានវត្តមាន
+            </template>
+            <template v-else>
+              <ExclamationCircleIcon class="w-4 h-4" /> យឺត
+            </template>
+          </div>
           <div style="font-size:11px; opacity:0.8;">
             <ClockIcon class="w-3 h-3" /> {{ new Date(myAttendanceToday.check_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
-            <span v-if="myAttendanceToday.note" title="Admin Note"> <DocumentTextIcon class="w-3 h-3" /></span>
+            <span v-if="myAttendanceToday.note" title="កំណត់ចំណាំ"> <DocumentTextIcon class="w-3 h-3" /></span>
           </div>
         </div>
+
         <!-- Check-in Button -->
-        <button v-else class="btn btn-primary" style="padding:10px 24px; font-weight:bold; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);" @click="handleCheckIn" :disabled="checkingIn">
+        <button v-else class="btn btn-primary" style="padding:10px 24px; font-weight:bold; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);" 
+                @click="handleCheckIn" :disabled="checkingIn">
           {{ checkingIn ? 'កំពុងបញ្ចូល...' : 'ចូលធ្វើការ (Check-in)' }}
         </button>
 
         <div v-if="classInfo" class="badge badge-blue" style="padding:10px 16px;">
-          <template v-if="classInfo.turn === 'morning'"><SunIcon class="w-4 h-4" /> វេនព្រឹក</template><template v-else><MoonIcon class="w-4 h-4" /> វេនល្ងាច</template>
+          <template v-if="classInfo.turn === 'morning'">
+            <SunIcon class="w-4 h-4" /> វេនព្រឹក
+          </template>
+          <template v-else>
+            <MoonIcon class="w-4 h-4" /> វេនល្ងាច
+          </template>
         </div>
       </div>
     </div>
@@ -151,8 +160,8 @@ const attendancePercent = computed(() => {
 
     <div v-else-if="!classInfo" class="empty-state">
       <BuildingOfficeIcon class="w-12 h-12 text-gray-400" />
-      <p class="empty-state-title">No Class Assigned</p>
-      <p class="empty-state-desc">Please contact the administrator to assign you to a class.</p>
+      <p class="empty-state-title">មិនទាន់មានថ្នាក់ត្រូវបានចាត់តាំង</p>
+      <p class="empty-state-desc">សូមទាក់ទងអ្នកគ្រប់គ្រងដើម្បីចាត់តាំងអ្នកទៅថ្នាក់។</p>
     </div>
 
     <div v-else>
@@ -161,48 +170,53 @@ const attendancePercent = computed(() => {
         <div class="stat-card">
           <div class="stat-icon" style="background:#e0f2fe;color:#0ea5e9;"><UserGroupIcon class="w-6 h-6" /></div>
           <div class="stat-info">
-            <div class="stat-label">My Students</div>
+            <div class="stat-label">សិស្សរបស់ខ្ញុំ</div>
             <div class="stat-value">{{ studentsCount }}</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon" style="background:#f0fdf4;color:#22c55e;"><CheckCircleIcon class="w-6 h-6" /></div>
           <div class="stat-info">
-            <div class="stat-label">Attendance Today</div>
+            <div class="stat-label">វត្តមានថ្ងៃនេះ</div>
             <div class="stat-value">{{ attendancePercent }}%</div>
-            <div class="stat-desc">{{ attendanceToday.present }} / {{ attendanceToday.total }} present</div>
+            <div class="stat-desc">{{ attendanceToday.present }} / {{ attendanceToday.total }} នាក់ មានវត្តមាន</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon" style="background:#fff7ed;color:#f97316;"><CalendarIcon class="w-6 h-6" /></div>
           <div class="stat-info">
-            <div class="stat-label">Today</div>
+            <div class="stat-label">ថ្ងៃនេះ</div>
             <div class="stat-value" style="font-size:18px;">{{ formatDate(new Date()) }}</div>
           </div>
         </div>
       </div>
 
       <div style="display:grid;grid-template-columns: 2fr 1fr; gap:20px;">
-        <!-- Recent Activity / Scores -->
+        <!-- Recent Scores -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">Recent Scores Entered</span>
-            <router-link to="/teacher/scores" class="btn btn-ghost btn-sm">View All</router-link>
+            <span class="card-title">ពិន្ទុថ្មីៗ</span>
+            <router-link to="/teacher/scores" class="btn btn-ghost btn-sm">មើលទាំងអស់</router-link>
           </div>
           <div class="card-body">
             <div v-if="recentScores.length === 0" class="empty-state" style="padding:40px;">
-              <p style="color:var(--text-muted);">No scores recorded yet for this class.</p>
+              <p style="color:var(--text-muted);">មិនទាន់មានពិន្ទុត្រូវបានបញ្ចូលនៅឡើយទេ។</p>
             </div>
             <div v-else class="table-wrapper">
               <table>
                 <thead>
-                  <tr><th>Student</th><th>Subject</th><th>Type</th><th>Score</th></tr>
+                  <tr>
+                    <th>សិស្ស</th>
+                    <th>មុខវិជ្ជា</th>
+                    <th>ប្រភេទ</th>
+                    <th>ពិន្ទុ</th>
+                  </tr>
                 </thead>
                 <tbody>
                   <tr v-for="s in recentScores" :key="s.id">
                     <td style="font-weight:600;">{{ s.students?.full_name }}</td>
                     <td>{{ s.subjects?.subject_name }}</td>
-                    <td><span class="badge badge-gray">{{ s.score_type }}</span></td>
+                    <td><span class="badge badge-gray">{{ s.score_type === 'monthly' ? 'ប្រចាំខែ' : 'ឆមាស' }}</span></td>
                     <td><span class="badge" :class="s.score >= 50 ? 'badge-green' : 'badge-red'">{{ s.score }}</span></td>
                   </tr>
                 </tbody>
@@ -213,16 +227,18 @@ const attendancePercent = computed(() => {
 
         <!-- Quick Actions -->
         <div class="card">
-          <div class="card-header"><span class="card-title">Quick Actions</span></div>
+          <div class="card-header">
+            <span class="card-title">សកម្មភាពរហ័ស</span>
+          </div>
           <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
             <button class="btn btn-primary w-full" @click="$router.push('/teacher/attendance')">
-              <PencilSquareIcon class="w-4 h-4" /> Mark Attendance
+              <PencilSquareIcon class="w-4 h-4" /> កត់ត្រាវត្តមាន
             </button>
             <button class="btn btn-secondary w-full" @click="$router.push('/teacher/scores')">
-              <ChartBarIcon class="w-4 h-4" /> Enter Scores
+              <ChartBarIcon class="w-4 h-4" /> បញ្ចូលពិន្ទុ
             </button>
             <button class="btn btn-ghost w-full" @click="$router.push('/teacher/students')">
-              <AcademicCapIcon class="w-4 h-4" /> View Students
+              <AcademicCapIcon class="w-4 h-4" /> មើលបញ្ជីសិស្ស
             </button>
           </div>
         </div>

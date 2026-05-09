@@ -31,7 +31,6 @@ async function loadData() {
   loading.value = true
   const teacherId = auth.teacherProfile.id
 
-  // Get Class (Filter by active academic year to avoid multiple rows)
   const { data: classData } = await supabase
     .from('classes')
     .select('*, academic_years!inner(status)')
@@ -64,7 +63,6 @@ async function loadAttendance() {
   
   attendance.value = data || []
   
-  // Prepare bulk entries
   const attMap = {}
   attendance.value.forEach(a => { attMap[a.student_id] = a })
   
@@ -97,12 +95,17 @@ async function save() {
     }
   }
   saving.value = false
-  showToast('Attendance saved successfully!', 'success')
+  showToast('រក្សាទុកវត្តមានបានជោគជ័យ!', 'success')
   await loadAttendance()
 }
 
 function statusBadge(status) {
-  const map = { present: 'badge-green', absent: 'badge-red', late: 'badge-yellow', permission: 'badge-blue' }
+  const map = { 
+    present: 'badge-green', 
+    absent: 'badge-red', 
+    late: 'badge-yellow', 
+    permission: 'badge-blue' 
+  }
   return map[status] || 'badge-gray'
 }
 
@@ -132,16 +135,23 @@ function markAllPresent() {
 <template>
   <div>
     <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`"><CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" /><XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}</div>
+      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
+        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
+        <XCircleIcon v-else class="w-4 h-4" /> 
+        {{ toast.msg }}
+      </div>
     </div>
 
     <div class="page-header">
       <div>
-        <h1 class="page-title">Daily Attendance</h1>
-        <p class="page-subtitle" v-if="classInfo">Marking for Class: <strong>{{ classInfo.class_name }}</strong></p>
+        <h1 class="page-title">វត្តមានប្រចាំថ្ងៃ</h1>
+        <p class="page-subtitle" v-if="classInfo">
+          កត់ត្រាសម្រាប់ថ្នាក់៖ <strong>{{ classInfo.class_name }}</strong>
+        </p>
       </div>
       <button v-if="classInfo" class="btn btn-primary" @click="save" :disabled="saving">
-        <ArrowDownTrayIcon class="w-4 h-4" /> {{ saving ? 'Saving…' : 'Save Attendance' }}
+        <ArrowDownTrayIcon class="w-4 h-4" /> 
+        {{ saving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកវត្តមាន' }}
       </button>
     </div>
 
@@ -151,24 +161,26 @@ function markAllPresent() {
 
     <div v-else-if="!classInfo" class="empty-state">
       <div class="empty-state-icon"><BuildingOfficeIcon class="w-12 h-12 text-gray-400" /></div>
-      <p class="empty-state-title">No Class Assigned</p>
+      <p class="empty-state-title">មិនទាន់មានថ្នាក់ត្រូវបានចាត់តាំង</p>
     </div>
 
     <div v-else>
       <div class="card" style="margin-bottom:16px;">
         <div class="card-body" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
-          <div class="form-group" style="width:200px;">
-            <label class="form-label">កាលបរិច្ឆេទ (Date)</label>
+          <div class="form-group" style="width:220px;">
+            <label class="form-label">កាលបរិច្ឆេទ</label>
             <input class="form-input" type="date" v-model="selectedDate" @change="loadAttendance" />
           </div>
-          <button class="btn btn-ghost" @click="markAllPresent" :disabled="bulkEntries.length === 0" style="margin-top:14px; color:var(--primary-color);">
+          
+          <button class="btn btn-ghost" @click="markAllPresent" :disabled="bulkEntries.length === 0" style="margin-top:14px;">
             <CheckIcon class="w-4 h-4" /> គូសទាំងអស់ថាមានវត្តមាន
           </button>
+
           <div style="display:flex;gap:8px;flex:1;justify-content:flex-end;">
-            <span class="badge badge-green">មក: {{ summary.present }}</span>
-            <span class="badge badge-red">អវត្តមាន: {{ summary.absent }}</span>
-            <span class="badge badge-yellow">យឺត: {{ summary.late }}</span>
-            <span class="badge badge-blue">ច្បាប់: {{ summary.permission }}</span>
+            <span class="badge badge-green">មក៖ {{ summary.present }}</span>
+            <span class="badge badge-red">អវត្តមាន៖ {{ summary.absent }}</span>
+            <span class="badge badge-yellow">យឺត៖ {{ summary.late }}</span>
+            <span class="badge badge-blue">ច្បាប់៖ {{ summary.permission }}</span>
           </div>
         </div>
       </div>
@@ -176,12 +188,17 @@ function markAllPresent() {
       <div class="card">
         <div v-if="bulkEntries.length === 0" class="empty-state">
           <div class="empty-state-icon"><AcademicCapIcon class="w-12 h-12 text-gray-400" /></div>
-          <p class="empty-state-title">No students found</p>
+          <p class="empty-state-title">មិនមានសិស្ស</p>
         </div>
+        
         <div v-else class="table-wrapper">
           <table>
             <thead>
-              <tr><th>Student</th><th>Status</th><th>Reason (if not present)</th></tr>
+              <tr>
+                <th>សិស្ស</th>
+                <th>ស្ថានភាព</th>
+                <th>មូលហេតុ (បើមិនមានវត្តមាន)</th>
+              </tr>
             </thead>
             <tbody>
               <tr v-for="entry in bulkEntries" :key="entry.student_id">
@@ -192,7 +209,7 @@ function markAllPresent() {
                   </div>
                 </td>
                 <td>
-                  <div style="display:flex;gap:4px;">
+                  <div style="display:flex;gap:4px; flex-wrap:wrap;">
                     <button 
                       v-for="s in ['present', 'absent', 'late', 'permission']" 
                       :key="s"
@@ -201,7 +218,11 @@ function markAllPresent() {
                       style="font-size:11px;"
                       @click="entry.status = s"
                     >
-                      {{ s.charAt(0).toUpperCase() + s.slice(1) }}
+                      {{ 
+                        s === 'present' ? 'មានវត្តមាន' : 
+                        s === 'absent' ? 'អវត្តមាន' : 
+                        s === 'late' ? 'យឺត' : 'ច្បាប់' 
+                      }}
                     </button>
                   </div>
                 </td>
@@ -210,8 +231,8 @@ function markAllPresent() {
                     v-if="entry.status !== 'present'"
                     class="form-input" 
                     v-model="entry.reason" 
-                    placeholder="e.g. Hospital, Travel" 
-                    style="width:100%;max-width:200px;"
+                    placeholder="ឧ. មន្ទីរពេទ្យ, ធ្វើដំណើរ, ឈឺ" 
+                    style="width:100%;max-width:280px;"
                   />
                   <span v-else style="color:var(--text-muted);font-size:12px;">—</span>
                 </td>
@@ -219,9 +240,11 @@ function markAllPresent() {
             </tbody>
           </table>
         </div>
+
         <div v-if="bulkEntries.length > 0" class="card-footer" style="display:flex;justify-content:flex-end;">
           <button class="btn btn-primary" @click="save" :disabled="saving">
-        <ArrowDownTrayIcon class="w-4 h-4" /> {{ saving ? 'Saving…' : 'Save Attendance' }}
+            <ArrowDownTrayIcon class="w-4 h-4" /> 
+            {{ saving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកវត្តមាន' }}
           </button>
         </div>
       </div>

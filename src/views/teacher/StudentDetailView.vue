@@ -100,13 +100,13 @@ async function handleSave() {
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   
-  showToast('Record saved!', 'success')
+  showToast('រក្សាទុកទិន្នន័យបានជោគជ័យ!', 'success')
   showModal.value = false
   await loadHealth()
 }
 
 async function handleDelete(type, id) {
-  if (!confirm('Are you sure you want to delete this record?')) return
+  if (!confirm('តើអ្នកពិតជាចង់លុបទិន្នន័យនេះមែនទេ?')) return
   let table = ''
   if (type === 'growth') table = 'student_growth'
   else if (type === 'vaccine') table = 'student_vaccinations'
@@ -114,7 +114,7 @@ async function handleDelete(type, id) {
   
   const { error } = await supabase.from(table).delete().eq('id', id)
   if (error) { showToast(error.message, 'error'); return }
-  showToast('Record deleted', 'success')
+  showToast('លុបទិន្នន័យបានជោគជ័យ', 'success')
   await loadHealth()
 }
 
@@ -123,14 +123,18 @@ function showToast(msg, type = 'success') {
   setTimeout(() => { toast.value = null }, 3000)
 }
 
-function initials(name) { return (name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() }
+function initials(name) { 
+  return (name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() 
+}
 </script>
 
 <template>
   <div class="student-detail-page">
     <div class="toast-container">
       <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" /><XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}
+        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
+        <XCircleIcon v-else class="w-4 h-4" /> 
+        {{ toast.msg }}
       </div>
     </div>
 
@@ -147,23 +151,29 @@ function initials(name) { return (name || '').split(' ').map(w => w[0]).join('')
           <div class="profile-info">
             <h1 class="student-name">{{ student.full_name }}</h1>
             <div class="profile-badges">
-              <span class="badge badge-blue">ID: {{ student.real_id || '—' }}</span>
+              <span class="badge badge-blue">លេខកូដ៖ {{ student.real_id || '—' }}</span>
               <span class="badge badge-indigo">{{ student.classes?.class_name }}</span>
-              <span class="badge badge-gray">{{ student.gender }}</span>
+              <span class="badge badge-gray">{{ student.gender === 'Male' ? 'ប្រុស' : 'ស្រី' }}</span>
             </div>
           </div>
           <button class="btn btn-ghost" @click="router.back()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
-            Back
+            ត្រឡប់ក្រោយ
           </button>
         </div>
       </div>
 
       <!-- Tabs Navigation -->
       <div class="tabs">
-        <div class="tab-item" :class="{ active: activeTab === 'health' }" @click="activeTab = 'health'"><HeartIcon class="w-4 h-4" /> Health & Growth</div>
-        <div class="tab-item" :class="{ active: activeTab === 'attendance' }" @click="activeTab = 'attendance'"><CalendarIcon class="w-4 h-4" /> Attendance</div>
-        <div class="tab-item" :class="{ active: activeTab === 'scores' }" @click="activeTab = 'scores'"><StarIcon class="w-4 h-4" /> Scores</div>
+        <div class="tab-item" :class="{ active: activeTab === 'health' }" @click="activeTab = 'health'">
+          <HeartIcon class="w-4 h-4" /> សុខភាព & កំណើន
+        </div>
+        <div class="tab-item" :class="{ active: activeTab === 'attendance' }" @click="activeTab = 'attendance'">
+          <CalendarIcon class="w-4 h-4" /> វត្តមាន
+        </div>
+        <div class="tab-item" :class="{ active: activeTab === 'scores' }" @click="activeTab = 'scores'">
+          <StarIcon class="w-4 h-4" /> ពិន្ទុ
+        </div>
       </div>
 
       <!-- Tab Content -->
@@ -174,12 +184,12 @@ function initials(name) { return (name || '').split(' ').map(w => w[0]).join('')
             <!-- Growth Section -->
             <section class="health-section">
               <div class="section-header">
-                <h3 class="section-title"><ArrowsUpDownIcon class="w-4 h-4" /> Growth Records</h3>
-                <button class="btn btn-primary btn-xs" @click="openAdd('growth')">+ Add</button>
+                <h3 class="section-title"><ArrowsUpDownIcon class="w-4 h-4" /> កំណត់ត្រាកំណើន</h3>
+                <button class="btn btn-primary btn-xs" @click="openAdd('growth')">+ បញ្ចូលថ្មី</button>
               </div>
               <div class="table-wrapper mini-table">
                 <table>
-                  <thead><tr><th>Date</th><th>Ht (cm)</th><th>Wt (kg)</th><th>Actions</th></tr></thead>
+                  <thead><tr><th>កាលបរិច្ឆេទ</th><th>កម្ពស់ (សម)</th><th>ទម្ងន់ (គក)</th><th>សកម្មភាព</th></tr></thead>
                   <tbody>
                     <tr v-for="g in health.growth" :key="g.id">
                       <td>{{ formatDate(g.date) }}</td>
@@ -192,7 +202,7 @@ function initials(name) { return (name || '').split(' ').map(w => w[0]).join('')
                         </div>
                       </td>
                     </tr>
-                    <tr v-if="health.growth.length === 0"><td colspan="4" class="text-center py-4 text-muted">No records</td></tr>
+                    <tr v-if="health.growth.length === 0"><td colspan="4" class="text-center py-4 text-muted">មិនទាន់មានកំណត់ត្រា</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -201,17 +211,17 @@ function initials(name) { return (name || '').split(' ').map(w => w[0]).join('')
             <!-- Vaccinations Section -->
             <section class="health-section">
               <div class="section-header">
-                <h3 class="section-title"><BeakerIcon class="w-4 h-4" /> Vaccinations</h3>
-                <button class="btn btn-primary btn-xs" @click="openAdd('vaccine')">+ Add</button>
+                <h3 class="section-title"><BeakerIcon class="w-4 h-4" /> ការចាក់វ៉ាក់សាំង</h3>
+                <button class="btn btn-primary btn-xs" @click="openAdd('vaccine')">+ បញ្ចូលថ្មី</button>
               </div>
               <div class="table-wrapper mini-table">
                 <table>
-                  <thead><tr><th>Vaccine</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                  <thead><tr><th>ឈ្មោះវ៉ាក់សាំង</th><th>កាលបរិច្ឆេទ</th><th>ស្ថានភាព</th><th>សកម្មភាព</th></tr></thead>
                   <tbody>
                     <tr v-for="v in health.vaccinations" :key="v.id">
                       <td style="font-weight:600;">{{ v.name }}</td>
                       <td>{{ formatDate(v.date) }}</td>
-                      <td><span class="badge badge-xs" :class="v.completed ? 'badge-green' : 'badge-yellow'">{{ v.completed ? 'Done' : 'Pending' }}</span></td>
+                      <td><span class="badge badge-xs" :class="v.completed ? 'badge-green' : 'badge-yellow'">{{ v.completed ? 'បានចាក់' : 'មិនទាន់' }}</span></td>
                       <td>
                         <div class="table-actions">
                           <button class="btn btn-ghost btn-xs btn-icon" @click="openEdit('vaccine', v)"><PencilIcon class="w-3 h-3" /></button>
@@ -219,7 +229,7 @@ function initials(name) { return (name || '').split(' ').map(w => w[0]).join('')
                         </div>
                       </td>
                     </tr>
-                    <tr v-if="health.vaccinations.length === 0"><td colspan="4" class="text-center py-4 text-muted">No records</td></tr>
+                    <tr v-if="health.vaccinations.length === 0"><td colspan="4" class="text-center py-4 text-muted">មិនទាន់មានកំណត់ត្រា</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -228,16 +238,16 @@ function initials(name) { return (name || '').split(' ').map(w => w[0]).join('')
             <!-- Sick Days Section -->
             <section class="health-section" style="grid-column: span 2;">
               <div class="section-header">
-                <h3 class="section-title"><FaceFrownIcon class="w-4 h-4" /> Sick Day History</h3>
-                <button class="btn btn-primary btn-xs" @click="openAdd('sick')">+ Add</button>
+                <h3 class="section-title"><FaceFrownIcon class="w-4 h-4" /> ប្រវត្តិជំងឺ</h3>
+                <button class="btn btn-primary btn-xs" @click="openAdd('sick')">+ បញ្ចូលថ្មី</button>
               </div>
               <div class="table-wrapper">
                 <table>
-                  <thead><tr><th>Date</th><th>Duration</th><th>Reason</th><th>Notes</th><th>Actions</th></tr></thead>
+                  <thead><tr><th>កាលបរិច្ឆេទ</th><th>រយៈពេល</th><th>មូលហេតុ</th><th>កំណត់ចំណាំ</th><th>សកម្មភាព</th></tr></thead>
                   <tbody>
                     <tr v-for="s in health.sickDays" :key="s.id">
                       <td>{{ formatDate(s.date) }}</td>
-                      <td><span class="badge badge-red badge-xs">{{ s.duration }} day{{ s.duration > 1 ? 's' : '' }}</span></td>
+                      <td><span class="badge badge-red badge-xs">{{ s.duration }} ថ្ងៃ</span></td>
                       <td style="font-weight:600;">{{ s.reason }}</td>
                       <td style="font-size:12px;">{{ s.notes || '—' }}</td>
                       <td>
@@ -247,7 +257,7 @@ function initials(name) { return (name || '').split(' ').map(w => w[0]).join('')
                         </div>
                       </td>
                     </tr>
-                    <tr v-if="health.sickDays.length === 0"><td colspan="5" class="text-center py-4 text-muted">No sick days recorded</td></tr>
+                    <tr v-if="health.sickDays.length === 0"><td colspan="5" class="text-center py-4 text-muted">មិនទាន់មានកំណត់ត្រាជំងឺ</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -258,26 +268,26 @@ function initials(name) { return (name || '').split(' ').map(w => w[0]).join('')
         <!-- Attendance Tab -->
         <div v-if="activeTab === 'attendance'" class="table-wrapper">
           <table>
-            <thead><tr><th>Date</th><th>Status</th><th>Reason</th></tr></thead>
+            <thead><tr><th>កាលបរិច្ឆេទ</th><th>ស្ថានភាព</th><th>មូលហេតុ</th></tr></thead>
             <tbody>
               <tr v-for="a in attendance" :key="a.id">
                 <td>{{ formatDate(a.date) }}</td>
-                <td><span class="badge" :class="a.status === 'present' ? 'badge-green' : 'badge-red'">{{ a.status }}</span></td>
+                <td><span class="badge" :class="a.status === 'present' ? 'badge-green' : 'badge-red'">{{ a.status === 'present' ? 'មានវត្តមាន' : 'អវត្តមាន' }}</span></td>
                 <td>{{ a.reason || '—' }}</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <!-- ⭐ Scores Tab -->
+        <!-- Scores Tab -->
         <div v-if="activeTab === 'scores'" class="table-wrapper">
           <table>
-            <thead><tr><th>Subject</th><th>Month</th><th>Type</th><th>Score</th></tr></thead>
+            <thead><tr><th>មុខវិជ្ជា</th><th>ខែ</th><th>ប្រភេទ</th><th>ពិន្ទុ</th></tr></thead>
             <tbody>
               <tr v-for="s in scores" :key="s.id">
                 <td style="font-weight:600;">{{ s.subjects?.subject_name }}</td>
                 <td>{{ s.month ? new Date(0, s.month-1).toLocaleString('default', { month: 'long' }) : '—' }}</td>
-                <td><span class="badge badge-gray">{{ s.score_type }}</span></td>
+                <td><span class="badge badge-gray">{{ s.score_type === 'monthly' ? 'ប្រចាំខែ' : 'ឆមាស' }}</span></td>
                 <td><span class="badge" :class="s.score >= 50 ? 'badge-green' : 'badge-red'">{{ s.score }}</span></td>
               </tr>
             </tbody>
@@ -286,56 +296,57 @@ function initials(name) { return (name || '').split(' ').map(w => w[0]).join('')
       </div>
     </div>
 
-    <!-- ── Modals ────────────────────────────────────────────── -->
-
+    <!-- Modals -->
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
       <div class="modal" style="max-width:400px;">
         <div class="modal-header">
           <span class="modal-title">
-            {{ isEdit ? 'Edit' : 'Add' }} 
-            {{ modalType === 'growth' ? 'Growth Record' : modalType === 'vaccine' ? 'Vaccination' : 'Sick Day' }}
+            {{ isEdit ? 'កែប្រែ' : 'បញ្ចូលថ្មី' }} 
+            {{ modalType === 'growth' ? 'កំណត់ត្រាកំណើន' : modalType === 'vaccine' ? 'ការចាក់វ៉ាក់សាំង' : 'ថ្ងៃជំងឺ' }}
           </span>
           <button class="btn btn-ghost btn-sm btn-icon" @click="showModal = false"><XMarkIcon class="w-4 h-4" /></button>
         </div>
         <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
-          <!-- Shared Date Field -->
+          <!-- Date -->
           <div class="form-group">
-            <label class="form-label">Date</label>
+            <label class="form-label">កាលបរិច្ឆេទ</label>
             <input v-if="modalType === 'growth'" type="date" class="form-input" v-model="growthForm.date" />
             <input v-if="modalType === 'vaccine'" type="date" class="form-input" v-model="vaccineForm.date" />
             <input v-if="modalType === 'sick'" type="date" class="form-input" v-model="sickForm.date" />
           </div>
 
-          <!-- Growth Specific -->
+          <!-- Growth -->
           <template v-if="modalType === 'growth'">
-            <div class="form-group"><label class="form-label">Height (cm)</label><input type="number" step="0.1" class="form-input" v-model="growthForm.height" /></div>
-            <div class="form-group"><label class="form-label">Weight (kg)</label><input type="number" step="0.1" class="form-input" v-model="growthForm.weight" /></div>
-            <div class="form-group"><label class="form-label">Age (years)</label><input type="number" step="0.1" class="form-input" v-model="growthForm.age" /></div>
+            <div class="form-group"><label class="form-label">កម្ពស់ (សម)</label><input type="number" step="0.1" class="form-input" v-model="growthForm.height" /></div>
+            <div class="form-group"><label class="form-label">ទម្ងន់ (គក)</label><input type="number" step="0.1" class="form-input" v-model="growthForm.weight" /></div>
+            <div class="form-group"><label class="form-label">អាយុ (ឆ្នាំ)</label><input type="number" step="0.1" class="form-input" v-model="growthForm.age" /></div>
           </template>
 
-          <!-- Vaccine Specific -->
+          <!-- Vaccine -->
           <template v-if="modalType === 'vaccine'">
-            <div class="form-group"><label class="form-label">Vaccine Name</label><input class="form-input" v-model="vaccineForm.name" /></div>
-            <div class="form-group"><label class="form-label">Description</label><input class="form-input" v-model="vaccineForm.description" /></div>
+            <div class="form-group"><label class="form-label">ឈ្មោះវ៉ាក់សាំង</label><input class="form-input" v-model="vaccineForm.name" /></div>
+            <div class="form-group"><label class="form-label">ការពិពណ៌នា</label><input class="form-input" v-model="vaccineForm.description" /></div>
             <div class="form-group">
-              <label class="form-label">Status</label>
+              <label class="form-label">ស្ថានភាព</label>
               <div style="display:flex; gap:12px;">
-                <label style="cursor:pointer;"><input type="radio" :value="true" v-model="vaccineForm.completed" /> Done</label>
-                <label style="cursor:pointer;"><input type="radio" :value="false" v-model="vaccineForm.completed" /> Pending</label>
+                <label style="cursor:pointer;"><input type="radio" :value="true" v-model="vaccineForm.completed" /> បានចាក់</label>
+                <label style="cursor:pointer;"><input type="radio" :value="false" v-model="vaccineForm.completed" /> មិនទាន់</label>
               </div>
             </div>
           </template>
 
-          <!-- Sick Specific -->
+          <!-- Sick -->
           <template v-if="modalType === 'sick'">
-            <div class="form-group"><label class="form-label">Reason</label><input class="form-input" v-model="sickForm.reason" /></div>
-            <div class="form-group"><label class="form-label">Duration (days)</label><input type="number" class="form-input" v-model="sickForm.duration" /></div>
-            <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" v-model="sickForm.notes" rows="2"></textarea></div>
+            <div class="form-group"><label class="form-label">មូលហេតុ</label><input class="form-input" v-model="sickForm.reason" /></div>
+            <div class="form-group"><label class="form-label">រយៈពេល (ថ្ងៃ)</label><input type="number" class="form-input" v-model="sickForm.duration" /></div>
+            <div class="form-group"><label class="form-label">កំណត់ចំណាំ</label><textarea class="form-textarea" v-model="sickForm.notes" rows="2"></textarea></div>
           </template>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-ghost" @click="showModal = false">Cancel</button>
-          <button class="btn btn-primary" @click="handleSave" :disabled="saving">{{ saving ? 'Saving…' : 'Save Record' }}</button>
+          <button class="btn btn-ghost" @click="showModal = false">បោះបង់</button>
+          <button class="btn btn-primary" @click="handleSave" :disabled="saving">
+            {{ saving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុក' }}
+          </button>
         </div>
       </div>
     </div>

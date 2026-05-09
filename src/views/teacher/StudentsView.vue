@@ -28,7 +28,7 @@ async function loadData() {
   loading.value = true
   const teacherId = auth.teacherProfile.id
 
-  // Get Class (Filter by active academic year to avoid multiple rows)
+  // Get Class (Filter by active academic year)
   const { data: classData } = await supabase
     .from('classes')
     .select('*, academic_years!inner(status)')
@@ -66,8 +66,10 @@ function initials(name) {
   <div>
     <div class="page-header">
       <div>
-        <h1 class="page-title">My Students</h1>
-        <p class="page-subtitle" v-if="classInfo">Class: <strong>{{ classInfo.class_name }}</strong> — {{ students.length }} students</p>
+        <h1 class="page-title">សិស្សរបស់ខ្ញុំ</h1>
+        <p class="page-subtitle" v-if="classInfo">
+          ថ្នាក់៖ <strong>{{ classInfo.class_name }}</strong> — សិស្សសរុប {{ students.length }} នាក់
+        </p>
       </div>
     </div>
 
@@ -77,26 +79,35 @@ function initials(name) {
 
     <div v-else-if="!classInfo" class="empty-state">
       <div class="empty-state-icon"><BuildingOfficeIcon class="w-12 h-12 text-gray-400" /></div>
-      <p class="empty-state-title">No Class Assigned</p>
+      <p class="empty-state-title">មិនទាន់មានថ្នាក់ត្រូវបានចាត់តាំង</p>
+      <p class="empty-state-desc">សូមទាក់ទងអ្នកគ្រប់គ្រង។</p>
     </div>
 
     <div v-else>
       <div class="filters-bar">
         <div class="search-input-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input class="form-input" v-model="search" placeholder="Search students by name or ID…" />
+          <input class="form-input" v-model="search" placeholder="ស្វែងរកសិស្សតាមឈ្មោះ ឬលេខកូដ..." />
         </div>
       </div>
 
       <div class="card">
         <div v-if="filtered.length === 0" class="empty-state">
           <div class="empty-state-icon"><AcademicCapIcon class="w-12 h-12 text-gray-400" /></div>
-          <p class="empty-state-title">No students found</p>
+          <p class="empty-state-title">មិនមានសិស្សត្រូវបានរកឃើញ</p>
         </div>
+        
         <div v-else class="table-wrapper">
           <table>
             <thead>
-              <tr><th>Student</th><th>ID</th><th>Gender</th><th>DOB</th><th>Parent Contact</th><th>Actions</th></tr>
+              <tr>
+                <th>សិស្ស</th>
+                <th>លេខកូដ</th>
+                <th>ភេទ</th>
+                <th>ថ្ងៃខែឆ្នាំកំណើត</th>
+                <th>ទូរស័ព្ទអាណាព្យាបាល</th>
+                <th>សកម្មភាព</th>
+              </tr>
             </thead>
             <tbody>
               <tr v-for="s in filtered" :key="s.id">
@@ -110,16 +121,23 @@ function initials(name) {
                   </div>
                 </td>
                 <td style="font-size:12px;color:var(--text-secondary);">{{ s.real_id || '—' }}</td>
-                <td><span class="badge" :class="s.gender === 'Male' ? 'badge-blue' : 'badge-red'">{{ s.gender }}</span></td>
+                <td>
+                  <span class="badge" :class="s.gender === 'Male' ? 'badge-blue' : 'badge-red'">
+                    {{ s.gender === 'Male' ? 'ប្រុស' : 'ស្រី' }}
+                  </span>
+                </td>
                 <td style="font-size:13px;">{{ formatDate(s.dob) }}</td>
                 <td style="font-size:13px;">
-                  <div v-if="s.phone_number"><PhoneIcon class="w-3 h-3" style="display:inline;vertical-align:middle;margin-right:4px;" /> {{ s.phone_number }}</div>
-                  <div v-else style="color:var(--text-muted);">No phone</div>
+                  <div v-if="s.phone_number">
+                    <PhoneIcon class="w-3 h-3" style="display:inline;vertical-align:middle;margin-right:4px;" /> 
+                    {{ s.phone_number }}
+                  </div>
+                  <div v-else style="color:var(--text-muted);">មិនមានលេខទូរស័ព្ទ</div>
                 </td>
                 <td>
                   <div class="table-actions">
                     <button class="btn btn-ghost btn-sm" @click="router.push('/teacher/students/' + s.id)">
-                      View Details
+                      មើលព័ត៌មានលម្អិត
                     </button>
                   </div>
                 </td>

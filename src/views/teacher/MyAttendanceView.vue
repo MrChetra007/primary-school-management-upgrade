@@ -32,7 +32,12 @@ async function loadAttendance() {
 }
 
 function statusBadge(status) {
-  const map = { present: 'badge-green', absent: 'badge-red', late: 'badge-yellow', permission: 'badge-blue' }
+  const map = { 
+    present: 'badge-green', 
+    absent: 'badge-red', 
+    late: 'badge-yellow', 
+    permission: 'badge-blue' 
+  }
   return map[status] || 'badge-gray'
 }
 </script>
@@ -41,8 +46,8 @@ function statusBadge(status) {
   <div>
     <div class="page-header">
       <div>
-        <h1 class="page-title">My Attendance</h1>
-        <p class="page-subtitle">Your personal attendance records</p>
+        <h1 class="page-title">វត្តមានរបស់ខ្ញុំ</h1>
+        <p class="page-subtitle">កំណត់ត្រាវត្តមានផ្ទាល់ខ្លួនរបស់អ្នក</p>
       </div>
     </div>
 
@@ -53,28 +58,38 @@ function statusBadge(status) {
     <div v-else class="card">
       <div v-if="attendance.length === 0" class="empty-state">
         <ClipboardDocumentListIcon class="w-12 h-12 text-gray-400" />
-        <p class="empty-state-title">No records found</p>
+        <p class="empty-state-title">មិនមានកំណត់ត្រា</p>
       </div>
       <div v-else class="table-wrapper">
         <table>
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Check-in Time</th>
-              <th>Note / Reason</th>
+              <th>កាលបរិច្ឆេទ</th>
+              <th>ស្ថានភាព</th>
+              <th>ម៉ោងចូលធ្វើការ</th>
+              <th>កំណត់ចំណាំ / មូលហេតុ</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="a in attendance" :key="a.id">
               <td>{{ formatDate(a.date) }}</td>
-              <td><span class="badge" :class="statusBadge(a.status)">{{ a.status }}</span></td>
-              <td style="font-family:monospace;">{{ a.check_in_time ? new Date(a.check_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—' }}</td>
+              <td>
+                <span class="badge" :class="statusBadge(a.status)">
+                  {{ 
+                    a.status === 'present' ? 'មានវត្តមាន' : 
+                    a.status === 'absent' ? 'អវត្តមាន' : 
+                    a.status === 'late' ? 'យឺត' : 'ច្បាប់' 
+                  }}
+                </span>
+              </td>
+              <td style="font-family:monospace;">
+                {{ a.check_in_time ? new Date(a.check_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—' }}
+              </td>
               <td style="font-size:13px; color:var(--text-secondary);">
                 <span v-if="a.note" class="badge badge-gray" :title="a.note">Override: {{ a.note }}</span>
                 <span v-else-if="!a.check_in_time && a.status !== 'present'">—</span>
-                <span v-else-if="!a.check_in_time">Auto</span>
-                <span v-else>Self</span>
+                <span v-else-if="!a.check_in_time">ស្វ័យប្រវត្តិ</span>
+                <span v-else>ខ្លួនឯង</span>
               </td>
             </tr>
           </tbody>

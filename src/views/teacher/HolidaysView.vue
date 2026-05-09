@@ -26,8 +26,8 @@ function dayCount(h) {
   <div>
     <div class="page-header">
       <div>
-        <h1 class="page-title">School Holidays</h1>
-        <p class="page-subtitle">Scheduled breaks and public holidays</p>
+        <h1 class="page-title">ថ្ងៃឈប់សម្រាកសាលា</h1>
+        <p class="page-subtitle">ថ្ងៃឈប់សម្រាក និងថ្ងៃបុណ្យជាតិ</p>
       </div>
     </div>
 
@@ -38,20 +38,32 @@ function dayCount(h) {
     <div v-else class="card">
       <div v-if="holidays.length === 0" class="empty-state">
         <div class="empty-state-icon">🌴</div>
-        <p class="empty-state-title">No holidays scheduled</p>
+        <p class="empty-state-title">មិនមានថ្ងៃឈប់សម្រាក</p>
       </div>
       <div v-else class="table-wrapper">
         <table>
           <thead>
-            <tr><th>Holiday Name</th><th>Start Date</th><th>End Date</th><th>Duration</th><th>Academic Year</th></tr>
+            <tr>
+              <th>ឈ្មោះថ្ងៃឈប់</th>
+              <th>ថ្ងៃចាប់ផ្ដើម</th>
+              <th>ថ្ងៃបញ្ចប់</th>
+              <th>រយៈពេល</th>
+              <th>ឆ្នាំសិក្សា</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="h in holidays" :key="h.id">
               <td style="font-weight:600;">🌴 {{ h.name }}</td>
               <td>{{ formatDate(h.start_date) }}</td>
               <td>{{ formatDate(h.end_date) }}</td>
-              <td><span class="badge badge-blue">{{ dayCount(h) }} day{{ dayCount(h) !== 1 ? 's' : '' }}</span></td>
-              <td><span class="badge badge-gray">{{ h.academic_years?.year_name || '—' }}</span></td>
+              <td>
+                <span class="badge badge-blue">
+                  {{ dayCount(h) }} ថ្ងៃ
+                </span>
+              </td>
+              <td>
+                <span class="badge badge-gray">{{ h.academic_years?.year_name || '—' }}</span>
+              </td>
             </tr>
           </tbody>
         </table>

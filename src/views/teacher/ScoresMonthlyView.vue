@@ -19,10 +19,10 @@ const scores = ref([]) // Raw scores from DB
 const scoreMatrix = ref([]) // Transformed data for the table
 
 const months = [
-  { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
-  { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
-  { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
-  { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+  { id: 1, name: 'មករា' }, { id: 2, name: 'កុម្ភៈ' }, { id: 3, name: 'មីនា' },
+  { id: 4, name: 'មេសា' }, { id: 5, name: 'ឧសភា' }, { id: 6, name: 'មិថុនា' },
+  { id: 7, name: 'កក្កដា' }, { id: 8, name: 'សីហា' }, { id: 9, name: 'កញ្ញា' },
+  { id: 10, name: 'តុលា' }, { id: 11, name: 'វិច្ឆិកា' }, { id: 12, name: 'ធ្នូ' }
 ]
 
 onMounted(async () => {
@@ -50,14 +50,14 @@ async function loadData() {
   if (classData) {
     classInfo.value = classData
     
-    // 1. Get Subjects assigned to this class
+    // 1. Get Subjects
     const { data: subData } = await supabase
       .from('class_subjects')
       .select('subjects(*)')
       .eq('class_id', classData.id)
     subjects.value = subData?.map(s => s.subjects) || []
 
-    // 2. Get All Students
+    // 2. Get Students
     const { data: stuData } = await supabase
       .from('students')
       .select('id, full_name')
@@ -109,7 +109,6 @@ function buildMatrix() {
 }
 
 function calculateAll() {
-  // 1. Calculate Averages
   scoreMatrix.value.forEach(row => {
     const scoresArray = Object.values(row.subjects)
       .filter(s => s.score !== '')
@@ -117,11 +116,7 @@ function calculateAll() {
     row.average = computeMonthlyAverage(scoresArray)
   })
 
-  // 2. Calculate Ranks
   const ranked = computeRank(scoreMatrix.value)
-  // computeRank returns a sorted array, we need to map back to our original list if we want to keep alphabetical order
-  // Actually, Roadmap says "list view", we can keep alphabetical or ranked.
-  // Usually, teachers prefer alphabetical for entry.
   scoreMatrix.value = ranked.sort((a, b) => a.full_name.localeCompare(b.full_name))
 }
 
@@ -149,7 +144,7 @@ async function saveAll() {
   if (toUpsert.length > 0) {
     const { error } = await supabase.from('scores').upsert(toUpsert)
     if (error) showToast(error.message, 'error')
-    else showToast('All scores saved!', 'success')
+    else showToast('រក្សាទុកពិន្ទុទាំងអស់បានជោគជ័យ!', 'success')
   }
 
   saving.value = false
@@ -160,16 +155,16 @@ const printArea = ref(null)
 async function handleExport() {
   if (!printArea.value) return
   const metadata = {
-    schoolName: 'Primary School', // Could be dynamic
+    schoolName: 'សាលាបឋមសិក្សា',
     className: classInfo.value?.class_name,
     month: months.find(m => m.id === selectedMonth.value)?.name,
     year: classInfo.value?.academic_years?.year_name
   }
   try {
     await generateMonthlyScorePDF(printArea.value, metadata)
-    showToast('PDF Generated!', 'success')
+    showToast('បង្កើត PDF បានជោគជ័យ!', 'success')
   } catch (e) {
-    showToast('Failed to generate PDF', 'error')
+    showToast('មិនអាចបង្កើត PDF បានទេ', 'error')
   }
 }
 
@@ -184,21 +179,30 @@ watch(selectedMonth, fetchScores)
 <template>
   <div class="scores-monthly-view">
     <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`"><CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" /><XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}</div>
+      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
+        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
+        <XCircleIcon v-else class="w-4 h-4" /> 
+        {{ toast.msg }}
+      </div>
     </div>
 
     <div class="page-header no-print">
       <div>
-        <h1 class="page-title">Monthly Score Entry</h1>
-        <p class="page-subtitle" v-if="classInfo">Managing <strong>{{ classInfo.class_name }}</strong> ({{ classInfo.academic_years?.year_name }})</p>
+        <h1 class="page-title">បញ្ចូលពិន្ទុប្រចាំខែ</h1>
+        <p class="page-subtitle" v-if="classInfo">
+          គ្រប់គ្រងថ្នាក់ <strong>{{ classInfo.class_name }}</strong> ({{ classInfo.academic_years?.year_name }})
+        </p>
       </div>
       <div style="display:flex; gap:12px;">
         <button class="btn btn-secondary" @click="handleExport" :disabled="loading || scoreMatrix.length === 0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Print PDF
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          ទាញយក PDF
         </button>
         <button class="btn btn-primary" @click="saveAll" :disabled="saving || loading">
-          <ArrowDownTrayIcon class="w-4 h-4" /> {{ saving ? 'Saving…' : 'Save All' }}
+          <ArrowDownTrayIcon class="w-4 h-4" /> 
+          {{ saving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកទាំងអស់' }}
         </button>
       </div>
     </div>
@@ -209,7 +213,7 @@ watch(selectedMonth, fetchScores)
 
     <div v-else-if="!classInfo" class="empty-state">
       <BuildingOfficeIcon class="w-12 h-12 text-gray-400" />
-      <p class="empty-state-title">No Class Assigned</p>
+      <p class="empty-state-title">មិនទាន់មានថ្នាក់ត្រូវបានចាត់តាំង</p>
     </div>
 
     <div v-else>
@@ -217,7 +221,7 @@ watch(selectedMonth, fetchScores)
       <div class="card no-print" style="margin-bottom:20px;">
         <div class="card-body">
           <div class="form-group" style="width:240px;">
-            <label class="form-label">Select Month</label>
+            <label class="form-label">ជ្រើសរើសខែ</label>
             <select class="form-select" v-model="selectedMonth">
               <option v-for="m in months" :key="m.id" :value="m.id">{{ m.name }}</option>
             </select>
@@ -228,11 +232,11 @@ watch(selectedMonth, fetchScores)
       <!-- Score Matrix -->
       <div class="card" ref="printArea">
         <div class="print-header only-print">
-          <h2>បញ្ជីពិន្ទុប្រចាំខែ (Monthly Score Report)</h2>
+          <h2>បញ្ជីពិន្ទុប្រចាំខែ</h2>
           <div style="display:flex; justify-content:space-between; margin-top:10px;">
-            <span>ថ្នាក់: {{ classInfo.class_name }}</span>
-            <span>ខែ: {{ months.find(m => m.id === selectedMonth)?.name }}</span>
-            <span>ឆ្នាំសិក្សា: {{ classInfo.academic_years?.year_name }}</span>
+            <span>ថ្នាក់៖ {{ classInfo.class_name }}</span>
+            <span>ខែ៖ {{ months.find(m => m.id === selectedMonth)?.name }}</span>
+            <span>ឆ្នាំសិក្សា៖ {{ classInfo.academic_years?.year_name }}</span>
           </div>
         </div>
 
@@ -245,7 +249,7 @@ watch(selectedMonth, fetchScores)
                 <th v-for="sub in subjects" :key="sub.id" class="sub-col">
                   <div class="vertical-text">{{ sub.subject_name }}</div>
                 </th>
-                <th class="summary-col">មធ្យម</th>
+                <th class="summary-col">មធ្យមភាគ</th>
                 <th class="summary-col">លំដាប់</th>
               </tr>
             </thead>
@@ -258,7 +262,8 @@ watch(selectedMonth, fetchScores)
                     type="number" 
                     class="score-input"
                     v-model="row.subjects[sub.id].score"
-                    min="0" max="100"
+                    min="0" 
+                    max="100"
                     @input="calculateAll"
                   />
                 </td>
@@ -271,7 +276,7 @@ watch(selectedMonth, fetchScores)
 
         <div class="print-footer only-print" style="margin-top:40px; display:flex; justify-content:flex-end; padding:20px;">
           <div style="text-align:center;">
-            <p>ថ្ងៃទី........ ខែ........ ឆ្នាំ២០........</p>
+            <p>ថ្ងៃទី ........ ខែ ........ ឆ្នាំ២០........</p>
             <p style="margin-top:10px; font-weight:700;">ហត្ថលេខាគ្រូបន្ទុកថ្នាក់</p>
             <div style="height:60px;"></div>
           </div>
