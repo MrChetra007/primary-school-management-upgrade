@@ -56,8 +56,8 @@ async function loadStats() {
   <div>
     <div class="page-header">
       <div>
-        <h1 class="page-title">Library Dashboard</h1>
-        <p class="page-subtitle">Managing school literature and borrowing records</p>
+        <h1 class="page-title">ផ្ទាំងគ្រប់គ្រងបណ្ណាល័យ</h1>
+        <p class="page-subtitle">គ្រប់គ្រងសៀវភៅ និងកំណត់ត្រាខ្ចីសៀវភៅ</p>
       </div>
     </div>
 
@@ -71,54 +71,69 @@ async function loadStats() {
         <div class="stat-card">
           <div class="stat-icon" style="background:#e0f2fe;color:#0ea5e9;"><BookOpenIcon class="w-6 h-6" /></div>
           <div class="stat-info">
-            <div class="stat-label">Total Books</div>
+            <div class="stat-label">សៀវភៅសរុប</div>
             <div class="stat-value">{{ stats.totalBooks }}</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon" style="background:#f0fdf4;color:#22c55e;"><CheckCircleIcon class="w-6 h-6" /></div>
           <div class="stat-info">
-            <div class="stat-label">Available</div>
+            <div class="stat-label">នៅសល់</div>
             <div class="stat-value">{{ stats.availableBooks }}</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon" style="background:#fff7ed;color:#f97316;"><BookOpenIcon class="w-6 h-6" /></div>
           <div class="stat-info">
-            <div class="stat-label">Borrowed</div>
+            <div class="stat-label">កំពុងខ្ចី</div>
             <div class="stat-value">{{ stats.borrowedBooks }}</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon" style="background:#fef2f2;color:#ef4444;"><ExclamationTriangleIcon class="w-6 h-6" /></div>
           <div class="stat-info">
-            <div class="stat-label">Overdue</div>
+            <div class="stat-label">ហួសកាលកំណត់</div>
             <div class="stat-value" style="color:#ef4444;">{{ stats.overdueBooks }}</div>
           </div>
         </div>
       </div>
 
       <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
+        <!-- Recent Borrowing -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">Recent Borrowing Activity</span>
-            <router-link to="/librarian/borrows" class="btn btn-ghost btn-sm">View All</router-link>
+            <span class="card-title">សកម្មភាពខ្ចីថ្មីៗ</span>
+            <router-link to="/librarian/borrows" class="btn btn-ghost btn-sm">មើលទាំងអស់</router-link>
           </div>
           <div class="card-body">
             <div v-if="recentBorrows.length === 0" class="empty-state" style="padding:40px;">
-              <p style="color:var(--text-muted);">No recent activity recorded.</p>
+              <p style="color:var(--text-muted);">មិនទាន់មានសកម្មភាពថ្មីៗ</p>
             </div>
             <div v-else class="table-wrapper">
               <table>
                 <thead>
-                  <tr><th>Student</th><th>Book</th><th>Due Date</th><th>Status</th></tr>
+                  <tr>
+                    <th>សិស្ស</th>
+                    <th>សៀវភៅ</th>
+                    <th>ថ្ងៃផុតកំណត់</th>
+                    <th>ស្ថានភាព</th>
+                  </tr>
                 </thead>
                 <tbody>
                   <tr v-for="b in recentBorrows" :key="b.id">
                     <td style="font-weight:600;">{{ b.students?.full_name }}</td>
                     <td>{{ b.books?.title }}</td>
                     <td>{{ new Date(b.due_date).toLocaleDateString() }}</td>
-                    <td><span class="badge" :class="b.status === 'borrowed' ? 'badge-yellow' : b.status === 'overdue' ? 'badge-red' : 'badge-green'">{{ b.status }}</span></td>
+                    <td>
+                      <span class="badge" 
+                        :class="b.status === 'borrowed' ? 'badge-yellow' : 
+                                b.status === 'overdue' ? 'badge-red' : 'badge-green'">
+                        {{ 
+                          b.status === 'borrowed' ? 'កំពុងខ្ចី' : 
+                          b.status === 'overdue' ? 'ហួសកំណត់' : 'បានត្រឡប់' 
+                        }}
+                      </span>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -126,17 +141,20 @@ async function loadStats() {
           </div>
         </div>
 
+        <!-- Quick Actions -->
         <div class="card">
-          <div class="card-header"><span class="card-title">Quick Actions</span></div>
+          <div class="card-header">
+            <span class="card-title">សកម្មភាពរហ័ស</span>
+          </div>
           <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
             <button class="btn btn-primary w-full" @click="$router.push('/librarian/borrows')">
-              <ArrowUpTrayIcon class="w-4 h-4" /> Issue a Book
+              <ArrowUpTrayIcon class="w-4 h-4" /> ចេញសៀវភៅ
             </button>
             <button class="btn btn-secondary w-full" @click="$router.push('/librarian/books')">
-              <PlusIcon class="w-4 h-4" /> Add New Book
+              <PlusIcon class="w-4 h-4" /> បញ្ចូលសៀវភៅថ្មី
             </button>
             <button class="btn btn-ghost w-full" @click="$router.push('/librarian/overdue')">
-              <ExclamationTriangleIcon class="w-4 h-4" /> Check Overdue
+              <ExclamationTriangleIcon class="w-4 h-4" /> ពិនិត្យសៀវភៅហួសកំណត់
             </button>
           </div>
         </div>

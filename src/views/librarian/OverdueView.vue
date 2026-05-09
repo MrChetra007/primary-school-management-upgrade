@@ -12,8 +12,6 @@ onMounted(loadOverdue)
 
 async function loadOverdue() {
   loading.value = true
-  // Note: We'll fetch records with status 'overdue' 
-  // and also those with status 'borrowed' where due_date < today
   const today = new Date().toISOString().split('T')[0]
   const { data } = await supabase
     .from('book_borrows')
@@ -28,14 +26,19 @@ async function loadOverdue() {
 async function markReturned(record) {
   const { error } = await supabase
     .from('book_borrows')
-    .update({ status: 'returned', return_date: new Date().toISOString().split('T')[0] })
+    .update({ 
+      status: 'returned', 
+      return_date: new Date().toISOString().split('T')[0] 
+    })
     .eq('id', record.id)
   
   if (!error) {
     const { data: book } = await supabase.from('books').select('available_copies').eq('id', record.book_id).single()
     await supabase.from('books').update({ available_copies: book.available_copies + 1 }).eq('id', record.book_id)
-    showToast('Book returned!', 'success')
+    showToast('សៀវភៅត្រឡប់បានជោគជ័យ!', 'success')
     loadOverdue()
+  } else {
+    showToast(error.message, 'error')
   }
 }
 
@@ -48,13 +51,17 @@ function showToast(msg, type = 'success') {
 <template>
   <div>
     <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`"><CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" /><XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}</div>
+      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
+        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
+        <XCircleIcon v-else class="w-4 h-4" /> 
+        {{ toast.msg }}
+      </div>
     </div>
 
     <div class="page-header">
       <div>
-        <h1 class="page-title">Overdue Books</h1>
-        <p class="page-subtitle">Immediate attention required for these items</p>
+        <h1 class="page-title">សៀវភៅហួសកំណត់</h1>
+        <p class="page-subtitle">ត្រូវការយកចិត្តទុកដាក់ភ្លាមៗលើសៀវភៅទាំងនេះ</p>
       </div>
     </div>
 
@@ -65,13 +72,20 @@ function showToast(msg, type = 'success') {
     <div v-else class="card">
       <div v-if="overdueRecords.length === 0" class="empty-state">
         <div class="empty-state-icon" style="color:var(--success-color);"><CheckIcon class="w-12 h-12" /></div>
-        <p class="empty-state-title">No Overdue Books</p>
-        <p class="empty-state-desc">All borrowed items are currently within their due dates.</p>
+        <p class="empty-state-title">មិនមានសៀវភៅហួសកំណត់</p>
+        <p class="empty-state-desc">បច្ចុប្បន្នសៀវភៅទាំងអស់ស្ថិតក្នុងកំណត់កាលកំណត់។</p>
       </div>
       <div v-else class="table-wrapper">
         <table>
           <thead>
-            <tr><th>Student</th><th>Book</th><th>Due Date</th><th>Days Overdue</th><th>Contact</th><th>Actions</th></tr>
+            <tr>
+              <th>សិស្ស</th>
+              <th>សៀវភៅ</th>
+              <th>ថ្ងៃផុតកំណត់</th>
+              <th>ហួសកំណត់ (ថ្ងៃ)</th>
+              <th>ទូរស័ព្ទ</th>
+              <th>សកម្មភាព</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="b in overdueRecords" :key="b.id">
@@ -80,13 +94,13 @@ function showToast(msg, type = 'success') {
               <td style="color:var(--danger-color); font-weight:700;">{{ formatDate(b.due_date) }}</td>
               <td>
                 <span class="badge badge-red">
-                  {{ Math.floor((new Date() - new Date(b.due_date)) / (1000 * 60 * 60 * 24)) }} days
+                  {{ Math.floor((new Date() - new Date(b.due_date)) / (1000 * 60 * 60 * 24)) }} ថ្ងៃ
                 </span>
               </td>
-              <td style="font-size:13px;">{{ b.students?.phone_number || 'No phone' }}</td>
+              <td style="font-size:13px;">{{ b.students?.phone_number || 'មិនមានលេខ' }}</td>
               <td>
                 <button class="btn btn-secondary btn-sm" @click="markReturned(b)">
-                  Return Now
+                  កត់ត្រាបានត្រឡប់
                 </button>
               </td>
             </tr>
