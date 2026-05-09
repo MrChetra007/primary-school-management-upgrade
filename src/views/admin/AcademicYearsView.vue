@@ -5,7 +5,16 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { toInputDate, formatDate } from '@/utils/formatDate'
-import { CheckIcon, XCircleIcon, BuildingOfficeIcon, CalendarIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import { 
+  CheckIcon, 
+  XCircleIcon, 
+  BuildingOfficeIcon, 
+  CalendarIcon, 
+  TrashIcon, 
+  ArrowPathRoundedSquareIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon
+} from '@heroicons/vue/24/outline'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -17,6 +26,15 @@ const showModal = ref(false)
 const isEdit = ref(false)
 const deleteTarget = ref(null)
 const toast = ref(null)
+
+// Student Rollup State
+const showRollupModal = ref(false)
+const rollupSource = ref(null)
+const targetYearId = ref('')
+const rollupSummary = ref(null)
+const rollingUp = ref(false)
+const cloningClasses = ref(false)
+const targetClassesCount = ref(0)
 
 const schoolInfo = ref({ name_khmer: 'សាលាបឋមសិក្សា ចំការមន', logo_url: null })
 
@@ -59,13 +77,26 @@ async function save() {
   }
   saving.value = true
   const { id, ...payload } = form.value
-  const { error } = isEdit.value
-    ? await supabase.from('academic_years').update(payload).eq('id', id)
-    : await supabase.from('academic_years').insert(payload)
+  const { data, error } = isEdit.value
+    ? await supabase.from('academic_years').update(payload).eq('id', id).select()
+    : await supabase.from('academic_years').insert(payload).select()
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
+  
+  const createdYear = data?.[0]
   showToast(isEdit.value ? 'Year updated!' : 'Year added!', 'success')
-  showModal.value = false; load()
+  showModal.value = false
+  
+  // If we just added a new year, and there are previous years, ask for rollup
+  if (!isEdit.value && years.value.length > 0) {
+    const prevYear = years.value[0] // Latest one
+    rollupSource.value = prevYear
+    targetYearId.value = createdYear.id
+    rollupSummary.value = null
+    showRollupModal.value = true
+  }
+  
+  load()
 }
 
 async function doDelete() {
@@ -78,6 +109,66 @@ async function doDelete() {
 function showToast(msg, type = 'success') {
   toast.value = { msg, type }
   setTimeout(() => { toast.value = null }, 3000)
+}
+
+// Student Rollup Actions
+async function openRollup(y) {
+  rollupSource.value = y
+  // If targetYearId was already set by "Add Year", keep it, else clear it
+  if (!targetYearId.value) targetYearId.value = ''
+  rollupSummary.value = null
+  showRollupModal.value = true
+  
+  if (targetYearId.value) {
+    checkTargetClasses()
+  }
+}
+
+async function checkTargetClasses() {
+  if (!targetYearId.value) return
+  const { count } = await supabase
+    .from('classes')
+    .select('*', { count: 'exact', head: true })
+    .eq('academic_year_id', targetYearId.value)
+  targetClassesCount.value = count || 0
+}
+
+async function handleCloneClasses() {
+  cloningClasses.value = true
+  try {
+    const { data, error } = await supabase.rpc('clone_classes_structure', {
+      p_old_year_id: rollupSource.value.id,
+      p_new_year_id: targetYearId.value
+    })
+    if (error) throw error
+    showToast(`បានបង្កើតថ្នាក់ថ្មីចំនួន ${data} រួចរាល់!`, 'success')
+    await checkTargetClasses()
+  } catch (err) {
+    showToast(err.message, 'error')
+  } finally {
+    cloningClasses.value = false
+  }
+}
+
+async function executeRollup() {
+  if (!targetYearId.value) return
+  
+  rollingUp.value = true
+  try {
+    const { data, error } = await supabase.rpc('perform_student_rollup', {
+      p_old_year_id: rollupSource.value.id,
+      p_new_year_id: targetYearId.value
+    })
+
+    if (error) throw error
+    rollupSummary.value = data
+    showToast('បញ្ជូនសិស្សទៅឆ្នាំថ្មីបានសម្រេច!', 'success')
+  } catch (err) {
+    console.error('Rollup error:', err)
+    showToast(err.message || 'Error during rollup', 'error')
+  } finally {
+    rollingUp.value = false
+  }
 }
 </script>
 
@@ -142,6 +233,14 @@ function showToast(msg, type = 'success') {
                 <button class="btn btn-ghost btn-sm btn-icon btn-danger-hover" @click="deleteTarget = y" title="លុប">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
                 </button>
+                <button 
+                  v-if="y.status === 'active'"
+                  class="btn btn-ghost btn-sm btn-icon text-primary-600" 
+                  @click="openRollup(y)" 
+                  title="បញ្ជូនសិស្សទៅឆ្នាំថ្មី"
+                >
+                  <ArrowPathRoundedSquareIcon class="w-5 h-5" />
+                </button>
               </div>
               <button class="btn btn-primary" @click="enterYear(y)">
                 ចូលទៅកាន់ទិន្នន័យ
@@ -199,6 +298,128 @@ function showToast(msg, type = 'success') {
         <div class="modal-footer">
           <button class="btn btn-ghost" @click="deleteTarget = null">បោះបង់</button>
           <button class="btn btn-danger" @click="doDelete">បាទ លុប</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Rollup Modal -->
+    <div v-if="showRollupModal" class="modal-overlay" @click.self="!rollingUp && (showRollupModal = false)">
+      <div class="modal" style="max-width: 550px;">
+        <div class="modal-header">
+          <span class="modal-title">បញ្ជូនសិស្សទៅឆ្នាំថ្មី (Student Rollup)</span>
+          <button class="btn btn-ghost btn-sm btn-icon" @click="showRollupModal = false" :disabled="rollingUp">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <div v-if="!rollupSummary">
+            <div class="alert alert-info mb-4">
+              <ExclamationTriangleIcon class="w-5 h-5" />
+              <p>មុខងារនេះនឹងរុញសិស្សពី <strong>{{ rollupSource.year_name }}</strong> ទៅកាន់ថ្នាក់ខ្ពស់ជាងនេះក្នុងឆ្នាំសិក្សាថ្មី។</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">ជ្រើសរើសឆ្នាំសិក្សាគោលដៅ (Target Year)</label>
+              <select class="form-select" v-model="targetYearId" @change="checkTargetClasses">
+                <option value="">-- សូមជ្រើសរើស --</option>
+                <option 
+                  v-for="y in years.filter(y => y.id !== rollupSource.id)" 
+                  :key="y.id" 
+                  :value="y.id"
+                >
+                  {{ y.year_name }}
+                </option>
+              </select>
+            </div>
+
+            <div v-if="targetYearId && targetClassesCount === 0" class="alert alert-warning mb-4 mt-2">
+              <ExclamationTriangleIcon class="w-5 h-5" />
+              <div style="flex:1;">
+                <p class="font-bold">មិនទាន់មានថ្នាក់រៀន!</p>
+                <p>ឆ្នាំសិក្សាគោលដៅមិនទាន់មានថ្នាក់រៀននៅឡើយទេ។ អ្នកត្រូវបង្កើតថ្នាក់មុននឹងបញ្ជូនសិស្ស។</p>
+                <button 
+                  class="btn btn-sm btn-primary mt-2" 
+                  @click="handleCloneClasses"
+                  :disabled="cloningClasses"
+                >
+                  {{ cloningClasses ? 'កំពុងចម្លង...' : 'ចម្លងរចនាសម្ព័ន្ធថ្នាក់ពីឆ្នាំចាស់' }}
+                </button>
+              </div>
+            </div>
+
+            <p v-if="targetYearId && targetClassesCount > 0" class="form-hint mt-2 text-green-600 font-bold">
+              ✅ បានរកឃើញថ្នាក់ចំនួន {{ targetClassesCount }} ក្នុងឆ្នាំសិក្សាថ្មី។ រួចរាល់សម្រាប់ការបញ្ជូនសិស្ស។
+            </p>
+            <p v-else-if="targetYearId" class="form-hint mt-2">សិស្សថ្នាក់ទី១ នឹងទៅថ្នាក់ទី២, ថ្នាក់ទី៥ ទៅថ្នាក់ទី៦ និងថ្នាក់ទី៦ នឹងត្រូវបញ្ចប់ការសិក្សា។</p>
+          </div>
+
+          <!-- Rollup Results Summary -->
+          <div v-else class="rollup-results">
+            <div class="result-header">
+              <CheckCircleIcon class="w-12 h-12 text-green-500" />
+              <h3>ការបញ្ជូនសិស្សបានសម្រេច!</h3>
+            </div>
+            
+            <div class="stats-grid mt-4">
+              <div class="stat-box">
+                <span class="stat-label">សិស្សឡើងថ្នាក់</span>
+                <span class="stat-value text-primary-600">{{ rollupSummary.total_promoted }}</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-label">សិស្សបញ្ចប់ការសិក្សា</span>
+                <span class="stat-value text-green-600">{{ rollupSummary.total_graduated }}</span>
+              </div>
+            </div>
+
+            <div class="details-list mt-6">
+              <h4 class="details-title">សេចក្តីលម្អិតតាមកម្រិតថ្នាក់៖</h4>
+              <div class="table-mini-wrapper">
+                <table class="table-mini">
+                  <thead>
+                    <tr>
+                      <th>ថ្នាក់ទី</th>
+                      <th>សកម្មភាព</th>
+                      <th>ចំនួនសិស្ស</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in rollupSummary.details" :key="item.grade">
+                      <td>ថ្នាក់ទី {{ item.grade }}</td>
+                      <td>
+                        <span class="badge" :class="item.action === 'skipped' ? 'badge-red' : 'badge-gray'">
+                          {{ 
+                            item.action === 'paired' ? 'ឡើងថ្នាក់ (ស្មើគ្នា)' : 
+                            item.action === 'merged' ? 'ឡើងថ្នាក់ (បញ្ចូលគ្នា)' :
+                            item.action === 'merged_mismatch' ? 'ឡើងថ្នាក់ (បញ្ចូលគ្នា - ចំនួនមិនស្មើ)' :
+                            item.action === 'graduated' ? 'បញ្ចប់ការសិក្សា' :
+                            'មិនមានថ្នាក់គោលដៅ'
+                          }}
+                        </span>
+                      </td>
+                      <td class="text-right font-bold">
+                        {{ item.students_moved || item.students_graduated || 0 }} នាក់
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button v-if="!rollupSummary" class="btn btn-ghost" @click="showRollupModal = false" :disabled="rollingUp">បោះបង់</button>
+          <button 
+            v-if="!rollupSummary" 
+            class="btn btn-primary" 
+            @click="executeRollup" 
+            :disabled="!targetYearId || rollingUp || targetClassesCount === 0"
+          >
+            <ArrowPathRoundedSquareIcon v-if="!rollingUp" class="w-4 h-4 mr-2" />
+            {{ rollingUp ? 'កំពុងបញ្ជូន...' : 'បញ្ជូនសិស្សឥឡូវនេះ' }}
+          </button>
+          <button v-else class="btn btn-primary" @click="showRollupModal = false">យល់ព្រម</button>
         </div>
       </div>
     </div>
@@ -363,9 +584,124 @@ function showToast(msg, type = 'success') {
   height: 200px;
 }
 
+/* Rollup Styles */
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 14px;
+}
+
+.alert-info {
+  background: var(--primary-50);
+  border: 1px solid var(--primary-200);
+  color: var(--primary-700);
+}
+
+.alert-warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.font-bold { font-weight: 700; }
+
+.form-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.rollup-results {
+  text-align: center;
+}
+
+.result-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.result-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.stat-box {
+  background: var(--bg-secondary);
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.details-list {
+  text-align: left;
+}
+
+.details-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.table-mini-wrapper {
+  background: white;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table-mini {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table-mini th {
+  background: var(--bg-secondary);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.table-mini td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.table-mini tr:last-child td {
+  border-bottom: none;
+}
+
+.text-right { text-align: right; }
+
 @media (max-width: 640px) {
   .selection-title { font-size: 24px; }
   .year-grid { grid-template-columns: 1fr; }
   .header-content .school-name { display: none; }
+  .stats-grid { grid-template-columns: 1fr; }
 }
 </style>
