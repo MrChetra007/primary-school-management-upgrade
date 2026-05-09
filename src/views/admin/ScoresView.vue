@@ -25,10 +25,10 @@ const rawScores = ref([])
 const scoreMatrix = ref([])
 
 const months = [
-  { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
-  { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
-  { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
-  { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+  { id: 1, name: 'មករា' }, { id: 2, name: 'កុម្ភៈ' }, { id: 3, name: 'មីនា' },
+  { id: 4, name: 'មេសា' }, { id: 5, name: 'ឧសភា' }, { id: 6, name: 'មិថុនា' },
+  { id: 7, name: 'កក្កដា' }, { id: 8, name: 'សីហា' }, { id: 9, name: 'កញ្ញា' },
+  { id: 10, name: 'តុលា' }, { id: 11, name: 'វិច្ឆិកា' }, { id: 12, name: 'ធ្នូ' }
 ]
 
 const semesterMonths = computed(() => {
@@ -94,7 +94,7 @@ async function fetchData() {
     rawScores.value = data || []
     buildMonthlyMatrix()
   } else {
-    // Semester Mode: Fetch Exam + Monthly for those 3 months
+    // Semester Mode
     const [examRes, monthRes] = await Promise.all([
       supabase.from('scores').select('*').in('student_id', studentIds).eq('semester', selectedSemester.value).eq('score_type', 'semester'),
       supabase.from('scores').select('*').in('student_id', studentIds).in('month', semesterMonths.value).eq('score_type', 'monthly')
@@ -127,7 +127,6 @@ function buildMonthlyMatrix() {
     }
   })
 
-  // Rank
   const ranked = computeRank(matrix)
   scoreMatrix.value = ranked.sort((a, b) => a.full_name.localeCompare(b.full_name))
 }
@@ -155,7 +154,7 @@ function buildSemesterMatrix(mScores) {
       examSubjects: examSubMap,
       monthlyAverages: mAvgs,
       examAverage: examAvg,
-      average: finalAvg // for ranking
+      average: finalAvg
     }
   })
 
@@ -167,7 +166,7 @@ const printArea = ref(null)
 async function handleExport() {
   if (!printArea.value) return
   const metadata = {
-    schoolName: 'Primary School',
+    schoolName: 'សាលាបឋមសិក្សា',
     className: classes.value.find(c => c.id === selectedClassId.value)?.class_name,
     year: yearStore.selectedYearName
   }
@@ -192,41 +191,43 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
   <div class="scores-view">
     <div class="page-header no-print">
       <div>
-        <h1 class="page-title">របាយការណ៍ពិន្ទុ (Score Reports)</h1>
-        <p class="page-subtitle">View and export class performance data</p>
+        <h1 class="page-title">របាយការណ៍ពិន្ទុ</h1>
+        <p class="page-subtitle">មើល និងទាញយកទិន្នន័យលទ្ធផលសិស្ស</p>
       </div>
       <button class="btn btn-secondary" @click="handleExport" :disabled="loading || scoreMatrix.length === 0">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        Print PDF
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        ទាញយក PDF
       </button>
     </div>
 
     <div class="card no-print" style="margin-bottom:20px;">
       <div class="card-body filter-grid">
         <div class="form-group">
-          <label class="form-label">Select Class</label>
+          <label class="form-label">ជ្រើសរើសថ្នាក់</label>
           <select class="form-select" v-model="selectedClassId">
             <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.class_name }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Report Type</label>
+          <label class="form-label">ប្រភេទរបាយការណ៍</label>
           <select class="form-select" v-model="scoreMode">
-            <option value="monthly">Monthly Report</option>
-            <option value="semester">Semester Report</option>
+            <option value="monthly">របាយការណ៍ប្រចាំខែ</option>
+            <option value="semester">របាយការណ៍ឆមាស</option>
           </select>
         </div>
         <div v-if="scoreMode === 'monthly'" class="form-group">
-          <label class="form-label">Month</label>
+          <label class="form-label">ខែ</label>
           <select class="form-select" v-model="selectedMonth">
             <option v-for="m in months" :key="m.id" :value="m.id">{{ m.name }}</option>
           </select>
         </div>
         <div v-else class="form-group">
-          <label class="form-label">Semester</label>
+          <label class="form-label">ឆមាស</label>
           <select class="form-select" v-model="selectedSemester">
-            <option :value="1">Semester 1 (Months 1-3)</option>
-            <option :value="2">Semester 2 (Months 4-6)</option>
+            <option :value="1">ឆមាសទី១ (ខែ ១-៣)</option>
+            <option :value="2">ឆមាសទី២ (ខែ ៤-៦)</option>
           </select>
         </div>
       </div>
@@ -238,18 +239,19 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
 
     <div v-else-if="!selectedClassId" class="empty-state">
       <BuildingOfficeIcon class="w-12 h-12 text-gray-400" />
-      <p class="empty-state-title">Select a class to view scores</p>
+      <p class="empty-state-title">សូមជ្រើសរើសថ្នាក់ដើម្បីមើលពិន្ទុ</p>
     </div>
 
     <div v-else-if="scoreMatrix.length === 0" class="empty-state">
       <DocumentIcon class="w-12 h-12 text-gray-400" />
-      <p class="empty-state-title">No scores found for this period</p>
+      <p class="empty-state-title">មិនមានពិន្ទុសម្រាប់កំឡុងពេលនេះទេ</p>
     </div>
 
     <div v-else ref="printArea" class="card">
       <div class="table-wrapper horizontal-scroll">
         <table class="matrix-table" :class="{ 'semester-mode': scoreMode === 'semester' }">
           <thead>
+            <!-- Monthly Mode -->
             <template v-if="scoreMode === 'monthly'">
               <tr>
                 <th style="width:40px;">ល.រ</th>
@@ -257,25 +259,27 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
                 <th v-for="sub in subjects" :key="sub.id" class="sub-col">
                   <div class="vertical-text">{{ sub.subject_name }}</div>
                 </th>
-                <th class="summary-col">មធ្យម</th>
+                <th class="summary-col">មធ្យមភាគ</th>
                 <th class="summary-col">លំដាប់</th>
               </tr>
             </template>
+
+            <!-- Semester Mode -->
             <template v-else>
               <tr>
                 <th rowspan="2" style="width:40px;">ល.រ</th>
                 <th rowspan="2" style="min-width:150px; text-align:left;">ឈ្មោះសិស្ស</th>
                 <th :colspan="subjects.length">ពិន្ទុប្រឡងឆមាស</th>
-                <th rowspan="2" class="summary-col">មធ្យម<br/>ប្រឡង</th>
+                <th rowspan="2" class="summary-col">មធ្យមភាគ<br/>ប្រឡង</th>
                 <th colspan="3">មធ្យមភាគប្រចាំខែ</th>
-                <th rowspan="2" class="summary-col highlight">មធ្យម<br/>ឆមាស</th>
+                <th rowspan="2" class="summary-col highlight">មធ្យមភាគ<br/>ឆមាស</th>
                 <th rowspan="2" class="summary-col highlight">លំដាប់</th>
               </tr>
               <tr>
                 <th v-for="sub in subjects" :key="sub.id" class="sub-col small">
                   <div class="vertical-text small">{{ sub.subject_name }}</div>
                 </th>
-                <th v-for="m in semesterMonths" :key="m" class="month-col">ម.{{ m }}</th>
+                <th v-for="m in semesterMonths" :key="m" class="month-col">ខែ {{ m }}</th>
               </tr>
             </template>
           </thead>
@@ -300,7 +304,9 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
                 </td>
               </template>
 
-              <td class="avg-cell highlight" :class="{ 'text-danger': row.average < 50 }">{{ row.average }}</td>
+              <td class="avg-cell highlight" :class="{ 'text-danger': row.average < 50 }">
+                {{ row.average }}
+              </td>
               <td class="rank-cell highlight">{{ row.rank }}</td>
             </tr>
           </tbody>
