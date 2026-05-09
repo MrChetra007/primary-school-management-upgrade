@@ -44,7 +44,7 @@ async function fetchGrowth() {
       .from('student_growth')
       .select('*')
       .eq('student_id', studentId)
-      .order('check_date', { ascending: true })
+      .order('date', { ascending: true })
 
     if (error) throw error
     growthData.value = data || []
@@ -56,20 +56,20 @@ async function fetchGrowth() {
 }
 
 const chartData = computed(() => ({
-  labels: growthData.value.map(d => formatDate(d.check_date)),
+  labels: growthData.value.map(d => formatDate(d.date)),
   datasets: [
     {
       label: 'កម្ពស់ (cm)',
       backgroundColor: '#3b82f6',
       borderColor: '#3b82f6',
-      data: growthData.value.map(d => d.height_cm),
+      data: growthData.value.map(d => d.height),
       tension: 0.3
     },
     {
       label: 'ទម្ងន់ (kg)',
       backgroundColor: '#10b981',
       borderColor: '#10b981',
-      data: growthData.value.map(d => d.weight_kg),
+      data: growthData.value.map(d => d.weight),
       tension: 0.3
     }
   ]
@@ -122,7 +122,7 @@ const latestRecord = computed(() => {
         <div class="stat-content">
           <span class="label">កម្ពស់បច្ចុប្បន្ន</span>
           <div class="value-row">
-            <span class="value">{{ latestRecord.height_cm }}</span>
+            <span class="value">{{ latestRecord.height }}</span>
             <span class="unit">cm</span>
           </div>
         </div>
@@ -134,7 +134,7 @@ const latestRecord = computed(() => {
         <div class="stat-content">
           <span class="label">ទម្ងន់បច្ចុប្បន្ន</span>
           <div class="value-row">
-            <span class="value">{{ latestRecord.weight_kg }}</span>
+            <span class="value">{{ latestRecord.weight }}</span>
             <span class="unit">kg</span>
           </div>
         </div>
@@ -176,12 +176,12 @@ const latestRecord = computed(() => {
           </thead>
           <tbody>
             <tr v-for="record in [...growthData].reverse()" :key="record.id">
-              <td>{{ formatDate(record.check_date) }}</td>
-              <td class="font-bold">{{ record.height_cm }}</td>
-              <td class="font-bold">{{ record.weight_kg }}</td>
+              <td>{{ formatDate(record.date) }}</td>
+              <td class="font-bold">{{ record.height }}</td>
+              <td class="font-bold">{{ record.weight }}</td>
               <td>
                 <span class="badge badge-gray">
-                  {{ (record.weight_kg / Math.pow(record.height_cm / 100, 2)).toFixed(1) }}
+                  {{ (record.weight / Math.pow(record.height / 100, 2)).toFixed(1) }}
                 </span>
               </td>
             </tr>

@@ -20,7 +20,7 @@ onMounted(async () => {
       .from('student_sick_days')
       .select('*')
       .eq('student_id', studentId)
-      .order('start_date', { ascending: false })
+      .order('date', { ascending: false })
 
     if (error) throw error
     sickDays.value = data || []
@@ -30,14 +30,6 @@ onMounted(async () => {
     loading.value = false
   }
 })
-
-function getDuration(start, end) {
-  if (!start || !end) return '—'
-  const s = new Date(start)
-  const e = new Date(end)
-  const diff = Math.ceil((e - s) / (1000 * 60 * 60 * 24)) + 1
-  return `${diff} ថ្ងៃ`
-}
 </script>
 
 <template>
@@ -72,13 +64,11 @@ function getDuration(start, end) {
             <div class="s-title-info">
               <h4 class="s-reason">{{ day.reason || 'ឈប់សម្រាកព្យាបាលជំងឺ' }}</h4>
               <div class="s-date-range">
-                <span>{{ formatDate(day.start_date) }}</span>
-                <span class="divider">→</span>
-                <span>{{ formatDate(day.end_date) }}</span>
+                <span>កាលបរិច្ឆេទ៖ {{ formatDate(day.date) }}</span>
               </div>
             </div>
             <div class="s-duration">
-              <span class="badge badge-red">{{ getDuration(day.start_date, day.end_date) }}</span>
+              <span class="badge badge-red">{{ day.duration }} ថ្ងៃ</span>
             </div>
           </div>
 

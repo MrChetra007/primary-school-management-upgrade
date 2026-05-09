@@ -34,7 +34,7 @@ async function fetchAttendance() {
     const endOfMonth = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1, 0).toISOString()
 
     const { data, error } = await supabase
-      .from('student_attendances')
+      .from('attendances')
       .select('*')
       .eq('student_id', studentId)
       .gte('date', startOfMonth)

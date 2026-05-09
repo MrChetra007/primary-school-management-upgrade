@@ -67,14 +67,6 @@ onMounted(async () => {
               <span class="label">ប្រភេទឈាម (Blood Type)</span>
               <span class="value badge badge-red">{{ health.blood_type || '—' }}</span>
             </div>
-            <div class="info-row">
-              <span class="label">កម្ពស់ (Height)</span>
-              <span class="value">{{ health.height_cm ? `${health.height_cm} cm` : '—' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">ទម្ងន់ (Weight)</span>
-              <span class="value">{{ health.weight_kg ? `${health.weight_kg} kg` : '—' }}</span>
-            </div>
           </div>
         </div>
       </div>

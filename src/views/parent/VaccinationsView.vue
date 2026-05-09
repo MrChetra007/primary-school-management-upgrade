@@ -20,7 +20,7 @@ onMounted(async () => {
       .from('student_vaccinations')
       .select('*')
       .eq('student_id', studentId)
-      .order('vaccination_date', { ascending: false })
+      .order('date', { ascending: false })
 
     if (error) throw error
     vaccinations.value = data || []
@@ -58,28 +58,26 @@ onMounted(async () => {
       <div v-for="v in vaccinations" :key="v.id" class="card vaccination-card">
         <div class="card-body">
           <div class="vaccination-header">
-            <div class="v-icon-box">
+            <div class="v-icon-box" :class="{ 'v-completed': v.completed }">
               <ShieldCheckIcon class="w-6 h-6" />
             </div>
             <div class="v-title-info">
-              <h4 class="v-name">{{ v.vaccine_name }}</h4>
-              <span class="v-date">ចាក់នៅថ្ងៃទី៖ {{ formatDate(v.vaccination_date) }}</span>
+              <h4 class="v-name">{{ v.name }}</h4>
+              <span class="v-date">ចាក់នៅថ្ងៃទី៖ {{ v.date ? formatDate(v.date) : 'មិនទាន់ចាក់' }}</span>
             </div>
           </div>
           
           <div class="v-details">
             <div class="v-detail-item">
-              <span class="label">ប្រភេទ/ដូស៖</span>
-              <span class="value">{{ v.dose_number || '—' }}</span>
+              <span class="label">ព័ត៌មានលម្អិត៖</span>
+              <span class="value">{{ v.description || '—' }}</span>
             </div>
-            <div class="v-detail-item" v-if="v.next_dose_date">
-              <span class="label">ថ្ងៃចាក់លើកក្រោយ៖</span>
-              <span class="value color-blue">{{ formatDate(v.next_dose_date) }}</span>
+            <div class="v-detail-item">
+              <span class="label">ស្ថានភាព៖</span>
+              <span class="value badge" :class="v.completed ? 'badge-green' : 'badge-gray'">
+                {{ v.completed ? 'រួចរាល់' : 'មិនទាន់រួចរាល់' }}
+              </span>
             </div>
-          </div>
-
-          <div v-if="v.notes" class="v-notes">
-            <strong>សម្គាល់៖</strong> {{ v.notes }}
           </div>
         </div>
       </div>

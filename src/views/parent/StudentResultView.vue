@@ -35,7 +35,7 @@ async function loadData() {
 
     // 2. Fetch Attendance Summary
     const { data: att } = await supabase
-      .from('student_attendances')
+      .from('attendances')
       .select('status')
       .eq('student_id', studentId)
     
@@ -60,7 +60,7 @@ async function loadData() {
       .from('student_growth')
       .select('*')
       .eq('student_id', studentId)
-      .order('check_date', { ascending: false })
+      .order('date', { ascending: false })
       .limit(1)
       .maybeSingle()
     growth.value = grow
@@ -164,14 +164,14 @@ const attendanceRate = computed(() => {
             <div v-if="growth" class="growth-summary">
               <div class="growth-stat">
                 <span class="label">កម្ពស់</span>
-                <span class="value">{{ growth.height_cm }} <small>cm</small></span>
+                <span class="value">{{ growth.height }} <small>cm</small></span>
               </div>
               <div class="growth-stat">
                 <span class="label">ទម្ងន់</span>
-                <span class="value">{{ growth.weight_kg }} <small>kg</small></span>
+                <span class="value">{{ growth.weight }} <small>kg</small></span>
               </div>
               <div class="growth-date">
-                ពិនិត្យចុងក្រោយនៅថ្ងៃទី {{ formatDate(growth.check_date) }}
+                ពិនិត្យចុងក្រោយនៅថ្ងៃទី {{ formatDate(growth.date) }}
               </div>
             </div>
             <div v-else class="empty-mini">
