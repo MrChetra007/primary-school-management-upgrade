@@ -100,23 +100,23 @@ async function save() {
 }
 
 async function doDelete() {
-  // Safety check: Cannot delete active year or currently selected year
-  if (deleteTarget.value.status === 'active') {
-    showToast('មិនអាចលុបឆ្នាំសិក្សាដែលកំពុងដំណើរការបានទេ!', 'error')
-    deleteTarget.value = null
-    return
-  }
+  const targetId = deleteTarget.value.id
   
-  if (deleteTarget.value.id === yearStore.selectedYearId) {
-    showToast('មិនអាចលុបឆ្នាំសិក្សាដែលអ្នកកំពុងប្រើប្រាស់បានទេ!', 'error')
-    deleteTarget.value = null
-    return
+  // If we are deleting the year currently in use, clear it from the store
+  if (targetId === yearStore.selectedYearId) {
+    yearStore.clearYear()
   }
 
-  const { error } = await supabase.from('academic_years').delete().eq('id', deleteTarget.value.id)
+  const { error } = await supabase.from('academic_years').delete().eq('id', targetId)
   deleteTarget.value = null
-  if (error) { showToast(error.message, 'error'); return }
-  showToast('បានលុបឆ្នាំសិក្សា!', 'success'); load()
+  
+  if (error) { 
+    showToast(error.message, 'error')
+    return 
+  }
+  
+  showToast('បានលុបឆ្នាំសិក្សា!', 'success')
+  load()
 }
 
 function showToast(msg, type = 'success') {
