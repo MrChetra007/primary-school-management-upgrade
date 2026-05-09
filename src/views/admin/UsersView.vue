@@ -160,7 +160,7 @@ async function handleResetPassword() {
     })
     if (error) throw error
     showToast('Password updated', 'success')
-    showResetModal.value = false
+    showResetModalState(false)
   } catch (err) {
     showToast(err.message, 'error')
   } finally {
@@ -239,13 +239,17 @@ function showToast(msg, type = 'success') {
 <template>
   <div class="users-view">
     <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`"><CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" /><XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}</div>
+      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
+        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
+        <XCircleIcon v-else class="w-4 h-4" /> 
+        {{ toast.msg }}
+      </div>
     </div>
 
     <div class="page-header">
       <div>
         <h1 class="page-title">គ្រប់គ្រងគណនីបុគ្គលិក (Staff Accounts)</h1>
-        <p class="page-subtitle">Manage system access. Every account is linked to a mandatory teacher profile (Roadmap v10)</p>
+        <p class="page-subtitle">Manage system access. Every account is linked to a mandatory teacher profile (Roadmap (Roadmap v10)</p>
       </div>
       <button class="btn btn-primary" @click="showCreateModal = true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM20 8v6M23 11h-6"/></svg>
@@ -254,7 +258,13 @@ function showToast(msg, type = 'success') {
     </div>
 
     <div class="tabs">
-      <button v-for="role in ['teacher', 'admin', 'librarian']" :key="role" class="tab-item" :class="{ active: activeTab === role }" @click="activeTab = role">
+      <button 
+        v-for="role in ['teacher', 'admin', 'librarian']" 
+        :key="role" 
+        class="tab-item" 
+        :class="{ active: activeTab === role }" 
+        @click="activeTab = role"
+      >
         {{ role === 'admin' ? 'Director/Admin' : role.charAt(0).toUpperCase() + role.slice(1) + 's' }}
       </button>
     </div>
@@ -317,17 +327,17 @@ function showToast(msg, type = 'success') {
                     Reset
                   </button>
                   <button class="btn-icon-text" :class="user.status === 'active' ? 'text-danger' : 'text-success'" @click="toggleUserStatus(user)">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-    <template v-if="user.status === 'active'">
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" key="active-path" />
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" key="active-rect" />
-    </template>
-    <template v-else>
-      <path d="M9 11V7a3 3 0 0 1 6 0v4" key="inactive-path" />
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" key="inactive-rect" />
-    </template>
-  </svg>
-  {{ user.status === 'active' ? 'Block' : 'Unblock' }}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                      <template v-if="user.status === 'active'">
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      </template>
+                      <template v-else>
+                        <path d="M9 11V7a3 3 0 0 1 6 0v4" />
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      </template>
+                    </svg>
+                    {{ user.status === 'active' ? 'Block' : 'Unblock' }}
                   </button>
                   <button class="btn-icon-text text-danger" @click="handleDeleteUser(user)" title="Delete Account">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -340,7 +350,6 @@ function showToast(msg, type = 'success') {
       </div>
     </div>
 
-    <!-- Create Staff Modal (Roadmap v8) -->
     <div v-if="showCreateModal" class="modal-overlay" @click.self="closeCreateModal">
       <div class="modal" style="max-width: 700px;">
         <div class="modal-header">
@@ -349,7 +358,6 @@ function showToast(msg, type = 'success') {
         </div>
         
         <div class="modal-body overflow-y">
-          <!-- Profile Picture Upload -->
           <div class="avatar-upload-section">
             <div class="avatar-preview-wrapper" @click="$refs.fileInput.click()">
               <img v-if="avatarPreview" :src="avatarPreview" class="avatar-preview-img" />
@@ -362,7 +370,6 @@ function showToast(msg, type = 'success') {
           </div>
 
           <div class="grid-2">
-            <!-- Left: Personal Info -->
             <div class="section-column">
               <h4 class="section-title">ព័ត៌មានផ្ទាល់ខ្លួន (Personal Info)</h4>
               <div class="form-group">
@@ -392,7 +399,6 @@ function showToast(msg, type = 'success') {
               </div>
             </div>
 
-            <!-- Right: Account Info -->
             <div class="section-column">
               <h4 class="section-title">គណនីចូលប្រើ (Account Access)</h4>
               <div class="form-group">
@@ -433,7 +439,6 @@ function showToast(msg, type = 'success') {
       </div>
     </div>
 
-    <!-- Modals for Reset/Role (Keep existing logic but styled) -->
     <div v-if="showResetModal" class="modal-overlay" @click.self="showResetModal = false">
       <div class="modal modal-sm">
         <div class="modal-header"><h3 class="modal-title">Reset Password</h3></div>

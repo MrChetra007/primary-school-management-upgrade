@@ -63,7 +63,7 @@ async function uploadPhoto(e) {
 }
 
 async function save() {
-  if (!form.value.full_name.trim()) { showToast('Name is required', 'error'); return }
+  if (!form.value.full_name.trim()) { showToast('សូមបំពេញឈ្មោះ', 'error'); return }
   saving.value = true
   const { id, ...payload } = form.value
   const { error } = isEdit.value
@@ -71,7 +71,7 @@ async function save() {
     : await supabase.from('teachers').insert(payload)
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
-  showToast(isEdit.value ? 'Teacher updated!' : 'Teacher added!', 'success')
+  showToast(isEdit.value ? 'បានកែប្រែព័ត៌មានបុគ្គលិក!' : 'បានបន្ថែមបុគ្គលិកថ្មី!', 'success')
   showModal.value = false
   load()
 }
@@ -80,7 +80,7 @@ async function doDelete() {
   const { error } = await supabase.from('teachers').delete().eq('id', deleteTarget.value.id)
   deleteTarget.value = null
   if (error) { showToast(error.message, 'error'); return }
-  showToast('Teacher deleted', 'success')
+  showToast('បានលុបបុគ្គលិក', 'success')
   load()
 }
 
@@ -104,16 +104,16 @@ function initials(name) {
 
     <div class="page-header">
       <div>
-        <h1 class="page-title">ប្រវត្តិរូបបុគ្គលិក (Staff Profiles)</h1>
-        <p class="page-subtitle">Personal profiles for all staff (Admin, Teachers, Librarians)</p>
+        <h1 class="page-title">ប្រវត្តិរូបបុគ្គលិក</h1>
+        <p class="page-subtitle">ប្រវត្តិរូបផ្ទាល់ខ្លួនសម្រាប់បុគ្គលិកទាំងអស់ (រដ្ឋបាល, គ្រូបង្រៀន, បណ្ណារក្ស)</p>
       </div>
-      <div class="badge badge-gray">Identity Manager</div>
+      <div class="badge badge-gray">កម្មវិធីគ្រប់គ្រងអត្តសញ្ញាណ</div>
     </div>
 
     <div class="filters-bar">
       <div class="search-input-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input class="form-input" v-model="search" placeholder="Search by name, email, phone…" />
+        <input class="form-input" v-model="search" placeholder="ស្វែងរកតាមឈ្មោះ, អ៊ីមែល, ឬលេខទូរស័ព្ទ..." />
       </div>
     </div>
 
@@ -123,14 +123,14 @@ function initials(name) {
       </div>
       <div v-else-if="filtered.length === 0" class="empty-state">
         <AcademicCapIcon class="w-12 h-12 text-gray-400" />
-        <p class="empty-state-title">No teachers found</p>
-        <p class="empty-state-desc">Add your first teacher to get started</p>
-        <button class="btn btn-primary" @click="openAdd">Add Teacher</button>
+        <p class="empty-state-title">រកមិនឃើញបុគ្គលិកទេ</p>
+        <p class="empty-state-desc">បន្ថែមបុគ្គលិកដំបូងរបស់អ្នកដើម្បីចាប់ផ្តើម</p>
+        <button class="btn btn-primary" @click="openAdd">បន្ថែមបុគ្គលិក</button>
       </div>
       <div v-else class="table-wrapper">
         <table>
           <thead>
-            <tr><th>Teacher</th><th>Gender</th><th>Phone</th><th>Degree</th><th>Email</th><th>Actions</th></tr>
+            <tr><th>បុគ្គលិក</th><th>ភេទ</th><th>លេខទូរស័ព្ទ</th><th>សញ្ញាបត្រ</th><th>អ៊ីមែល</th><th>សកម្មភាព</th></tr>
           </thead>
           <tbody>
             <tr v-for="t in filtered" :key="t.id">
@@ -146,7 +146,7 @@ function initials(name) {
                   </div>
                 </div>
               </td>
-              <td><span class="badge" :class="t.gender === 'Male' ? 'badge-blue' : 'badge-red'">{{ t.gender || '—' }}</span></td>
+              <td><span class="badge" :class="t.gender === 'Male' ? 'badge-blue' : 'badge-red'">{{ t.gender === 'Male' ? 'ប្រុស' : (t.gender === 'Female' ? 'ស្រី' : '—') }}</span></td>
               <td style="font-size:13px;">{{ t.phone_number || '—' }}</td>
               <td style="font-size:13px;">{{ t.degree || '—' }}</td>
               <td style="font-size:13px;">{{ t.email || '—' }}</td>
@@ -166,11 +166,10 @@ function initials(name) {
       </div>
     </div>
 
-    <!-- Add/Edit Modal -->
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
       <div class="modal modal-lg">
         <div class="modal-header">
-          <span class="modal-title">{{ isEdit ? 'Edit Teacher' : 'Add Teacher' }}</span>
+          <span class="modal-title">{{ isEdit ? 'កែប្រែព័ត៌មានបុគ្គលិក' : 'បន្ថែមបុគ្គលិកថ្មី' }}</span>
           <button class="btn btn-ghost btn-sm btn-icon" @click="showModal = false">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -183,64 +182,64 @@ function initials(name) {
             </div>
             <div>
               <label class="btn btn-ghost btn-sm" style="cursor:pointer;">
-                <CameraIcon class="w-4 h-4" /> {{ uploadingPhoto ? 'Uploading…' : 'Upload Photo' }}
+                <CameraIcon class="w-4 h-4" /> {{ uploadingPhoto ? 'កំពុងផ្ទុកឡើង...' : 'បង្ហោះរូបភាព' }}
                 <input type="file" accept="image/*" style="display:none;" @change="uploadPhoto" :disabled="uploadingPhoto"/>
               </label>
-              <p style="font-size:11px;color:var(--text-muted);margin-top:6px;">JPG, PNG — stored in Supabase Storage</p>
+              <p style="font-size:11px;color:var(--text-muted);margin-top:6px;">JPG, PNG — រក្សាទុកក្នុង Supabase Storage</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <div class="form-group" style="grid-column:1/-1;">
-              <label class="form-label">Full Name *</label>
-              <input class="form-input" v-model="form.full_name" placeholder="e.g. Sok Dara" />
+              <label class="form-label">ឈ្មោះពេញ *</label>
+              <input class="form-input" v-model="form.full_name" placeholder="ឧ. សុខ ដារ៉ា" />
             </div>
             <div class="form-group">
-              <label class="form-label">Gender</label>
+              <label class="form-label">ភេទ</label>
               <select class="form-select" v-model="form.gender">
-                <option value="">— Select —</option>
-                <option>Male</option><option>Female</option>
+                <option value="">— ជ្រើសរើស —</option>
+                <option value="Male">ប្រុស</option>
+                <option value="Female">ស្រី</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Date of Birth</label>
+              <label class="form-label">ថ្ងៃខែឆ្នាំកំណើត</label>
               <input class="form-input" type="date" v-model="form.dob" />
             </div>
             <div class="form-group">
-              <label class="form-label">Phone</label>
+              <label class="form-label">លេខទូរស័ព្ទ</label>
               <input class="form-input" v-model="form.phone_number" placeholder="012 345 678" />
             </div>
             <div class="form-group">
-              <label class="form-label">Email</label>
+              <label class="form-label">អ៊ីមែល</label>
               <input class="form-input" type="email" v-model="form.email" placeholder="teacher@school.edu" />
             </div>
             <div class="form-group" style="grid-column:1/-1;">
-              <label class="form-label">Degree / Qualification</label>
-              <input class="form-input" v-model="form.degree" placeholder="e.g. Bachelor of Education" />
+              <label class="form-label">សញ្ញាបត្រ / កម្រិតវប្បធម៌</label>
+              <input class="form-input" v-model="form.degree" placeholder="ឧ. បរិញ្ញាបត្រអប់រំ" />
             </div>
             <div class="form-group" style="grid-column:1/-1;">
-              <label class="form-label">Address</label>
-              <textarea class="form-textarea" v-model="form.address" placeholder="Home address" rows="2"></textarea>
+              <label class="form-label">អាសយដ្ឋាន</label>
+              <textarea class="form-textarea" v-model="form.address" placeholder="អាសយដ្ឋានផ្ទះ" rows="2"></textarea>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-ghost" @click="showModal = false">Cancel</button>
-          <button class="btn btn-primary" @click="save" :disabled="saving">{{ saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Teacher' }}</button>
+          <button class="btn btn-ghost" @click="showModal = false">បោះបង់</button>
+          <button class="btn btn-primary" @click="save" :disabled="saving">{{ saving ? 'កំពុងរក្សាទុក...' : isEdit ? 'រក្សាទុកការកែប្រែ' : 'បន្ថែមបុគ្គលិក' }}</button>
         </div>
       </div>
     </div>
 
-    <!-- Delete Confirm -->
     <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
       <div class="modal" style="max-width:380px;">
         <div class="modal-body" style="text-align:center;padding:32px 24px;">
           <TrashIcon class="w-10 h-10 text-gray-400" style="margin: 0 auto 12px;" />
-          <h3 style="margin-bottom:8px;">Delete Teacher?</h3>
-          <p style="color:var(--text-secondary);font-size:13px;">Delete <strong>{{ deleteTarget.full_name }}</strong>? This cannot be undone.</p>
+          <h3 style="margin-bottom:8px;">លុបបុគ្គលិក?</h3>
+          <p style="color:var(--text-secondary);font-size:13px;">អ្នកពិតជាចង់លុប <strong>{{ deleteTarget.full_name }}</strong> មែនទេ? សកម្មភាពនេះមិនអាចបញ្ច្រាសវិញបានទេ។</p>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-ghost" @click="deleteTarget = null">Cancel</button>
-          <button class="btn btn-danger" @click="doDelete">Yes, Delete</button>
+          <button class="btn btn-ghost" @click="deleteTarget = null">បោះបង់</button>
+          <button class="btn btn-danger" @click="doDelete">យល់ព្រម លុប</button>
         </div>
       </div>
     </div>

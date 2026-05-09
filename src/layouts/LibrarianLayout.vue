@@ -15,10 +15,10 @@ const userInitials = computed(() => (auth.profile?.email || '').slice(0, 2).toUp
 async function logout() { await auth.logout(); router.push('/login') }
 
 const navItems = [
-  { to: '/librarian/dashboard', icon: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z', label: 'Dashboard' },
-  { to: '/librarian/books',     icon: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z', label: 'Books' },
-  { to: '/librarian/borrows',   icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', label: 'Issue & Return' },
-  { to: '/librarian/overdue',   icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z', label: 'Overdue' },
+  { to: '/librarian/dashboard', icon: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z', label: 'ផ្ទាំងគ្រប់គ្រង' }, // Dashboard
+  { to: '/librarian/books',     icon: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z', label: 'សៀវភៅ' }, // Books
+  { to: '/librarian/borrows',   icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', label: 'ខ្ចី និង សង' }, // Issue & Return
+  { to: '/librarian/overdue',   icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z', label: 'ហួសកាលកំណត់' }, // Overdue
 ]
 function isActive(path) { return route.path.startsWith(path) }
 </script>
@@ -34,8 +34,8 @@ function isActive(path) { return route.path.startsWith(path) }
           </svg>
         </div>
         <div class="sidebar-brand-text">
-          <div class="sidebar-brand-name">Library</div>
-          <div class="sidebar-brand-sub">Librarian Portal</div>
+          <div class="sidebar-brand-name">បណ្ណាល័យ</div>
+          <div class="sidebar-brand-sub">ប្រព័ន្ធគ្រប់គ្រងបណ្ណារក្ស</div>
         </div>
       </div>
       <nav class="sidebar-nav">
@@ -51,14 +51,14 @@ function isActive(path) { return route.path.startsWith(path) }
           <div class="avatar">{{ userInitials }}</div>
           <div class="sidebar-user-info">
             <div class="sidebar-user-name">{{ auth.profile?.email?.split('@')[0] }}</div>
-            <div class="sidebar-user-role">Librarian</div>
+            <div class="sidebar-user-role">បណ្ណារក្ស</div>
           </div>
         </div>
         <button class="nav-item logout-btn" @click="logout">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
           </svg>
-          Sign out
+          ចាកចេញ
         </button>
       </div>
     </aside>
@@ -69,9 +69,9 @@ function isActive(path) { return route.path.startsWith(path) }
             <path d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
         </button>
-        <div style="flex:1"><h2 style="font-size:16px;font-weight:600;">Library Management</h2></div>
+        <div style="flex:1"><h2 style="font-size:16px;font-weight:600;">ការគ្រប់គ្រងបណ្ណាល័យ</h2></div>
         <div style="display:flex;align-items:center;gap:12px;">
-          <span class="badge badge-purple">Librarian</span>
+          <span class="badge badge-purple">បណ្ណារក្ស</span>
           <div class="avatar">{{ userInitials }}</div>
         </div>
       </header>

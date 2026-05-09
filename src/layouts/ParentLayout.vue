@@ -6,7 +6,6 @@ const route = useRoute()
 
 <template>
   <div class="parent-layout">
-    <!-- Top Nav -->
     <header class="parent-header">
       <RouterLink to="/parent" class="parent-brand">
         <div class="parent-logo">
@@ -16,21 +15,19 @@ const route = useRoute()
             <path d="M2 12l10 5 10-5"/>
           </svg>
         </div>
-        <span class="parent-brand-name">School Portal</span>
+        <span class="parent-brand-name">ទំព័រព័ត៌មានសាលា</span>
       </RouterLink>
       <div class="parent-header-right">
-        <span class="badge badge-blue">Parent / Guardian</span>
+        <span class="badge badge-blue">មាតាបិតា / អាណាព្យាបាល</span>
       </div>
     </header>
 
-    <!-- Content -->
     <main class="parent-content">
       <RouterView />
     </main>
 
-    <!-- Footer -->
     <footer class="parent-footer">
-      <p>© {{ new Date().getFullYear() }} School Management System — Parent Portal</p>
+      <p>© {{ new Date().getFullYear() }} ប្រព័ន្ធគ្រប់គ្រងសាលារៀន — វិបផតថលមាតាបិតា</p>
     </footer>
   </div>
 </template>

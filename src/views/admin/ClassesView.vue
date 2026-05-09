@@ -65,7 +65,7 @@ async function openEdit(c) {
 }
 
 async function save() {
-  if (!form.value.class_name.trim()) { showToast('Class name is required', 'error'); return }
+  if (!form.value.class_name.trim()) { showToast('សូមបញ្ចូលឈ្មោះថ្នាក់រៀន', 'error'); return }
   saving.value = true
   
   const { id, teachers: _t, academic_years: _y, class_subjects: _cs, subjects: selectedSubjects, ...payload } = form.value
@@ -95,7 +95,7 @@ async function save() {
       if (syncError) throw syncError
     }
 
-    showToast(isEdit.value ? 'Class updated!' : 'Class added!', 'success')
+    showToast(isEdit.value ? 'បានកែប្រែថ្នាក់រៀន!' : 'បានបន្ថែមថ្នាក់រៀន!', 'success')
     showModal.value = false
     loadClasses()
   } catch (error) {
@@ -109,7 +109,7 @@ async function doDelete() {
   const { error } = await supabase.from('classes').delete().eq('id', deleteTarget.value.id)
   deleteTarget.value = null
   if (error) { showToast(error.message, 'error'); return }
-  showToast('Class deleted', 'success')
+  showToast('បានលុបថ្នាក់រៀន', 'success')
   loadClasses()
 }
 
@@ -125,17 +125,17 @@ function showToast(msg, type = 'success') {
       <div v-if="toast" class="toast" :class="`toast-${toast.type}`"><CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" /><XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}</div>
     </div>
     <div class="page-header">
-      <div><h1 class="page-title">Classes</h1><p class="page-subtitle">{{ classes.length }} active classes</p></div>
+      <div><h1 class="page-title">ថ្នាក់រៀន</h1><p class="page-subtitle">{{ classes.length }} ថ្នាក់រៀនសកម្ម</p></div>
       <button class="btn btn-primary" @click="openAdd">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Class
+        បន្ថែមថ្នាក់រៀន
       </button>
     </div>
 
     <div class="filters-bar">
       <div class="search-input-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input class="form-input" v-model="search" placeholder="Search classes…" />
+        <input class="form-input" v-model="search" placeholder="ស្វែងរកថ្នាក់រៀន..." />
       </div>
     </div>
 
@@ -145,12 +145,12 @@ function showToast(msg, type = 'success') {
       </div>
       <div v-else-if="filtered.length === 0" class="empty-state">
         <BuildingOfficeIcon class="w-12 h-12 text-gray-400" />
-        <p class="empty-state-title">No classes yet</p>
-        <button class="btn btn-primary" @click="openAdd">Add Class</button>
+        <p class="empty-state-title">មិនទាន់មានថ្នាក់រៀនទេ</p>
+        <button class="btn btn-primary" @click="openAdd">បន្ថែមថ្នាក់រៀន</button>
       </div>
       <div v-else class="table-wrapper">
         <table>
-          <thead><tr><th>Class Name</th><th>Teacher</th><th>Subjects</th><th>Turn</th><th>Actions</th></tr></thead>
+          <thead><tr><th>ឈ្មោះថ្នាក់</th><th>គ្រូបង្រៀន</th><th>មុខវិជ្ជា</th><th>វេនរៀន</th><th>សកម្មភាព</th></tr></thead>
           <tbody>
             <tr v-for="c in filtered" :key="c.id">
               <td style="font-weight:600;">{{ c.class_name }}</td>
@@ -160,12 +160,12 @@ function showToast(msg, type = 'success') {
                   <span v-for="cs in c.class_subjects" :key="cs.subject_id" class="badge badge-gray" style="font-size:10px;">
                     {{ cs.subjects?.subject_name }}
                   </span>
-                  <span v-if="!c.class_subjects?.length" class="text-secondary" style="font-size:11px;">No subjects</span>
+                  <span v-if="!c.class_subjects?.length" class="text-secondary" style="font-size:11px;">គ្មានមុខវិជ្ជា</span>
                 </div>
               </td>
               <td>
                 <span class="badge" :class="c.turn === 'morning' ? 'badge-blue' : 'badge-yellow'">
-                  <SunIcon v-if="c.turn === 'morning'" class="w-4 h-4" /><MoonIcon v-else class="w-4 h-4" /> {{ c.turn === 'morning' ? 'Morning' : 'Afternoon' }}
+                  <SunIcon v-if="c.turn === 'morning'" class="w-4 h-4" /><MoonIcon v-else class="w-4 h-4" /> {{ c.turn === 'morning' ? 'ព្រឹក' : 'រសៀល' }}
                 </span>
               </td>
               <td>
@@ -187,31 +187,31 @@ function showToast(msg, type = 'success') {
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
       <div class="modal">
         <div class="modal-header">
-          <span class="modal-title">{{ isEdit ? 'Edit Class' : 'Add Class' }}</span>
+          <span class="modal-title">{{ isEdit ? 'កែប្រែថ្នាក់រៀន' : 'បន្ថែមថ្នាក់រៀន' }}</span>
           <button class="btn btn-ghost btn-sm btn-icon" @click="showModal = false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
         <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
           <div class="form-group">
-            <label class="form-label">Class Name *</label>
-            <input class="form-input" v-model="form.class_name" placeholder="e.g. Grade 1A" />
+            <label class="form-label">ឈ្មោះថ្នាក់រៀន *</label>
+            <input class="form-input" v-model="form.class_name" placeholder="ឧ. ថ្នាក់ទី១ (A)" />
           </div>
           <div class="form-group">
-            <label class="form-label">Teacher</label>
+            <label class="form-label">គ្រូបង្រៀន</label>
             <select class="form-select" v-model="form.teacher_id">
-              <option value="">— None —</option>
+              <option value="">— គ្មាន —</option>
               <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.full_name }}</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Turn</label>
+            <label class="form-label">វេនរៀន</label>
             <select class="form-select" v-model="form.turn">
-              <option value="morning">Morning</option>
-              <option value="afternoon">Afternoon</option>
+              <option value="morning">ព្រឹក</option>
+              <option value="afternoon">រសៀល</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Assigned Subjects</label>
+            <label class="form-label">មុខវិជ្ជា</label>
             <div class="subject-selection-grid">
               <label v-for="s in allSubjects" :key="s.id" class="subject-checkbox">
                 <input type="checkbox" :value="s.id" v-model="form.subjects" />
@@ -221,8 +221,8 @@ function showToast(msg, type = 'success') {
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-ghost" @click="showModal = false">Cancel</button>
-          <button class="btn btn-primary" @click="save" :disabled="saving">{{ saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Class' }}</button>
+          <button class="btn btn-ghost" @click="showModal = false">បោះបង់</button>
+          <button class="btn btn-primary" @click="save" :disabled="saving">{{ saving ? 'កំពុងរក្សាទុក...' : isEdit ? 'រក្សាទុកការកែប្រែ' : 'បន្ថែមថ្នាក់' }}</button>
         </div>
       </div>
     </div>
@@ -231,12 +231,12 @@ function showToast(msg, type = 'success') {
       <div class="modal" style="max-width:360px;">
         <div class="modal-body" style="text-align:center;padding:28px 24px;">
           <TrashIcon class="w-10 h-10 text-gray-400" style="margin: 0 auto 12px;" />
-          <h3 style="margin-bottom:8px;">Delete Class?</h3>
-          <p style="color:var(--text-secondary);font-size:13px;">Delete <strong>{{ deleteTarget.class_name }}</strong>?</p>
+          <h3 style="margin-bottom:8px;">លុបថ្នាក់រៀននេះ?</h3>
+          <p style="color:var(--text-secondary);font-size:13px;">អ្នកពិតជាចង់លុប <strong>{{ deleteTarget.class_name }}</strong> មែនទេ?</p>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-ghost" @click="deleteTarget = null">Cancel</button>
-          <button class="btn btn-danger" @click="doDelete">Yes, Delete</button>
+          <button class="btn btn-ghost" @click="deleteTarget = null">បោះបង់</button>
+          <button class="btn btn-danger" @click="doDelete">យល់ព្រមលុប</button>
         </div>
       </div>
     </div>

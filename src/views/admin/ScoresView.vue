@@ -40,7 +40,6 @@ onMounted(async () => {
   await Promise.all([fetchClasses(), fetchSubjects()])
   if (classes.value.length > 0) {
     selectedClassId.value = classes.value[0].id
-    // fetchData is called by watch
   }
   loading.value = false
 })
@@ -202,7 +201,6 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
       </button>
     </div>
 
-    <!-- Filters -->
     <div class="card no-print" style="margin-bottom:20px;">
       <div class="card-body filter-grid">
         <div class="form-group">
@@ -249,7 +247,6 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
     </div>
 
     <div v-else ref="printArea" class="card">
-      <!-- Matrix Table -->
       <div class="table-wrapper horizontal-scroll">
         <table class="matrix-table" :class="{ 'semester-mode': scoreMode === 'semester' }">
           <thead>
@@ -287,14 +284,12 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
               <td style="text-align:center;">{{ idx + 1 }}</td>
               <td style="font-weight:700; text-align:left;">{{ row.full_name }}</td>
               
-              <!-- Monthly Mode Cells -->
               <template v-if="scoreMode === 'monthly'">
                 <td v-for="sub in subjects" :key="sub.id">
                   {{ row.subjects[sub.id] || '—' }}
                 </td>
               </template>
 
-              <!-- Semester Mode Cells -->
               <template v-else>
                 <td v-for="sub in subjects" :key="sub.id">
                   {{ row.examSubjects[sub.id] || '—' }}

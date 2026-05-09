@@ -72,85 +72,81 @@ function fmtDate(d) {
   <div>
     <div class="page-header">
       <div>
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">Welcome back — here's what's happening today</p>
+        <h1 class="page-title">ផ្ទាំងគ្រប់គ្រង</h1>
+        <p class="page-subtitle">សូមស្វាគមន៍មកកាន់ប្រព័ន្ធគ្រប់គ្រង — នេះជាសកម្មភាពនានាដែលកំពុងកើតឡើងនៅថ្ងៃនេះ</p>
       </div>
     </div>
 
-    <!-- Stats -->
     <div class="grid-cols-4" style="margin-bottom:24px;">
       <div class="stat-card">
         <div class="stat-icon" style="background:var(--primary-100);"><AcademicCapIcon class="w-6 h-6" /></div>
         <div class="stat-info">
-          <div class="stat-label">Total Students</div>
+          <div class="stat-label">សរុបសិស្ស</div>
           <div class="stat-value">{{ loading ? '—' : fmt(stats.students) }}</div>
-          <div class="stat-sub">Enrolled this year</div>
+          <div class="stat-sub">ដែលបានចុះឈ្មោះឆ្នាំនេះ</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon" style="background:var(--bg-success);"><UserGroupIcon class="w-6 h-6" /></div>
         <div class="stat-info">
-          <div class="stat-label">Teachers</div>
+          <div class="stat-label">គ្រូបង្រៀន</div>
           <div class="stat-value">{{ loading ? '—' : fmt(stats.teachers) }}</div>
-          <div class="stat-sub">Active staff</div>
+          <div class="stat-sub">បុគ្គលិកសកម្ម</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon" style="background:var(--bg-purple);"><BuildingOfficeIcon class="w-6 h-6" /></div>
         <div class="stat-info">
-          <div class="stat-label">Classes</div>
+          <div class="stat-label">ថ្នាក់រៀន</div>
           <div class="stat-value">{{ loading ? '—' : fmt(stats.classes) }}</div>
-          <div class="stat-sub">Active classes</div>
+          <div class="stat-sub">ថ្នាក់រៀនសកម្ម</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon" style="background:var(--bg-warning);"><BookOpenIcon class="w-6 h-6" /></div>
         <div class="stat-info">
-          <div class="stat-label">Library Books</div>
+          <div class="stat-label">សៀវភៅបណ្ណាល័យ</div>
           <div class="stat-value">{{ loading ? '—' : fmt(stats.books) }}</div>
-          <div class="stat-sub">In collection</div>
+          <div class="stat-sub">នៅក្នុងស្តុក</div>
         </div>
       </div>
     </div>
 
-    <!-- Budget row -->
     <div class="grid-cols-2" style="margin-bottom:24px;">
       <div class="stat-card">
         <div class="stat-icon" style="background:var(--bg-success);"><CurrencyDollarIcon class="w-6 h-6" /></div>
         <div class="stat-info">
-          <div class="stat-label">Total Income</div>
+          <div class="stat-label">ចំណូលសរុប</div>
           <div class="stat-value" style="color:var(--color-success);">${{ loading ? '—' : fmt(stats.budget_income) }}</div>
-          <div class="stat-sub">Budget transactions</div>
+          <div class="stat-sub">ប្រតិបត្តិការថវិកា</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon" style="background:var(--bg-danger);">💸</div>
         <div class="stat-info">
-          <div class="stat-label">Total Expenses</div>
+          <div class="stat-label">ចំណាយសរុប</div>
           <div class="stat-value" style="color:var(--color-danger);">${{ loading ? '—' : fmt(stats.budget_expense) }}</div>
-          <div class="stat-sub">Budget transactions</div>
+          <div class="stat-sub">ប្រតិបត្តិការថវិកា</div>
         </div>
       </div>
     </div>
 
-    <!-- Recent students + Overdue books -->
     <div class="grid-cols-2">
-      <!-- Recent students -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Recent Students</span>
-          <button class="btn btn-secondary btn-sm" @click="router.push('/admin/students')">View all</button>
+          <span class="card-title">សិស្សទើបចុះឈ្មោះថ្មីៗ</span>
+          <button class="btn btn-secondary btn-sm" @click="router.push('/admin/students')">មើលទាំងអស់</button>
         </div>
         <div v-if="loading" class="card-body">
           <div v-for="i in 4" :key="i" class="skeleton" style="height:36px;margin-bottom:10px;border-radius:8px;"></div>
         </div>
         <div v-else-if="recentStudents.length === 0" class="empty-state">
           <div class="empty-state-icon"><AcademicCapIcon class="w-12 h-12 text-gray-400" /></div>
-          <p class="empty-state-title">No students yet</p>
+          <p class="empty-state-title">មិនទាន់មានទិន្នន័យសិស្ស</p>
         </div>
         <div v-else class="table-wrapper">
           <table>
-            <thead><tr><th>Name</th><th>Gender</th><th>Added</th></tr></thead>
+            <thead><tr><th>ឈ្មោះ</th><th>ភេទ</th><th>ថ្ងៃចុះឈ្មោះ</th></tr></thead>
             <tbody>
               <tr v-for="s in recentStudents" :key="s.id" style="cursor:pointer;" @click="router.push('/admin/students/'+s.id)">
                 <td>
@@ -159,7 +155,7 @@ function fmtDate(d) {
                     {{ s.full_name }}
                   </div>
                 </td>
-                <td><span class="badge" :class="s.gender==='Male'?'badge-blue':'badge-red'">{{ s.gender || '—' }}</span></td>
+                <td><span class="badge" :class="s.gender==='Male'?'badge-blue':'badge-red'">{{ s.gender === 'Male' ? 'ប្រុស' : (s.gender === 'Female' ? 'ស្រី' : '—') }}</span></td>
                 <td>{{ fmtDate(s.created_at) }}</td>
               </tr>
             </tbody>
@@ -167,22 +163,21 @@ function fmtDate(d) {
         </div>
       </div>
 
-      <!-- Overdue books -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Overdue Books</span>
-          <button class="btn btn-secondary btn-sm" @click="router.push('/admin/library')">View all</button>
+          <span class="card-title">សៀវភៅហួសកាលកំណត់</span>
+          <button class="btn btn-secondary btn-sm" @click="router.push('/admin/library')">មើលទាំងអស់</button>
         </div>
         <div v-if="loading" class="card-body">
           <div v-for="i in 4" :key="i" class="skeleton" style="height:36px;margin-bottom:10px;border-radius:8px;"></div>
         </div>
         <div v-else-if="overdueBooks.length === 0" class="empty-state">
           <div class="empty-state-icon"><CheckCircleIcon class="w-12 h-12 text-gray-400" /></div>
-          <p class="empty-state-title">No overdue books</p>
+          <p class="empty-state-title">គ្មានសៀវភៅហួសកាលកំណត់ទេ</p>
         </div>
         <div v-else class="table-wrapper">
           <table>
-            <thead><tr><th>Book</th><th>Student</th><th>Due</th></tr></thead>
+            <thead><tr><th>សៀវភៅ</th><th>សិស្ស</th><th>ត្រូវសង</th></tr></thead>
             <tbody>
               <tr v-for="b in overdueBooks" :key="b.id">
                 <td>{{ b.books?.title }}</td>
@@ -195,15 +190,14 @@ function fmtDate(d) {
       </div>
     </div>
 
-    <!-- Quick actions -->
     <div class="card" style="margin-top:20px;">
-      <div class="card-header"><span class="card-title">Quick Actions</span></div>
+      <div class="card-header"><span class="card-title">សកម្មភាពរហ័ស</span></div>
       <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;">
-        <button class="btn btn-primary" @click="router.push('/admin/students')"><PlusIcon class="w-4 h-4" /> Add Student</button>
-        <button class="btn btn-secondary" @click="router.push('/admin/teachers')"><PlusIcon class="w-4 h-4" /> Add Teacher</button>
-        <button class="btn btn-secondary" @click="router.push('/admin/attendance/students')"><ClipboardDocumentListIcon class="w-4 h-4" /> Take Attendance</button>
-        <button class="btn btn-secondary" @click="router.push('/admin/budget')"><CurrencyDollarIcon class="w-4 h-4" /> Add Transaction</button>
-        <button class="btn btn-secondary" @click="router.push('/admin/reports')"><PrinterIcon class="w-4 h-4" /> Print Report</button>
+        <button class="btn btn-primary" @click="router.push('/admin/students')"><PlusIcon class="w-4 h-4" /> បន្ថែមសិស្ស</button>
+        <button class="btn btn-secondary" @click="router.push('/admin/teachers')"><PlusIcon class="w-4 h-4" /> បន្ថែមគ្រូបង្រៀន</button>
+        <button class="btn btn-secondary" @click="router.push('/admin/attendance/students')"><ClipboardDocumentListIcon class="w-4 h-4" /> ពិនិត្យវត្តមាន</button>
+        <button class="btn btn-secondary" @click="router.push('/admin/budget')"><CurrencyDollarIcon class="w-4 h-4" /> បន្ថែមប្រតិបត្តិការ</button>
+        <button class="btn btn-secondary" @click="router.push('/admin/reports')"><PrinterIcon class="w-4 h-4" /> បោះពុម្ពរបាយការណ៍</button>
       </div>
     </div>
   </div>

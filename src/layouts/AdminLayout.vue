@@ -27,53 +27,53 @@ async function logout() {
 
 const navGroups = [
   {
-    label: 'Overview',
+    label: 'ទិដ្ឋភាពទូទៅ', // Overview
     items: [
-      { to: '/admin/dashboard', icon: 'grid', label: 'Dashboard' },
+      { to: '/admin/dashboard', icon: 'grid', label: 'ផ្ទាំងគ្រប់គ្រង' }, // Dashboard
     ],
   },
   {
-    label: 'School Setup',
+    label: 'ការរៀបចំសាលារៀន', // School Setup
     items: [
-      { to: '/admin/settings', icon: 'settings', label: 'Settings' },
+      { to: '/admin/settings', icon: 'settings', label: 'ការកំណត់' }, // Settings
     ],
   },
   {
-    label: 'People',
+    label: 'បុគ្គលិក និង សិស្ស', // People
     items: [
-      { to: '/admin/teachers',  icon: 'users',    label: 'Teachers' },
-      { to: '/admin/classes',   icon: 'layers',   label: 'Classes' },
-      { to: '/admin/students',  icon: 'user',     label: 'Students' },
-      { to: '/admin/users',     icon: 'shield',   label: 'User Accounts' },
+      { to: '/admin/teachers',  icon: 'users',    label: 'គ្រូបង្រៀន' }, // Teachers
+      { to: '/admin/classes',   icon: 'layers',   label: 'ថ្នាក់រៀន' }, // Classes
+      { to: '/admin/students',  icon: 'user',     label: 'សិស្ស' }, // Students
+      { to: '/admin/users',     icon: 'shield',   label: 'គណនីអ្នកប្រើប្រាស់' }, // User Accounts
     ],
   },
   {
-    label: 'Attendance',
+    label: 'វត្តមាន', // Attendance
     items: [
-      { to: '/admin/attendance/students', icon: 'check-square', label: 'Student Attendance' },
-      { to: '/admin/attendance/teachers', icon: 'user-check',   label: 'Teacher Attendance' },
+      { to: '/admin/attendance/students', icon: 'check-square', label: 'វត្តមានសិស្ស' }, // Student Attendance
+      { to: '/admin/attendance/teachers', icon: 'user-check',   label: 'វត្តមានគ្រូ' }, // Teacher Attendance
     ],
   },
   {
-    label: 'Academics',
+    label: 'ការសិក្សា', // Academics
     items: [
-      { to: '/admin/scores',    icon: 'bar-chart-2', label: 'Scores' },
-      { to: '/admin/health',    icon: 'heart',       label: 'Health Records' },
-      { to: '/admin/sick-days', icon: 'thermometer', label: 'Sick Days' },
+      { to: '/admin/scores',    icon: 'bar-chart-2', label: 'ពិន្ទុ' }, // Scores
+      { to: '/admin/health',    icon: 'heart',       label: 'សុខភាព' }, // Health Records
+      { to: '/admin/sick-days', icon: 'thermometer', label: 'ថ្ងៃឈឺ' }, // Sick Days
     ],
   },
   {
-    label: 'Finance & Resources',
+    label: 'ហិរញ្ញវត្ថុ និង ធនធាន', // Finance & Resources
     items: [
-      { to: '/admin/budget',    icon: 'dollar-sign', label: 'Budget' },
-      { to: '/admin/inventory', icon: 'package',     label: 'Inventory' },
-      { to: '/admin/library',   icon: 'book',        label: 'Library' },
+      { to: '/admin/budget',    icon: 'dollar-sign', label: 'ថវិកា' }, // Budget
+      { to: '/admin/inventory', icon: 'package',     label: 'សម្ភារៈ/ឧបករណ៍' }, // Inventory
+      { to: '/admin/library',   icon: 'book',        label: 'បណ្ណាល័យ' }, // Library
     ],
   },
   {
-    label: 'Reports',
+    label: 'របាយការណ៍', // Reports
     items: [
-      { to: '/admin/reports', icon: 'printer', label: 'Reports & Print' },
+      { to: '/admin/reports', icon: 'printer', label: 'របាយការណ៍ និង បោះពុម្ព' }, // Reports & Print
     ],
   },
 ]
@@ -113,12 +113,9 @@ function isActive(path) {
 
 <template>
   <div class="app-layout">
-    <!-- Mobile Overlay -->
     <div v-if="sidebarOpen" class="sidebar-overlay" @click="sidebarOpen = false"></div>
 
-    <!-- Sidebar -->
     <aside class="sidebar" :class="{ 'mobile-open': sidebarOpen }">
-      <!-- Brand -->
       <div class="sidebar-brand">
         <div class="sidebar-brand-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="20" height="20">
@@ -129,11 +126,10 @@ function isActive(path) {
         </div>
         <div class="sidebar-brand-text">
           <div class="sidebar-brand-name">SchoolAdmin</div>
-          <div class="sidebar-brand-sub">Administrator Portal</div>
+          <div class="sidebar-brand-sub">ប្រព័ន្ធគ្រប់គ្រងសាលារៀន</div>
         </div>
       </div>
 
-      <!-- Nav -->
       <nav class="sidebar-nav">
         <template v-for="group in navGroups" :key="group.label">
           <div class="nav-section-label">{{ group.label }}</div>
@@ -152,27 +148,24 @@ function isActive(path) {
         </template>
       </nav>
 
-      <!-- Footer -->
       <div class="sidebar-footer">
         <div class="sidebar-user">
           <div class="avatar">{{ userInitials }}</div>
           <div class="sidebar-user-info">
             <div class="sidebar-user-name">{{ auth.profile?.email?.split('@')[0] }}</div>
-            <div class="sidebar-user-role">Administrator</div>
+            <div class="sidebar-user-role">អ្នកគ្រប់គ្រង</div>
           </div>
         </div>
         <button class="nav-item logout-btn" @click="logout">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path :d="getIconPath('log-out')"/>
           </svg>
-          Sign out
+          ចាកចេញ
         </button>
       </div>
     </aside>
 
-    <!-- Main -->
     <div class="main-content">
-      <!-- Top bar -->
       <header class="top-bar">
         <button class="mobile-toggle" @click="sidebarOpen = true" style="margin-right: 8px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
@@ -185,7 +178,7 @@ function isActive(path) {
             ប្តូរឆ្នាំ
           </button>
           <div class="v-divider"></div>
-          <h2 class="top-bar-title">{{ route.meta.title || 'Dashboard' }}</h2>
+          <h2 class="top-bar-title">{{ route.meta.title || 'ផ្ទាំងគ្រប់គ្រង' }}</h2>
           <div v-if="yearStore.selectedYearName" class="year-badge">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
               <path d="M3 9h18M16 2v4M8 2v4M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -194,12 +187,11 @@ function isActive(path) {
           </div>
         </div>
         <div class="top-bar-right">
-          <span class="role-tag">Admin</span>
+          <span class="role-tag">អ្នកគ្រប់គ្រង</span>
           <div class="avatar">{{ userInitials }}</div>
         </div>
       </header>
 
-      <!-- Page -->
       <main class="page-content">
         <RouterView />
       </main>
