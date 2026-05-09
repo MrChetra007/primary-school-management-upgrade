@@ -97,8 +97,63 @@ const router = createRouter({
       component: () => import('@/layouts/ParentLayout.vue'),
       meta: { public: true },
       children: [
-        { path: '', name: 'parent-search', component: () => import('@/views/parent/SearchView.vue') },
-        { path: 'student/:id', name: 'parent-student-detail', component: () => import('@/views/parent/StudentResultView.vue') },
+        { 
+          path: '', 
+          name: 'parent-search', 
+          component: () => import('@/views/parent/SearchView.vue'),
+          meta: { public: true } 
+        },
+        { 
+          path: 'student/:id', 
+          name: 'parent-student-detail', 
+          component: () => import('@/views/parent/StudentView.vue'),
+          meta: { public: true },
+          children: [
+            { path: '', redirect: { name: 'parent-student-overview' } },
+            { 
+              path: 'overview', 
+              name: 'parent-student-overview', 
+              component: () => import('@/views/parent/StudentResultView.vue'),
+              meta: { public: true }
+            },
+            { 
+              path: 'attendance', 
+              name: 'parent-attendance', 
+              component: () => import('@/views/parent/AttendanceView.vue'),
+              meta: { public: true }
+            },
+            { 
+              path: 'scores', 
+              name: 'parent-scores', 
+              component: () => import('@/views/parent/ScoresView.vue'),
+              meta: { public: true }
+            },
+            { 
+              path: 'health', 
+              name: 'parent-health', 
+              component: () => import('@/views/parent/HealthView.vue'),
+              meta: { public: true }
+            },
+            { 
+              path: 'growth', 
+              name: 'parent-growth', 
+              component: () => import('@/views/parent/GrowthView.vue'),
+              meta: { public: true }
+            },
+            { 
+              path: 'vaccinations', 
+              name: 'parent-vaccinations', 
+              component: () => import('@/views/parent/VaccinationsView.vue'),
+              meta: { public: true }
+            },
+            { 
+              path: 'sick-days', 
+              name: 'parent-sick-days', 
+              component: () => import('@/views/parent/SickDaysView.vue'),
+              meta: { public: true }
+            },
+          ]
+        },
       ],
     },
 
@@ -113,29 +168,28 @@ router.beforeEach(async (to) => {
 
   // Initialize auth state if session is not loaded
   if (!auth.isLoggedIn) {
-    console.log('Router: No logged in user, trying init...')
     await auth.init()
   }
 
-  console.log('Router: target:', to.path, 'isLoggedIn:', auth.isLoggedIn, 'role:', auth.role)
+  // 1. Always allow public routes
+  const isPublic = to.matched.some(record => record.meta.public)
+  if (isPublic) return true
 
-  if (to.meta.public) return true
-
-  if (to.meta.requiresAuth && !auth.isLoggedIn) {
-    console.warn('Router: Requires auth but not logged in, redirecting to login')
+  // 2. Auth Required Check
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  if (requiresAuth && !auth.isLoggedIn) {
     return { name: 'login' }
   }
 
+  // 3. Role Check
   if (to.meta.role && auth.role !== to.meta.role) {
-    console.warn('Router: Role mismatch. Expected:', to.meta.role, 'Found:', auth.role)
     return { name: 'unauthorized' }
   }
 
-  // Academic Year Guard for Admin
-  if (auth.role === 'admin' && !to.meta.public && to.name !== 'admin-academic-years') {
+  // 4. Academic Year Guard for Admin
+  if (auth.role === 'admin' && requiresAuth && to.name !== 'admin-academic-years') {
     const yearStore = useAcademicYearStore()
     if (!yearStore.selectedYearId) {
-      console.warn('Router: Admin accessing pages without selected year, redirecting to academic-years')
       return { name: 'admin-academic-years' }
     }
   }
