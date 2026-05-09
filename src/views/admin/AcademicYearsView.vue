@@ -100,10 +100,23 @@ async function save() {
 }
 
 async function doDelete() {
+  // Safety check: Cannot delete active year or currently selected year
+  if (deleteTarget.value.status === 'active') {
+    showToast('មិនអាចលុបឆ្នាំសិក្សាដែលកំពុងដំណើរការបានទេ!', 'error')
+    deleteTarget.value = null
+    return
+  }
+  
+  if (deleteTarget.value.id === yearStore.selectedYearId) {
+    showToast('មិនអាចលុបឆ្នាំសិក្សាដែលអ្នកកំពុងប្រើប្រាស់បានទេ!', 'error')
+    deleteTarget.value = null
+    return
+  }
+
   const { error } = await supabase.from('academic_years').delete().eq('id', deleteTarget.value.id)
   deleteTarget.value = null
   if (error) { showToast(error.message, 'error'); return }
-  showToast('Year deleted', 'success'); load()
+  showToast('បានលុបឆ្នាំសិក្សា!', 'success'); load()
 }
 
 function showToast(msg, type = 'success') {
@@ -291,13 +304,22 @@ async function executeRollup() {
     <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
       <div class="modal" style="max-width:380px;">
         <div class="modal-body" style="text-align:center;padding:28px 24px;">
-          <TrashIcon class="w-10 h-10 text-gray-400" style="margin: 0 auto 12px;" />
-          <h3 style="margin-bottom:8px;">លុបឆ្នាំសិក្សា?</h3>
-          <p style="color:var(--text-secondary);font-size:13px;">តើអ្នកពិតជាចង់លុប <strong>{{ deleteTarget.year_name }}</strong> មែនទេ? រាល់ទិន្នន័យពាក់ព័ន្ធទាំងអស់នឹងត្រូវប៉ះពាល់។</p>
+          <ExclamationTriangleIcon class="w-12 h-12 text-red-500" style="margin: 0 auto 16px;" />
+          <h3 style="margin-bottom:8px;font-size:18px;font-weight:700;">តើអ្នកពិតជាចង់លុបមែនទេ?</h3>
+          <p style="color:var(--text-secondary);font-size:14px;line-height:1.6;">
+            ការលុបឆ្នាំសិក្សា <strong>{{ deleteTarget.year_name }}</strong> នឹងធ្វើឱ្យបាត់បង់ទិន្នន័យដូចជា៖
+          </p>
+          <ul style="text-align:left;font-size:13px;color:var(--text-secondary);margin:12px 0;padding-left:20px;">
+            <li>ថ្នាក់រៀន និងកាលវិភាគទាំងអស់</li>
+            <li>ពិន្ទុ និងមធ្យមភាគសិស្សទាំងអស់</li>
+            <li>វត្តមានសិស្ស និងគ្រូប្រចាំឆ្នាំ</li>
+            <li>របាយការណ៍ចំណូល-ចំណាយប្រចាំឆ្នាំ</li>
+          </ul>
+          <p style="color:#dc2626;font-size:12px;font-weight:600;margin-top:8px;">* កំណត់ត្រាសិស្ស និងគ្រូនឹងមិនត្រូវបានលុបឡើយ។</p>
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" @click="deleteTarget = null">បោះបង់</button>
-          <button class="btn btn-danger" @click="doDelete">បាទ លុប</button>
+        <div class="modal-footer" style="background:var(--bg-secondary);border-top:none;">
+          <button class="btn btn-ghost" @click="deleteTarget = null" style="background:white;border:1px solid var(--border-default);">បោះបង់</button>
+          <button class="btn btn-danger" @click="doDelete" style="flex:1;">បាទ ខ្ញុំយល់ព្រមលុប</button>
         </div>
       </div>
     </div>

@@ -297,12 +297,13 @@ create table student_sick_days (
 -- ============================================================
 
 create table attendances (
-  id         uuid primary key default uuid_generate_v4(),
-  student_id uuid not null references students(id) on delete cascade,
-  date       date not null,
-  status     attendance_status not null default 'present',
-  reason     text,
-  created_at timestamptz default now()
+  id                uuid primary key default uuid_generate_v4(),
+  student_id        uuid not null references students(id) on delete cascade,
+  academic_year_id  uuid not null references academic_years(id) on delete cascade,
+  date              date not null,
+  status            attendance_status not null default 'present',
+  reason            text,
+  created_at        timestamptz default now()
 );
 
 
@@ -390,7 +391,7 @@ create table book_borrows (
 
 create table budget_transactions (
   id               int4 primary key generated always as identity,
-  academic_year_id uuid references academic_years(id) on delete set null,
+  academic_year_id uuid references academic_years(id) on delete cascade,
   type             budget_type not null,
   date             date not null,
   description      text,
