@@ -8,7 +8,14 @@ import { AcademicCapIcon, UserGroupIcon, BuildingOfficeIcon, BookOpenIcon, Curre
 const router = useRouter()
 const yearStore = useAcademicYearStore()
 
-const stats = ref({ students: 0, teachers: 0, classes: 0, books: 0, budget_income: 0, budget_expense: 0 })
+const stats = ref({ 
+  students: 0, 
+  teachers: 0, 
+  classes: 0, 
+  books: 0, 
+  budget_income: 0, 
+  budget_expense: 0 
+})
 const recentStudents = ref([])
 const overdueBooks = ref([])
 const loading = ref(true)
@@ -31,6 +38,7 @@ async function loadStats() {
     supabase.from('budget_transactions').select('amount').eq('type', 'income').eq('academic_year_id', yearStore.selectedYearId),
     supabase.from('budget_transactions').select('amount').eq('type', 'expense').eq('academic_year_id', yearStore.selectedYearId),
   ])
+
   stats.value.students = s.count ?? 0
   stats.value.teachers = t.count ?? 0
   stats.value.classes  = c.count ?? 0
@@ -46,6 +54,7 @@ async function loadRecentStudents() {
     .eq('academic_year_id', yearStore.selectedYearId)
     .order('created_at', { ascending: false })
     .limit(5)
+
   recentStudents.value = data || []
 }
 
@@ -56,12 +65,24 @@ async function loadOverdueBooks() {
     .eq('status', 'overdue')
     .eq('students.academic_year_id', yearStore.selectedYearId)
     .limit(5)
+
   overdueBooks.value = data || []
 }
 
+// Format number with Khmer Riel
 function fmt(n) {
-  return Number(n).toLocaleString()
+  return Number(n).toLocaleString('en-US')
 }
+
+// Improved gender display (more robust)
+function getGenderLabel(gender) {
+  if (!gender) return '—'
+  const g = gender.toString().trim().toLowerCase()
+  if (g === 'male' || g === 'm') return 'ប្រុស'
+  if (g === 'female' || g === 'f') return 'ស្រី'
+  return '—'
+}
+
 function fmtDate(d) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('en-GB')
@@ -77,6 +98,7 @@ function fmtDate(d) {
       </div>
     </div>
 
+    <!-- Stats Grid -->
     <div class="grid-cols-4" style="margin-bottom:24px;">
       <div class="stat-card">
         <div class="stat-icon" style="background:var(--primary-100);"><AcademicCapIcon class="w-6 h-6" /></div>
@@ -112,12 +134,13 @@ function fmtDate(d) {
       </div>
     </div>
 
+    <!-- Budget -->
     <div class="grid-cols-2" style="margin-bottom:24px;">
       <div class="stat-card">
         <div class="stat-icon" style="background:var(--bg-success);"><CurrencyDollarIcon class="w-6 h-6" /></div>
         <div class="stat-info">
           <div class="stat-label">ចំណូលសរុប</div>
-          <div class="stat-value" style="color:var(--color-success);">${{ loading ? '—' : fmt(stats.budget_income) }}</div>
+          <div class="stat-value" style="color:var(--color-success);">{{ loading ? '—' : fmt(stats.budget_income) }} ៛</div>
           <div class="stat-sub">ប្រតិបត្តិការថវិកា</div>
         </div>
       </div>
@@ -125,13 +148,15 @@ function fmtDate(d) {
         <div class="stat-icon" style="background:var(--bg-danger);">💸</div>
         <div class="stat-info">
           <div class="stat-label">ចំណាយសរុប</div>
-          <div class="stat-value" style="color:var(--color-danger);">${{ loading ? '—' : fmt(stats.budget_expense) }}</div>
+          <div class="stat-value" style="color:var(--color-danger);">{{ loading ? '—' : fmt(stats.budget_expense) }} ៛</div>
           <div class="stat-sub">ប្រតិបត្តិការថវិកា</div>
         </div>
       </div>
     </div>
 
+    <!-- Recent Students & Overdue Books -->
     <div class="grid-cols-2">
+      <!-- Recent Students -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">សិស្សទើបចុះឈ្មោះថ្មីៗ</span>
@@ -146,16 +171,34 @@ function fmtDate(d) {
         </div>
         <div v-else class="table-wrapper">
           <table>
-            <thead><tr><th>ឈ្មោះ</th><th>ភេទ</th><th>ថ្ងៃចុះឈ្មោះ</th></tr></thead>
+            <thead>
+              <tr>
+                <th>ឈ្មោះ</th>
+                <th>ភេទ</th>
+                <th>ថ្ងៃចុះឈ្មោះ</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr v-for="s in recentStudents" :key="s.id" style="cursor:pointer;" @click="router.push('/admin/students/'+s.id)">
+              <tr 
+                v-for="s in recentStudents" 
+                :key="s.id" 
+                style="cursor:pointer;" 
+                @click="router.push('/admin/students/'+s.id)"
+              >
                 <td>
                   <div style="display:flex;align-items:center;gap:8px;">
-                    <div class="avatar" style="width:28px;height:28px;font-size:11px;">{{ s.full_name.charAt(0) }}</div>
+                    <div class="avatar" style="width:28px;height:28px;font-size:11px;">
+                      {{ s.full_name?.charAt(0) || '?' }}
+                    </div>
                     {{ s.full_name }}
                   </div>
                 </td>
-                <td><span class="badge" :class="s.gender==='Male'?'badge-blue':'badge-red'">{{ s.gender === 'Male' ? 'ប្រុស' : (s.gender === 'Female' ? 'ស្រី' : '—') }}</span></td>
+                <td>
+                  <span class="badge" 
+                        :class="getGenderLabel(s.gender) === 'ប្រុស' ? 'badge-blue' : 'badge-red'">
+                    {{ getGenderLabel(s.gender) }}
+                  </span>
+                </td>
                 <td>{{ fmtDate(s.created_at) }}</td>
               </tr>
             </tbody>
@@ -163,6 +206,7 @@ function fmtDate(d) {
         </div>
       </div>
 
+      <!-- Overdue Books -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">សៀវភៅហួសកាលកំណត់</span>
@@ -177,7 +221,13 @@ function fmtDate(d) {
         </div>
         <div v-else class="table-wrapper">
           <table>
-            <thead><tr><th>សៀវភៅ</th><th>សិស្ស</th><th>ត្រូវសង</th></tr></thead>
+            <thead>
+              <tr>
+                <th>សៀវភៅ</th>
+                <th>សិស្ស</th>
+                <th>ត្រូវសង</th>
+              </tr>
+            </thead>
             <tbody>
               <tr v-for="b in overdueBooks" :key="b.id">
                 <td>{{ b.books?.title }}</td>
@@ -190,14 +240,27 @@ function fmtDate(d) {
       </div>
     </div>
 
+    <!-- Quick Actions -->
     <div class="card" style="margin-top:20px;">
-      <div class="card-header"><span class="card-title">សកម្មភាពរហ័ស</span></div>
+      <div class="card-header">
+        <span class="card-title">សកម្មភាពរហ័ស</span>
+      </div>
       <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;">
-        <button class="btn btn-primary" @click="router.push('/admin/students')"><PlusIcon class="w-4 h-4" /> បន្ថែមសិស្ស</button>
-        <button class="btn btn-secondary" @click="router.push('/admin/teachers')"><PlusIcon class="w-4 h-4" /> បន្ថែមគ្រូបង្រៀន</button>
-        <button class="btn btn-secondary" @click="router.push('/admin/attendance/students')"><ClipboardDocumentListIcon class="w-4 h-4" /> ពិនិត្យវត្តមាន</button>
-        <button class="btn btn-secondary" @click="router.push('/admin/budget')"><CurrencyDollarIcon class="w-4 h-4" /> បន្ថែមប្រតិបត្តិការ</button>
-        <button class="btn btn-secondary" @click="router.push('/admin/reports')"><PrinterIcon class="w-4 h-4" /> បោះពុម្ពរបាយការណ៍</button>
+        <button class="btn btn-primary" @click="router.push('/admin/students')">
+          <PlusIcon class="w-4 h-4" /> បន្ថែមសិស្ស
+        </button>
+        <button class="btn btn-secondary" @click="router.push('/admin/teachers')">
+          <PlusIcon class="w-4 h-4" /> បន្ថែមគ្រូបង្រៀន
+        </button>
+        <button class="btn btn-secondary" @click="router.push('/admin/attendance/students')">
+          <ClipboardDocumentListIcon class="w-4 h-4" /> ពិនិត្យវត្តមាន
+        </button>
+        <button class="btn btn-secondary" @click="router.push('/admin/budget')">
+          <CurrencyDollarIcon class="w-4 h-4" /> បន្ថែមប្រតិបត្តិការ
+        </button>
+        <button class="btn btn-secondary" @click="router.push('/admin/reports')">
+          <PrinterIcon class="w-4 h-4" /> បោះពុម្ពរបាយការណ៍
+        </button>
       </div>
     </div>
   </div>
