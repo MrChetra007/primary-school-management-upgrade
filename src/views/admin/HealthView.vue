@@ -40,20 +40,26 @@ const filteredVaccinations = computed(() => {
   <div>
     <div class="page-header">
       <div>
-        <h1 class="page-title">Health Center</h1>
-        <p class="page-subtitle">School-wide student health and growth records</p>
+        <h1 class="page-title">មជ្ឈមណ្ឌលសុខភាព</h1>
+        <p class="page-subtitle">កំណត់ត្រាសុខភាព និងការលូតលាស់របស់សិស្សទូទាំងសាលា</p>
       </div>
     </div>
 
     <div class="tabs">
-      <div class="tab-item" :class="{ active: activeTab === 'growth' }" @click="activeTab = 'growth'"><ChartBarIcon class="w-4 h-4" /> Growth Records</div>
-      <div class="tab-item" :class="{ active: activeTab === 'vaccinations' }" @click="activeTab = 'vaccinations'"><BeakerIcon class="w-4 h-4" /> Vaccinations</div>
+      <div class="tab-item" :class="{ active: activeTab === 'growth' }" @click="activeTab = 'growth'">
+        <ChartBarIcon class="w-4 h-4" /> កំណត់ត្រាការលូតលាស់
+      </div>
+      <div class="tab-item" :class="{ active: activeTab === 'vaccinations' }" @click="activeTab = 'vaccinations'">
+        <BeakerIcon class="w-4 h-4" /> ការចាក់វ៉ាក់សាំង
+      </div>
     </div>
 
     <div class="filters-bar">
       <div class="search-input-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input class="form-input" v-model="search" placeholder="Search by student or vaccine…" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="form-input" v-model="search" placeholder="ស្វែងរកតាមឈ្មោះសិស្ស ឬប្រភេទវ៉ាក់សាំង..." />
       </div>
     </div>
 
@@ -62,10 +68,18 @@ const filteredVaccinations = computed(() => {
         <div v-for="i in 5" :key="i" class="skeleton" style="height:48px;margin-bottom:10px;border-radius:8px;"></div>
       </div>
       
-      <!-- Growth Table -->
+      <!-- Growth Table (តារាងការលូតលាស់) -->
       <div v-else-if="activeTab === 'growth'" class="table-wrapper">
         <table v-if="filteredGrowth.length > 0">
-          <thead><tr><th>Student</th><th>Class</th><th>Date</th><th>Height (cm)</th><th>Weight (kg)</th></tr></thead>
+          <thead>
+            <tr>
+              <th>ឈ្មោះសិស្ស</th>
+              <th>ថ្នាក់</th>
+              <th>កាលបរិច្ឆេទ</th>
+              <th>កម្ពស់ (cm)</th>
+              <th>ទម្ងន់ (kg)</th>
+            </tr>
+          </thead>
           <tbody>
             <tr v-for="g in filteredGrowth" :key="g.id">
               <td style="font-weight:600;">{{ g.students?.full_name }}</td>
@@ -76,13 +90,21 @@ const filteredVaccinations = computed(() => {
             </tr>
           </tbody>
         </table>
-        <div v-else class="empty-state">No growth records found.</div>
+        <div v-else class="empty-state">រកមិនឃើញទិន្នន័យការលូតលាស់ទេ។</div>
       </div>
 
-      <!-- Vaccinations Table -->
+      <!-- Vaccinations Table (តារាងវ៉ាក់សាំង) -->
       <div v-else-if="activeTab === 'vaccinations'" class="table-wrapper">
         <table v-if="filteredVaccinations.length > 0">
-          <thead><tr><th>Student</th><th>Class</th><th>Vaccine</th><th>Date</th><th>Status</th></tr></thead>
+          <thead>
+            <tr>
+              <th>ឈ្មោះសិស្ស</th>
+              <th>ថ្នាក់</th>
+              <th>វ៉ាក់សាំង</th>
+              <th>កាលបរិច្ឆេទ</th>
+              <th>ស្ថានភាព</th>
+            </tr>
+          </thead>
           <tbody>
             <tr v-for="v in filteredVaccinations" :key="v.id">
               <td style="font-weight:600;">{{ v.students?.full_name }}</td>
@@ -91,14 +113,18 @@ const filteredVaccinations = computed(() => {
               <td>{{ formatDate(v.date) }}</td>
               <td>
                 <span class="badge" :class="v.completed ? 'badge-green' : 'badge-yellow'">
-                  <template v-if="v.completed"><CheckIcon class="w-4 h-4" /> Completed</template>
-                  <template v-else><ClockIcon class="w-4 h-4" /> Pending</template>
+                  <template v-if="v.completed">
+                    <CheckIcon class="w-4 h-4" /> រួចរាល់
+                  </template>
+                  <template v-else>
+                    <ClockIcon class="w-4 h-4" /> កំពុងរង់ចាំ
+                  </template>
                 </span>
               </td>
             </tr>
           </tbody>
         </table>
-        <div v-else class="empty-state">No vaccination records found.</div>
+        <div v-else class="empty-state">រកមិនឃើញទិន្នន័យវ៉ាក់សាំងទេ។</div>
       </div>
     </div>
   </div>
