@@ -21,7 +21,8 @@ async function handleLogin() {
   loading.value = true
   try {
     const role = await auth.login(email.value, password.value)
-    if (role === 'admin')     router.push('/admin/academic-years')
+    if (role === 'super_admin')   router.push('/super/dashboard')
+    else if (role === 'admin')     router.push('/admin/academic-years')
     else if (role === 'teacher')   router.push('/teacher/dashboard')
     else if (role === 'librarian') router.push('/librarian/dashboard')
     else router.push('/unauthorized')
@@ -139,15 +140,12 @@ async function handleLogin() {
         </button>
       </form>
 
-      <!-- Roles hint -->
-      <div class="login-roles">
-        <span>Roles:</span>
-        <span class="badge badge-blue">Admin</span>
-        <span class="badge badge-green">Teacher</span>
-        <span class="badge badge-purple">Librarian</span>
+        <div class="login-footer" style="text-align: center; margin-top: 16px; font-size: 14px; color: #64748b;">
+          Don't have an account? 
+          <router-link to="/register" style="color: #2563eb; font-weight: 600; text-decoration: none;">Sign Up</router-link>
+        </div>
       </div>
     </div>
-  </div>
 </template>
 
 <style scoped>

@@ -5,8 +5,13 @@ import { useAcademicYearStore } from '@/stores/academicYear'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    // ── Auth ──────────────────────────────────────────────
-    { path: '/', redirect: '/login' },
+    // ── Public ──────────────────────────────────────────────
+    {
+      path: '/',
+      name: 'home',
+      component: () => import('@/views/HomeView.vue'),
+      meta: { public: true },
+    },
     {
       path: '/login',
       name: 'login',
@@ -14,10 +19,31 @@ const router = createRouter({
       meta: { public: true },
     },
     {
+      path: '/register',
+      name: 'register',
+      component: () => import('@/views/auth/RegisterView.vue'),
+      meta: { public: true },
+    },
+    {
       path: '/unauthorized',
       name: 'unauthorized',
       component: () => import('@/views/auth/UnauthorizedView.vue'),
       meta: { public: true },
+    },
+
+    // ── Super Admin (Platform Level) ───────────────────────
+    {
+      path: '/super',
+      component: () => import('@/layouts/SuperLayout.vue'),
+      meta: { requiresAuth: true, role: 'super_admin' },
+      children: [
+        { path: '', redirect: '/super/dashboard' },
+        { path: 'dashboard', name: 'super-dashboard', component: () => import('@/views/super/DashboardView.vue') },
+        { path: 'schools',   name: 'super-schools',   component: () => import('@/views/super/SchoolsListView.vue') },
+        { path: 'schools/new', name: 'super-schools-new', component: () => import('@/views/super/NewSchoolView.vue') },
+        { path: 'users',     name: 'super-users',     component: () => import('@/views/admin/UsersView.vue') }, // Reuse admin users view for now
+        { path: 'settings',  name: 'super-settings',  component: () => import('@/views/admin/SettingsView.vue') }, // Reuse settings view
+      ],
     },
 
     // ── Admin Standalone (Layer 1) ─────────────────────────
@@ -105,11 +131,10 @@ const router = createRouter({
         },
         { 
           path: 'student/:id', 
-          name: 'parent-student-detail', 
           component: () => import('@/views/parent/StudentView.vue'),
           meta: { public: true },
           children: [
-            { path: '', redirect: { name: 'parent-student-overview' } },
+            { path: '', name: 'parent-student-detail', redirect: { name: 'parent-student-overview' } },
             { 
               path: 'overview', 
               name: 'parent-student-overview', 

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useSchoolStore } from './school'
 
 export const useAuthStore = defineStore('auth', () => {
   const session = ref(null)
@@ -11,10 +12,12 @@ export const useAuthStore = defineStore('auth', () => {
   const role = computed(() => profile.value?.role ?? null)
   const userId = computed(() => session.value?.user?.id ?? null)
   
+  const isSuperAdmin = computed(() => role.value === 'super_admin')
   const isAdmin = computed(() => role.value === 'admin')
   const isTeacher = computed(() => role.value === 'teacher')
   const isLibrarian = computed(() => role.value === 'librarian')
   const isParent = computed(() => role.value === 'parent')
+  const schoolId = computed(() => profile.value?.school_id ?? null)
 
   async function fetchProfile(id) {
     try {
@@ -34,6 +37,12 @@ export const useAuthStore = defineStore('auth', () => {
 
       profile.value = data
       
+      // Load school information
+      const schoolStore = useSchoolStore()
+      if (data.school_id) {
+        await schoolStore.fetchSchool(data.school_id)
+      }
+
       // Every user has a teacher profile in Cambodia school system (Roadmap v8)
       const { data: tData } = await supabase
         .from('teachers')
@@ -86,6 +95,10 @@ export const useAuthStore = defineStore('auth', () => {
     session.value = null
     profile.value = null
     teacherProfile.value = null
+    
+    // Clear school info
+    const schoolStore = useSchoolStore()
+    schoolStore.clearSchool()
   }
 
   return { 
@@ -95,10 +108,12 @@ export const useAuthStore = defineStore('auth', () => {
     isLoggedIn, 
     role, 
     userId, 
+    isSuperAdmin,
     isAdmin,
     isTeacher,
     isLibrarian,
     isParent,
+    schoolId,
     init, 
     login, 
     logout 

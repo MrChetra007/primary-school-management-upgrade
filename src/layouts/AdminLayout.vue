@@ -3,11 +3,13 @@ import { ref, computed, watch } from 'vue'
 import { RouterView, useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
+import { useSchoolStore } from '@/stores/school'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
+const schoolStore = useSchoolStore()
 const sidebarOpen = ref(false)
 
 // Close sidebar on route change (mobile)
@@ -179,6 +181,13 @@ function isActive(path) {
           </button>
           <div class="v-divider"></div>
           <h2 class="top-bar-title">{{ route.meta.title || 'ផ្ទាំងគ្រប់គ្រង' }}</h2>
+          <div v-if="schoolStore.schoolName" class="school-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            {{ schoolStore.schoolName }}
+          </div>
           <div v-if="yearStore.selectedYearName" class="year-badge">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
               <path d="M3 9h18M16 2v4M8 2v4M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -203,16 +212,22 @@ function isActive(path) {
 .top-bar-left { flex: 1; display: flex; align-items: center; gap: 12px; }
 .top-bar-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
 
-.year-badge {
+.year-badge, .school-badge {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background: var(--primary-50);
-  color: var(--primary-700);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
+}
+.school-badge {
+  background: var(--emerald-50);
+  color: var(--emerald-700);
+}
+.year-badge {
+  background: var(--primary-50);
+  color: var(--primary-700);
 }
 .top-bar-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
 

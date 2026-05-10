@@ -26,18 +26,23 @@ serve(async (req) => {
     // ────────────────────────────────────────────────────────────
     if (action === 'create') {
       const { 
-        email, password, role, 
+        email, password, role, school_id,
         full_name, gender, dob, phone_number, degree, address, profile_url 
       } = payload
 
-      console.log(`Creating user: ${email} with role: ${role}`)
+      console.log(`Creating user: ${email} with role: ${role} for school: ${school_id}`)
+
+      if (!school_id && role !== 'super_admin') {
+        throw new Error('school_id is required for non-super_admin roles')
+      }
 
       // 1. Create Auth User
+      // Note: role and school_id in user_metadata will be picked up by the handle_new_user() trigger
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
         email_confirm: true,
-        user_metadata: { full_name, role }
+        user_metadata: { full_name, role, school_id }
       })
 
       if (authError) {
@@ -48,42 +53,31 @@ serve(async (req) => {
       const userId = authData.user.id
       console.log('Auth user created:', userId)
 
-      // 2. Create Public User Record
-      const { error: userError } = await supabaseAdmin
-        .from('users')
-        .insert({
-          id: userId,
-          email: email,
-          role: role,
-          status: 'active'
-        })
-      
-      if (userError) {
-        console.error('Public User Table Error:', userError.message)
-        throw userError
-      }
-      console.log('Public user record created')
+      // 2. Create Teacher Profile (Skip for super_admin as they have no school_id)
+      if (role !== 'super_admin') {
+        const { error: teacherError } = await supabaseAdmin
+          .from('teachers')
+          .insert({
+            user_id: userId,
+            school_id,
+            full_name,
+            gender,
+            dob: dob || null,
+            phone_number: phone_number || null,
+            degree: degree || null,
+            address: address || null,
+            email,
+            profile_url: profile_url || null
+          })
 
-      // 3. Create Teacher Profile
-      const { error: teacherError } = await supabaseAdmin
-        .from('teachers')
-        .insert({
-          user_id: userId,
-          full_name,
-          gender,
-          dob: dob || null,
-          phone_number: phone_number || null,
-          degree: degree || null,
-          address: address || null,
-          email,
-          profile_url: profile_url || null
-        })
-
-      if (teacherError) {
-        console.error('Teachers Table Error:', teacherError.message)
-        throw teacherError
+        if (teacherError) {
+          console.error('Teachers Table Error:', teacherError.message)
+          // Clean up: delete auth user if profile creation fails? 
+          // For now, just throw and let admin handle it.
+          throw teacherError
+        }
+        console.log('Teacher profile created')
       }
-      console.log('Teacher profile created')
 
       return new Response(JSON.stringify({ success: true, userId }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -128,10 +122,13 @@ serve(async (req) => {
     throw new Error(`Unsupported action: ${action}`)
 
   } catch (error) {
-    console.error('Edge Function Error:', error.message)
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('FULL EDGE FUNCTION ERROR:', error)
+    return new Response(JSON.stringify({ 
+      error: error.message || 'Unknown error',
+      details: error
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
+      status: 400
     })
   }
 })

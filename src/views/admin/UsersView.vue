@@ -1,7 +1,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { CheckIcon, XCircleIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
+
+const authStore = useAuthStore()
 
 // State
 const users = ref([])
@@ -81,7 +84,10 @@ async function handleCreateUser() {
     const { data, error } = await supabase.functions.invoke('manage-user', {
       body: {
         action: 'create',
-        payload: { ...newUser.value }
+        payload: { 
+          ...newUser.value,
+          school_id: authStore.schoolId
+        }
       }
     })
 

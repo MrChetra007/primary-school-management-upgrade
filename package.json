@@ -17,6 +17,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
+    "lucide-vue-next": "^1.0.0",
     "pinia": "^3.0.4",
     "tailwindcss": "^4.2.4",
     "vee-validate": "^4.15.1",
