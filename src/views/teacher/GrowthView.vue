@@ -91,7 +91,7 @@ async function save() {
   const { id, students: _s, ...payload } = form.value
   const { error } = id
     ? await supabase.from('student_growth').update(payload).eq('id', id)
-    : await supabase.from('student_growth').insert(payload)
+    : await supabase.from('student_growth').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   showToast(isEdit.value ? 'Record updated!' : 'Record added!', 'success')

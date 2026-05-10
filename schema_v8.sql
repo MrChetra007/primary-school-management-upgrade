@@ -111,7 +111,7 @@ create table users (
   email       text not null,
   role        user_role not null default 'teacher',
   status      user_status not null default 'active',
-  school_id   uuid references schools(id) on delete cascade,  -- null for super_admin
+  school_id   uuid references schools(id) on delete cascade default get_user_school_id(),  -- null for super_admin
   created_at  timestamptz default now()
 );
 
@@ -124,7 +124,7 @@ create table users (
 
 create table school_settings (
   id                     uuid primary key default uuid_generate_v4(),
-  school_id              uuid not null unique references schools(id) on delete cascade,
+  school_id              uuid not null unique references schools(id) on delete cascade default get_user_school_id(),
   morning_start          time not null default '07:00',
   morning_late_threshold time not null default '07:15',   -- late if check-in after this
   evening_start          time not null default '13:00',
@@ -142,7 +142,7 @@ create table school_settings (
 
 create table school_information (
   id              uuid primary key default uuid_generate_v4(),
-  school_id       uuid not null unique references schools(id) on delete cascade,
+  school_id       uuid not null unique references schools(id) on delete cascade default get_user_school_id(),
   name_khmer      text not null,
   name_english    text,
   school_code     text,
@@ -163,7 +163,7 @@ create table school_information (
 
 create table academic_years (
   id          uuid primary key default uuid_generate_v4(),
-  school_id   uuid not null references schools(id) on delete cascade,
+  school_id   uuid not null references schools(id) on delete cascade default get_user_school_id(),
   year_name   text not null,
   start_date  date not null,
   end_date    date not null,
@@ -180,7 +180,7 @@ create table academic_years (
 
 create table subjects (
   id            uuid primary key default uuid_generate_v4(),
-  school_id     uuid not null references schools(id) on delete cascade,
+  school_id     uuid not null references schools(id) on delete cascade default get_user_school_id(),
   subject_name  text not null,
   created_at    timestamptz default now()
 );
@@ -195,7 +195,7 @@ create table subjects (
 
 create table teachers (
   id            uuid primary key default uuid_generate_v4(),
-  school_id     uuid not null references schools(id) on delete cascade,
+  school_id     uuid not null references schools(id) on delete cascade default get_user_school_id(),
   user_id       uuid not null unique references users(id) on delete cascade,
   full_name     text not null,
   gender        text,
@@ -216,7 +216,7 @@ create table teachers (
 
 create table classes (
   id               uuid primary key default uuid_generate_v4(),
-  school_id        uuid not null references schools(id) on delete cascade,
+  school_id        uuid not null references schools(id) on delete cascade default get_user_school_id(),
   class_name       text not null,
   teacher_id       uuid references teachers(id) on delete set null,
   academic_year_id uuid references academic_years(id) on delete cascade,
@@ -235,7 +235,7 @@ create table classes (
 
 create table class_subjects (
   id         uuid primary key default uuid_generate_v4(),
-  school_id  uuid not null references schools(id) on delete cascade,
+  school_id  uuid not null references schools(id) on delete cascade default get_user_school_id(),
   class_id   uuid not null references classes(id) on delete cascade,
   subject_id uuid not null references subjects(id) on delete cascade,
   created_at timestamptz default now(),
@@ -249,7 +249,7 @@ create table class_subjects (
 
 create table students (
   id               uuid primary key default uuid_generate_v4(),
-  school_id        uuid not null references schools(id) on delete cascade,
+  school_id        uuid not null references schools(id) on delete cascade default get_user_school_id(),
   real_id          text,
   full_name        text not null,
   gender           text,
@@ -277,7 +277,7 @@ create table students (
 
 create table student_health (
   id                      uuid primary key default uuid_generate_v4(),
-  school_id               uuid not null references schools(id) on delete cascade,
+  school_id               uuid not null references schools(id) on delete cascade default get_user_school_id(),
   student_id              uuid not null unique references students(id) on delete cascade,
   blood_type              text,
   allergies               text,
@@ -297,7 +297,7 @@ create table student_health (
 
 create table student_checkups (
   id         uuid primary key default uuid_generate_v4(),
-  school_id  uuid not null references schools(id) on delete cascade,
+  school_id  uuid not null references schools(id) on delete cascade default get_user_school_id(),
   student_id uuid not null references students(id) on delete cascade,
   date       date not null,
   type       text,
@@ -316,7 +316,7 @@ create table student_checkups (
 
 create table student_growth (
   id         uuid primary key default uuid_generate_v4(),
-  school_id  uuid not null references schools(id) on delete cascade,
+  school_id  uuid not null references schools(id) on delete cascade default get_user_school_id(),
   student_id uuid not null references students(id) on delete cascade,
   date       date not null,
   age        int4,
@@ -331,7 +331,7 @@ create table student_growth (
 
 create table student_vaccinations (
   id          uuid primary key default uuid_generate_v4(),
-  school_id   uuid not null references schools(id) on delete cascade,
+  school_id   uuid not null references schools(id) on delete cascade default get_user_school_id(),
   student_id  uuid not null references students(id) on delete cascade,
   name        text not null,
   description text,
@@ -346,7 +346,7 @@ create table student_vaccinations (
 
 create table student_sick_days (
   id         uuid primary key default uuid_generate_v4(),
-  school_id  uuid not null references schools(id) on delete cascade,
+  school_id  uuid not null references schools(id) on delete cascade default get_user_school_id(),
   student_id uuid not null references students(id) on delete cascade,
   date       date not null,
   reason     text,
@@ -363,7 +363,7 @@ create table student_sick_days (
 
 create table attendances (
   id         uuid primary key default uuid_generate_v4(),
-  school_id  uuid not null references schools(id) on delete cascade,
+  school_id  uuid not null references schools(id) on delete cascade default get_user_school_id(),
   student_id uuid not null references students(id) on delete cascade,
   date       date not null,
   status     attendance_status not null default 'present',
@@ -380,7 +380,7 @@ create table attendances (
 
 create table scores (
   id               uuid primary key default uuid_generate_v4(),
-  school_id        uuid not null references schools(id) on delete cascade,
+  school_id        uuid not null references schools(id) on delete cascade default get_user_school_id(),
   student_id       uuid not null references students(id) on delete cascade,
   subject_id       uuid not null references subjects(id) on delete cascade,
   academic_year_id uuid not null references academic_years(id) on delete cascade,
@@ -401,7 +401,7 @@ create table scores (
 
 create table teacher_attendances (
   id             uuid primary key default uuid_generate_v4(),
-  school_id      uuid not null references schools(id) on delete cascade,
+  school_id      uuid not null references schools(id) on delete cascade default get_user_school_id(),
   teacher_id     uuid not null references teachers(id) on delete cascade,
   date           date not null,
   check_in_time  timestamptz,
@@ -420,7 +420,7 @@ create table teacher_attendances (
 
 create table school_holidays (
   id               uuid primary key default uuid_generate_v4(),
-  school_id        uuid not null references schools(id) on delete cascade,
+  school_id        uuid not null references schools(id) on delete cascade default get_user_school_id(),
   academic_year_id uuid references academic_years(id) on delete cascade,
   name             text not null,
   start_date       date not null,
@@ -436,7 +436,7 @@ create table school_holidays (
 
 create table books (
   id               int4 primary key generated always as identity,
-  school_id        uuid not null references schools(id) on delete cascade,
+  school_id        uuid not null references schools(id) on delete cascade default get_user_school_id(),
   title            varchar not null,
   author           varchar,
   isbn             varchar,
@@ -453,7 +453,7 @@ create table books (
 
 create table book_borrows (
   id          int4 primary key generated always as identity,
-  school_id   uuid not null references schools(id) on delete cascade,
+  school_id   uuid not null references schools(id) on delete cascade default get_user_school_id(),
   book_id     int4 not null references books(id) on delete cascade,
   student_id  uuid not null references students(id) on delete cascade,
   borrow_date date not null,
@@ -470,7 +470,7 @@ create table book_borrows (
 
 create table budget_transactions (
   id               int4 primary key generated always as identity,
-  school_id        uuid not null references schools(id) on delete cascade,
+  school_id        uuid not null references schools(id) on delete cascade default get_user_school_id(),
   academic_year_id uuid references academic_years(id) on delete set null,
   type             budget_type not null,
   date             date not null,
@@ -488,7 +488,7 @@ create table budget_transactions (
 
 create table inventory_items (
   id           int4 primary key generated always as identity,
-  school_id    uuid not null references schools(id) on delete cascade,
+  school_id    uuid not null references schools(id) on delete cascade default get_user_school_id(),
   name         text not null,
   category     text,
   quantity     int4 default 0,
@@ -1128,6 +1128,57 @@ create trigger on_auth_user_created
   for each row
   execute function handle_new_user();
 
+-- ============================================================
+-- FIX: handle_new_user trigger
+-- Problem: school_id cast fails if value is null/invalid UUID
+--          causing "Database error creating new user" on all
+--          non-super_admin user creation via Edge Function.
+-- ============================================================
+
+create or replace function handle_new_user()
+returns trigger as $$
+declare
+  v_role      user_role;
+  v_school_id uuid;
+  v_raw_role  text;
+  v_raw_school text;
+begin
+  -- Safely extract role
+  v_raw_role := new.raw_user_meta_data->>'role';
+  v_role := coalesce(
+    case
+      when v_raw_role in ('super_admin','admin','teacher','librarian')
+      then v_raw_role::user_role
+      else null
+    end,
+    'teacher'
+  );
+
+  -- Safely extract school_id (null if missing, empty, or not a valid UUID)
+  v_raw_school := trim(new.raw_user_meta_data->>'school_id');
+  begin
+    if v_raw_school is not null and v_raw_school != '' then
+      v_school_id := v_raw_school::uuid;
+    else
+      v_school_id := null;
+    end if;
+  exception when others then
+    v_school_id := null;
+  end;
+
+  insert into public.users (id, email, role, school_id)
+  values (new.id, new.email, v_role, v_school_id)
+  on conflict (id) do update
+    set role      = excluded.role,
+        school_id = excluded.school_id;
+
+  return new;
+
+exception when others then
+  raise notice 'handle_new_user failed for %: %', new.email, sqlerrm;
+  raise exception 'Database error creating new user: %', sqlerrm;
+end;
+$$ language plpgsql security definer;
 
 -- ------------------------------------------------------------
 -- teacher_check_in

@@ -85,7 +85,8 @@ async function save() {
       student_id: entry.student_id, 
       date: selectedDate.value, 
       status: entry.status, 
-      reason: entry.reason 
+      reason: entry.reason,
+      school_id: auth.schoolId
     }
     
     if (entry.existing_id) {

@@ -1,12 +1,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { useRouter } from 'vue-router'
 import { CheckIcon, XCircleIcon, AcademicCapIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
+const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
 const students = ref([])
 const classes = ref([])
@@ -81,7 +83,7 @@ async function save() {
   const { id, classes: _c, ...payload } = form.value
   const { error } = isEdit.value
     ? await supabase.from('students').update(payload).eq('id', id)
-    : await supabase.from('students').insert(payload)
+    : await supabase.from('students').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   showToast(isEdit.value ? 'បានកែប្រែព័ត៌មានសិស្ស!' : 'បានបន្ថែមសិស្សថ្មី!', 'success')

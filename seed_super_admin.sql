@@ -94,3 +94,4 @@ end $$;
 -- select u.id, u.email, u.role, u.school_id, u.status
 -- from public.users u
 -- where u.email = 'sozin@gmail.com';
+-- password: password123

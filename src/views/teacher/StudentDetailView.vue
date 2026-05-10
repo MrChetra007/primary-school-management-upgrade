@@ -2,11 +2,13 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, HeartIcon, CalendarIcon, StarIcon, ArrowsUpDownIcon, BeakerIcon, FaceFrownIcon, PencilIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const studentId = route.params.id
 const student = ref(null)
 const loading = ref(true)
@@ -95,7 +97,7 @@ async function handleSave() {
 
   const { error } = isEdit.value 
     ? await supabase.from(table).update(payload).eq('id', editId.value)
-    : await supabase.from(table).insert(payload)
+    : await supabase.from(table).insert({ ...payload, school_id: auth.schoolId })
 
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }

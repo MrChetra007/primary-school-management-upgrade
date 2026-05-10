@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { 
@@ -14,6 +15,7 @@ import {
   TrashIcon 
 } from '@heroicons/vue/24/outline'
 
+const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
 const transactions = ref([])
 const loading = ref(true)
@@ -84,7 +86,7 @@ async function save() {
   const { id, academic_years: _y, ...payload } = form.value
   const { error } = isEdit.value
     ? await supabase.from('budget_transactions').update(payload).eq('id', id)
-    : await supabase.from('budget_transactions').insert(payload)
+    : await supabase.from('budget_transactions').insert({ ...payload, school_id: auth.schoolId })
   
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }

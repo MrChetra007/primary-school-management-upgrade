@@ -1,9 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, FaceFrownIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
+const auth = useAuthStore()
 const sickDays = ref([])
 const students = ref([])
 const classes = ref([])
@@ -86,7 +88,7 @@ async function save() {
   const { id, students: _s, ...payload } = form.value
   const { error } = isEdit.value
     ? await supabase.from('student_sick_days').update(payload).eq('id', id)
-    : await supabase.from('student_sick_days').insert(payload)
+    : await supabase.from('student_sick_days').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   showToast(isEdit.value ? 'បានធ្វើបច្ចុប្បន្នភាពរួចរាល់!' : 'បានរក្សាទុកទិន្នន័យរួចរាល់!', 'success')

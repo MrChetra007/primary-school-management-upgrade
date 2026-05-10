@@ -1,9 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, BookOpenIcon, CheckCircleIcon, ExclamationTriangleIcon, ClipboardDocumentListIcon, TrashIcon, ArrowUpTrayIcon } from '@heroicons/vue/24/outline'
 
+const auth = useAuthStore()
 const books = ref([])
 const borrows = ref([])
 const loading = ref(true)
@@ -67,7 +69,7 @@ async function saveBook() {
   const { id, ...payload } = bookForm.value
   const { error } = isEdit.value
     ? await supabase.from('books').update(payload).eq('id', id)
-    : await supabase.from('books').insert(payload)
+    : await supabase.from('books').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   showToast(isEdit.value ? 'បានកែប្រែទិន្នន័យរួចរាល់!' : 'បានបញ្ចូលសៀវភៅថ្មីរួចរាល់!', 'success')
@@ -92,7 +94,7 @@ async function saveBorrow() {
     showToast('សូមជ្រើសរើសសៀវភៅ សិស្ស និងកាលបរិច្ឆេទសង', 'error'); return
   }
   saving.value = true
-  const { error } = await supabase.from('book_borrows').insert(borrowForm.value)
+  const { error } = await supabase.from('book_borrows').insert({ ...borrowForm.value, school_id: auth.schoolId })
   if (!error) {
     const book = books.value.find(b => b.id == borrowForm.value.book_id)
     if (book && book.available_copies > 0) {

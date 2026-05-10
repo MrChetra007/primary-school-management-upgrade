@@ -79,7 +79,7 @@ async function save() {
   const { id, ...payload } = form.value
   const { data, error } = isEdit.value
     ? await supabase.from('academic_years').update(payload).eq('id', id).select()
-    : await supabase.from('academic_years').insert(payload).select()
+    : await supabase.from('academic_years').insert({ ...payload, school_id: auth.schoolId }).select()
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   

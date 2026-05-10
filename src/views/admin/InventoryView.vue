@@ -1,9 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, ExclamationTriangleIcon, TrashIcon, CubeIcon } from '@heroicons/vue/24/outline'
 
+const auth = useAuthStore()
 const items = ref([])
 const loading = ref(true)
 const saving = ref(false)
@@ -55,7 +57,7 @@ async function save() {
   payload.last_updated = new Date().toISOString().split('T')[0]
   const { error } = isEdit.value
     ? await supabase.from('inventory_items').update(payload).eq('id', id)
-    : await supabase.from('inventory_items').insert(payload)
+    : await supabase.from('inventory_items').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   showToast(isEdit.value ? 'បានកែប្រែទិន្នន័យរួចរាល់!' : 'បានបញ្ចូលទិន្នន័យរួចរាល់!', 'success')

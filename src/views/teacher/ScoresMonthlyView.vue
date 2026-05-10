@@ -134,7 +134,8 @@ async function saveAll() {
         academic_year_id: classInfo.value.academic_year_id,
         score_type: 'monthly',
         month: selectedMonth.value,
-        score: Number(data.score)
+        score: Number(data.score),
+        school_id: auth.schoolId
       }
       if (data.id) payload.id = data.id
       toUpsert.push(payload)

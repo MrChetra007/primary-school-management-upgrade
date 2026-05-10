@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, BuildingOfficeIcon, SunIcon, MoonIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
+const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
 const classes = ref([])
 const teachers = ref([])
@@ -74,7 +76,7 @@ async function save() {
     // 1. Save/Update Class
     const { data: classResult, error: classError } = isEdit.value
       ? await supabase.from('classes').update(payload).eq('id', id).select().single()
-      : await supabase.from('classes').insert(payload).select().single()
+      : await supabase.from('classes').insert({ ...payload, school_id: auth.schoolId }).select().single()
 
     if (classError) throw classError
 
@@ -89,7 +91,8 @@ async function save() {
     if (selectedSubjects.length > 0) {
       const junctionData = selectedSubjects.map(sid => ({
         class_id: classId,
-        subject_id: sid
+        subject_id: sid,
+        school_id: auth.schoolId
       }))
       const { error: syncError } = await supabase.from('class_subjects').insert(junctionData)
       if (syncError) throw syncError

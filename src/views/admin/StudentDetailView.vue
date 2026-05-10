@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { HeartIcon, PlusCircleIcon, ArrowsUpDownIcon, BeakerIcon, FaceFrownIcon, ArrowDownTrayIcon, CheckIcon, XCircleIcon, ClockIcon, CalendarIcon, ArrowsRightLeftIcon } from '@heroicons/vue/24/outline'
 import { Line } from 'vue-chartjs'
@@ -28,6 +29,7 @@ ChartJS.register(
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const studentId = route.params.id
 
 const student = ref(null)
@@ -123,7 +125,7 @@ async function saveHealth() {
   const payload = { ...healthForm.value, student_id: studentId, updated_at: new Date().toISOString().split('T')[0] }
   const { error } = health.value
     ? await supabase.from('student_health').update(payload).eq('id', health.value.id)
-    : await supabase.from('student_health').insert(payload)
+    : await supabase.from('student_health').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   showToast('បានរក្សាទុកព័ត៌មានសុខភាព!', 'success')
@@ -135,7 +137,7 @@ async function saveCheckup() {
   const { id, ...payload } = { ...checkupForm.value, student_id: studentId }
   const { error } = id
     ? await supabase.from('student_checkups').update(payload).eq('id', id)
-    : await supabase.from('student_checkups').insert(payload)
+    : await supabase.from('student_checkups').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   showToast('បានរក្សាទុកការពិនិត្យសុខភាព!', 'success')
@@ -148,7 +150,7 @@ async function saveGrowth() {
   const { id, ...payload } = { ...growthForm.value, student_id: studentId }
   const { error } = id
     ? await supabase.from('student_growth').update(payload).eq('id', id)
-    : await supabase.from('student_growth').insert(payload)
+    : await supabase.from('student_growth').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   showToast('បានរក្សាទុកកំណត់ត្រាកំណើន!', 'success')
@@ -161,7 +163,7 @@ async function saveVaccine() {
   const { id, ...payload } = { ...vaccineForm.value, student_id: studentId }
   const { error } = id
     ? await supabase.from('student_vaccinations').update(payload).eq('id', id)
-    : await supabase.from('student_vaccinations').insert(payload)
+    : await supabase.from('student_vaccinations').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   showToast('បានរក្សាទុកវ៉ាក់សាំង!', 'success')
@@ -174,7 +176,7 @@ async function saveSickDay() {
   const { id, ...payload } = { ...sickDayForm.value, student_id: studentId }
   const { error } = id
     ? await supabase.from('student_sick_days').update(payload).eq('id', id)
-    : await supabase.from('student_sick_days').insert(payload)
+    : await supabase.from('student_sick_days').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }
   showToast('បានរក្សាទុកថ្ងៃឈឺ!', 'success')

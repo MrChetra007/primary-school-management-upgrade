@@ -1,10 +1,12 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { toInputDate, formatDate } from '@/utils/formatDate'
 import { BuildingOfficeIcon, CalendarIcon, BookOpenIcon, CalendarDaysIcon, ClockIcon, ArrowDownTrayIcon, CheckIcon, XCircleIcon, SunIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 
+const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
 const currentTab = ref('school')
 const loading = ref(false)
@@ -48,7 +50,7 @@ async function saveSchool() {
   payload.updated_at = new Date().toISOString()
   const { error } = id 
     ? await supabase.from('school_information').update(payload).eq('id', id)
-    : await supabase.from('school_information').insert(payload)
+    : await supabase.from('school_information').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) showToast(error.message, 'error')
   else showToast('បានរក្សាទុកព័ត៌មានសាលាដោយជោគជ័យ!')
@@ -91,7 +93,7 @@ async function saveYear() {
   const { id, ...payload } = yearForm.value
   const { error } = isYearEdit.value
     ? await supabase.from('academic_years').update(payload).eq('id', id)
-    : await supabase.from('academic_years').insert(payload)
+    : await supabase.from('academic_years').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) showToast(error.message, 'error')
   else { showToast('បានរក្សាទុកឆ្នាំសិក្សា!'); yearModal.value = false; loadYears() }
@@ -130,7 +132,7 @@ async function saveSubject() {
   const { id, ...payload } = subjectForm.value
   const { error } = isSubjectEdit.value
     ? await supabase.from('subjects').update(payload).eq('id', id)
-    : await supabase.from('subjects').insert(payload)
+    : await supabase.from('subjects').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) showToast(error.message, 'error')
   else { showToast('បានរក្សាទុកមុខវិជ្ជា!'); subjectModal.value = false; loadSubjects() }
@@ -167,7 +169,7 @@ async function saveHoliday() {
   const { id, ...payload } = holidayForm.value
   const { error } = isHolidayEdit.value
     ? await supabase.from('school_holidays').update(payload).eq('id', id)
-    : await supabase.from('school_holidays').insert(payload)
+    : await supabase.from('school_holidays').insert({ ...payload, school_id: auth.schoolId })
   saving.value = false
   if (error) showToast(error.message, 'error')
   else { showToast('បានរក្សាទុកថ្ងៃឈប់សម្រាក!'); holidayModal.value = false; loadHolidays() }

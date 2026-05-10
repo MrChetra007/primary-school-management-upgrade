@@ -1,9 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { CheckIcon, XCircleIcon, BookOpenIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 const books = ref([])
+const auth = useAuthStore()
 const loading = ref(true)
 const saving = ref(false)
 const search = ref('')
@@ -62,7 +64,7 @@ async function save() {
   const { id, ...payload } = form.value
   const { error } = isEdit.value
     ? await supabase.from('books').update(payload).eq('id', id)
-    : await supabase.from('books').insert(payload)
+    : await supabase.from('books').insert({ ...payload, school_id: auth.schoolId })
   
   saving.value = false
   if (error) { showToast(error.message, 'error'); return }

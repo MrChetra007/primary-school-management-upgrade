@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import { formatDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, ClipboardDocumentListIcon, ArrowUpTrayIcon } from '@heroicons/vue/24/outline'
 
 const borrows = ref([])
+const auth = useAuthStore()
 const books = ref([])
 const students = ref([])
 const loading = ref(true)
@@ -76,7 +78,7 @@ async function issueBook() {
   }
   
   saving.value = true
-  const { error } = await supabase.from('book_borrows').insert(borrowForm.value)
+  const { error } = await supabase.from('book_borrows').insert({ ...borrowForm.value, school_id: auth.schoolId })
   
   if (!error) {
     const book = books.value.find(b => b.id === borrowForm.value.book_id)

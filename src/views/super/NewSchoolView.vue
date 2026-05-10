@@ -21,6 +21,9 @@ const step = ref(1)
 const loading = ref(false)
 const error = ref('')
 
+// Holds the school ID after step 1 completes — prevents re-creating on retry
+const createdSchoolId = ref(null)
+
 // Form State
 const schoolForm = ref({
   name_khmer: '',
@@ -39,42 +42,78 @@ const adminForm = ref({
 async function handleSubmit() {
   error.value = ''
   loading.value = true
-  
+
   try {
-    // 1. Create School using RPC
-    const { data: schoolId, error: schoolError } = await supabase.rpc('super_admin_create_school', {
-      p_name_khmer: schoolForm.value.name_khmer,
-      p_name_english: schoolForm.value.name_english,
-      p_school_code: schoolForm.value.school_code,
-      p_province: schoolForm.value.province,
-      p_district: schoolForm.value.district
-    })
+    // ── Step 1: Create School (skip if already created on a previous retry) ──
+    if (!createdSchoolId.value) {
+      const { data: schoolId, error: schoolError } = await supabase.rpc('super_admin_create_school', {
+        p_name_khmer:   schoolForm.value.name_khmer,
+        p_name_english: schoolForm.value.name_english,
+        p_school_code:  schoolForm.value.school_code,
+        p_province:     schoolForm.value.province,
+        p_district:     schoolForm.value.district
+      })
 
-    if (schoolError) throw schoolError
+      if (schoolError) throw new Error(schoolError.message || 'Failed to create school.')
+      if (!schoolId)   throw new Error('No school ID returned from database.')
 
-    // 2. Create First Admin User using Edge Function
-    const { data: userData, error: userError } = await supabase.functions.invoke('manage-user', {
-      body: {
-        action: 'create',
-        payload: {
-          email: adminForm.value.email,
-          password: adminForm.value.password,
-          role: 'admin',
-          full_name: adminForm.value.full_name,
-          school_id: schoolId
-        }
-      }
-    })
+      createdSchoolId.value = schoolId
+      console.log('School created:', schoolId)
+    } else {
+      console.log('School already created, reusing ID:', createdSchoolId.value)
+    }
 
-    if (userError) throw userError
+    // ── Step 2: Create Admin User via Edge Function ──
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Not authenticated. Please log in again.')
 
-    // Success! Redirect to school list
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+    let funcResponse
+    try {
+      funcResponse = await fetch(`${SUPABASE_URL}/functions/v1/manage-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey':        SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          action: 'create',
+          payload: {
+            email:     adminForm.value.email,
+            password:  adminForm.value.password,
+            role:      'admin',
+            full_name: adminForm.value.full_name,
+            school_id: createdSchoolId.value
+          }
+        })
+      })
+    } catch (networkErr) {
+      throw new Error('Cannot reach the server. Check your internet connection.')
+    }
+
+    const userData = await funcResponse.json()
+    console.log('Edge function response:', funcResponse.status, userData)
+
+    if (!funcResponse.ok || userData?.error) {
+      throw new Error(userData?.error || `Server error (${funcResponse.status})`)
+    }
+
+    if (!userData?.success) {
+      throw new Error('Unexpected response from server. Please try again.')
+    }
+
+    // ── Success ──
+    console.log('Admin user created:', userData.userId)
     router.push('/super/schools')
-    
+
   } catch (err) {
-    console.error('NewSchool: Error creating school/admin:', err)
-    error.value = err.message || 'Error occurred during creation.'
+    console.error('Creation error:', err)
+    error.value = err.message || 'An unexpected error occurred.'
   } finally {
+    // Always stop loading — no matter what happens
     loading.value = false
   }
 }
@@ -98,22 +137,13 @@ async function handleSubmit() {
 
     <!-- Stepper -->
     <div class="flex items-center gap-4 mb-8">
-      <div 
-        :class="[
-          'flex-1 h-2 rounded-full transition-all duration-500',
-          step >= 1 ? 'bg-indigo-600' : 'bg-slate-200'
-        ]"
-      ></div>
-      <div 
-        :class="[
-          'flex-1 h-2 rounded-full transition-all duration-500',
-          step >= 2 ? 'bg-indigo-600' : 'bg-slate-200'
-        ]"
-      ></div>
+      <div :class="['flex-1 h-2 rounded-full transition-all duration-500', step >= 1 ? 'bg-indigo-600' : 'bg-slate-200']"></div>
+      <div :class="['flex-1 h-2 rounded-full transition-all duration-500', step >= 2 ? 'bg-indigo-600' : 'bg-slate-200']"></div>
     </div>
 
     <!-- Forms -->
     <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-100 overflow-hidden">
+
       <!-- Step 1: School Info -->
       <div v-if="step === 1" class="p-10 animate-in fade-in slide-in-from-right-4 duration-300">
         <div class="flex items-center gap-4 mb-8">
@@ -127,8 +157,7 @@ async function handleSubmit() {
           <div class="space-y-2 md:col-span-2">
             <label class="text-sm font-bold text-slate-700">ឈ្មោះសាលារៀន (ភាសាខ្មែរ)</label>
             <input 
-              v-model="schoolForm.name_khmer"
-              type="text" 
+              v-model="schoolForm.name_khmer" type="text" 
               placeholder="ឧ. សាលាបឋមសិក្សាបាត់ដំបង"
               class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium"
             />
@@ -136,8 +165,7 @@ async function handleSubmit() {
           <div class="space-y-2">
             <label class="text-sm font-bold text-slate-700">ឈ្មោះសាលារៀន (English)</label>
             <input 
-              v-model="schoolForm.name_english"
-              type="text" 
+              v-model="schoolForm.name_english" type="text" 
               placeholder="e.g. Battambang Primary"
               class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium"
             />
@@ -145,8 +173,7 @@ async function handleSubmit() {
           <div class="space-y-2">
             <label class="text-sm font-bold text-slate-700">លេខកូដសាលា</label>
             <input 
-              v-model="schoolForm.school_code"
-              type="text" 
+              v-model="schoolForm.school_code" type="text" 
               placeholder="ឧ. BTB-001"
               class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-bold uppercase"
             />
@@ -154,8 +181,7 @@ async function handleSubmit() {
           <div class="space-y-2">
             <label class="text-sm font-bold text-slate-700">ខេត្ត/ក្រុង</label>
             <input 
-              v-model="schoolForm.province"
-              type="text" 
+              v-model="schoolForm.province" type="text" 
               placeholder="បាត់ដំបង"
               class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium"
             />
@@ -163,8 +189,7 @@ async function handleSubmit() {
           <div class="space-y-2">
             <label class="text-sm font-bold text-slate-700">ស្រុក/ខណ្ឌ</label>
             <input 
-              v-model="schoolForm.district"
-              type="text" 
+              v-model="schoolForm.district" type="text" 
               placeholder="បាត់ដំបង"
               class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium"
             />
@@ -192,9 +217,13 @@ async function handleSubmit() {
           <h2 class="text-xl font-black text-slate-900">គណនីអភិបាល (Admin)</h2>
         </div>
 
-        <div v-if="error" class="mb-8 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-sm font-bold flex items-center gap-3">
-           <div class="w-2 h-2 bg-rose-500 rounded-full"></div>
-           {{ error }}
+        <!-- Error Banner -->
+        <div 
+          v-if="error" 
+          class="mb-8 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-sm font-bold flex items-center gap-3"
+        >
+          <div class="w-2 h-2 bg-rose-500 rounded-full flex-shrink-0"></div>
+          {{ error }}
         </div>
 
         <div class="space-y-6">
@@ -203,8 +232,7 @@ async function handleSubmit() {
             <div class="relative">
               <User class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input 
-                v-model="adminForm.full_name"
-                type="text" 
+                v-model="adminForm.full_name" type="text" 
                 placeholder="ឧ. ឈិត ត្រា"
                 class="w-full pl-14 pr-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium"
               />
@@ -215,8 +243,7 @@ async function handleSubmit() {
             <div class="relative">
               <Mail class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input 
-                v-model="adminForm.email"
-                type="email" 
+                v-model="adminForm.email" type="email" 
                 placeholder="admin@school.edu.kh"
                 class="w-full pl-14 pr-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium"
               />
@@ -227,8 +254,7 @@ async function handleSubmit() {
             <div class="relative">
               <Lock class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input 
-                v-model="adminForm.password"
-                type="password" 
+                v-model="adminForm.password" type="password" 
                 placeholder="••••••••"
                 class="w-full pl-14 pr-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium"
               />
@@ -238,14 +264,15 @@ async function handleSubmit() {
 
         <div class="mt-12 flex items-center justify-between">
           <button 
-            @click="step = 1"
-            class="text-slate-500 font-bold hover:text-slate-900 transition-colors px-6"
+            @click="step = 1; error = ''"
+            :disabled="loading"
+            class="text-slate-500 font-bold hover:text-slate-900 transition-colors px-6 disabled:opacity-40"
           >
             ត្រឡប់ក្រោយ
           </button>
           <button 
             @click="handleSubmit"
-            :disabled="loading || !adminForm.email || !adminForm.password"
+            :disabled="loading || !adminForm.email || !adminForm.password || !adminForm.full_name"
             class="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-2 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-200"
           >
             <Loader2 v-if="loading" class="w-5 h-5 animate-spin" />
