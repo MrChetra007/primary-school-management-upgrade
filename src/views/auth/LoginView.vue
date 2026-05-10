@@ -139,11 +139,6 @@ async function handleLogin() {
           {{ loading ? 'Signing in…' : 'Sign in' }}
         </button>
       </form>
-
-        <div class="login-footer" style="text-align: center; margin-top: 16px; font-size: 14px; color: #64748b;">
-          Don't have an account? 
-          <router-link to="/register" style="color: #2563eb; font-weight: 600; text-decoration: none;">Sign Up</router-link>
-        </div>
       </div>
     </div>
 </template>

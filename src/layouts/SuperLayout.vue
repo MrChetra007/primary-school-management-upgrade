@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { 
@@ -18,7 +18,21 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
-const isSidebarOpen = ref(true)
+const isSidebarOpen = ref(false)
+
+onMounted(() => {
+  // Open sidebar by default only on desktop
+  if (window.innerWidth >= 1024) {
+    isSidebarOpen.value = true
+  }
+})
+
+// Close sidebar on route change (mobile)
+watch(() => route.path, () => {
+  if (window.innerWidth < 1024) {
+    isSidebarOpen.value = false
+  }
+})
 
 const navigation = [
   { name: 'ផ្ទាំងគ្រប់គ្រង', href: '/super/dashboard', icon: LayoutDashboard },
@@ -34,7 +48,23 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 flex">
+  <div class="min-h-screen bg-slate-50 flex relative">
+    <!-- Mobile Backdrop -->
+    <transition
+      enter-active-class="transition-opacity ease-linear duration-300"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity ease-linear duration-300"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div 
+        v-if="isSidebarOpen" 
+        @click="isSidebarOpen = false"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"
+      ></div>
+    </transition>
+
     <!-- Sidebar -->
     <aside 
       :class="[
