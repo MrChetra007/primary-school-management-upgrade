@@ -24,13 +24,15 @@ const topStudents = ref([])
 const toast = ref(null)
 
 // Certificate Customization
-const selectedBorder = ref('border1') // border1, border2, etc.
+const selectedBorder = ref('border1')
 const borders = [
   { id: 'border1', name: 'ម៉ូតទី ១ (Classic Gold)' },
-  { id: 'border2', name: 'ម៉ូតទី ២ (Modern Blue)' },
-  { id: 'border3', name: 'ម៉ូតទី ៣ (Elegant Floral)' },
-  { id: 'border4', name: 'ម៉ូតទី ៤ (Official Red)' }
+  { id: 'border3', name: 'ម៉ូតទី ២ (Elegant Floral)' }
 ]
+
+function getImageUrl(name) {
+  return new URL(`../../assets/${name}.png`, import.meta.url).href
+}
 
 const mode = route.query.mode || 'monthly'
 const month = Number(route.query.month)
@@ -191,7 +193,7 @@ const contextName = computed(() => {
                 :class="{ active: selectedBorder === b.id }"
                 @click="selectedBorder = b.id"
               >
-                <div class="border-preview" :class="b.id"></div>
+                <img :src="getImageUrl(b.id)" class="border-preview-img" />
                 <span>{{ b.name }}</span>
               </div>
             </div>
@@ -222,8 +224,13 @@ const contextName = computed(() => {
             :ref="el => certificateRefs[idx] = el"
           >
             <!-- Border Background -->
-            <img :src="`/borders/${selectedBorder}.png`" class="cert-border" alt="border" />
+            <img :src="getImageUrl(selectedBorder)" class="cert-border" alt="border" />
             
+            <!-- Watermark -->
+            <div class="cert-watermark">
+              <img :src="getImageUrl('logo')" alt="watermark" />
+            </div>
+
             <!-- Content -->
             <div class="cert-content">
               <h1 class="cert-title">ព្រះរាជាណាចក្រកម្ពុជា</h1>
@@ -318,26 +325,13 @@ const contextName = computed(() => {
   background: var(--primary-50);
 }
 
-.border-preview {
+.border-preview-img {
   width: 60px;
   height: 40px;
   border-radius: 4px;
-  background: #f8fafc;
+  object-fit: cover;
   border: 1px solid #cbd5e1;
-  position: relative;
 }
-
-.border-preview::after {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border: 2px solid #94a3b8;
-}
-
-.border1::after { border-color: #fbbf24; }
-.border2::after { border-color: #3b82f6; }
-.border3::after { border-color: #10b981; }
-.border4::after { border-color: #ef4444; }
 
 .info-note {
   background: #fffbeb;
@@ -376,9 +370,25 @@ const contextName = computed(() => {
   z-index: 1;
 }
 
+.cert-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.cert-watermark img {
+  width: 450px;
+  height: auto;
+}
+
 .cert-content {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   height: 100%;
   padding: 60px 80px;
   display: flex;
