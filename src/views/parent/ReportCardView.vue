@@ -4,6 +4,8 @@ import { useRoute } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { computeRank } from '@/utils/scoreCalculator'
 import { useVoiceRecorder } from '@/composables/useVoiceRecorder'
+import { jsPDF } from 'jspdf'
+import html2canvas from 'html2canvas'
 
 const route = useRoute()
 const reportLinkId = route.params.report_link_id
@@ -20,6 +22,8 @@ const saving = ref(false)
 const saved = ref(false)
 const toast = ref(null)
 const rankedList = ref([])
+const generating = ref(false)
+const certificateRef = ref(null)
 
 const { isRecording, audioUrl, error: voiceError, startRecording, stopRecording, uploadVoice } = useVoiceRecorder()
 
@@ -186,6 +190,53 @@ function showToast(msg, type = 'success') {
   setTimeout(() => { toast.value = null }, 3000)
 }
 
+function getImageUrl(name) {
+  return new URL(`../../assets/${name}.png`, import.meta.url).href
+}
+
+function toKhmerNum(num) {
+  if (num === null || num === undefined) return ''
+  const khmerNums = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩']
+  return num.toString().replace(/\d/g, d => khmerNums[d])
+}
+
+function contextPeriodLabel() {
+  if (!link.value) return ''
+  if (link.value.score_type === 'monthly') {
+    const months = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
+    return `ប្រចាំខែ${months[link.value.month - 1] || ''}`
+  }
+  return `ប្រចាំឆមាសទី ${toKhmerNum(link.value.semester || 1)}`
+}
+
+async function generateCertificate() {
+  generating.value = true
+  showToast('កំពុងរៀបចំប័ណ្ណសរសើរ...', 'info')
+
+  await new Promise(resolve => setTimeout(resolve, 200))
+
+  const element = certificateRef.value
+  if (!element) {
+    generating.value = false
+    return
+  }
+
+  try {
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true })
+    const imgData = canvas.toDataURL('image/png')
+    const pdf = new jsPDF('l', 'mm', 'a4')
+    const pageWidth = pdf.internal.pageSize.getWidth()
+    const pageHeight = pdf.internal.pageSize.getHeight()
+    pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight)
+    pdf.save(`ប័ណ្ណសរសើរ_${student.value?.full_name}.pdf`)
+    showToast('ទាញយកប័ណ្ណសរសើរបានជោគជ័យ!', 'success')
+  } catch (e) {
+    showToast('មិនអាចបង្កើតប័ណ្ណសរសើរបានទេ', 'error')
+  }
+
+  generating.value = false
+}
+
 async function submitParentReply() {
   if (!parentText.value.trim() && !audioUrl.value) return
   saving.value = true
@@ -289,6 +340,21 @@ async function submitParentReply() {
               <span class="rank-bar-val danger">{{ (classStats?.total || 0) - (classStats?.passed || 0) }} នាក់</span>
             </div>
           </div>
+
+          <button
+            v-if="studentRank.rank <= 3"
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 16px;"
+            :disabled="generating"
+            @click="generateCertificate"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+            {{ generating ? 'កំពុងបង្កើត...' : 'ទាញយកប័ណ្ណសរសើរ' }}
+          </button>
         </div>
       </div>
 
@@ -435,6 +501,54 @@ async function submitParentReply() {
           <p v-if="saved" style="color: var(--success-color); font-size: 13px; margin-top: 8px; text-align: center; font-weight: 600;">
             បានផ្ញើសារដោយជោគជ័យ
           </p>
+        </div>
+      </div>
+      <!-- Certificate (hidden, rendered to PDF) -->
+      <div ref="certificateRef" class="certificate-hidden">
+        <img :src="getImageUrl('border1')" class="cert-border" />
+        <div class="cert-watermark">
+          <img :src="getImageUrl('watermark')" />
+        </div>
+        <div class="cert-content">
+          <div class="cert-header">
+            <div class="cert-header-left">
+              <div class="cert-logo">
+                <img :src="getImageUrl('logo')" />
+              </div>
+              <div class="cert-header-text">
+                <p class="font-muol">ក្រសួងអប់រំ យុវជន និងកីឡា</p>
+                <p class="font-muol">សាលាបឋមសិក្សា</p>
+              </div>
+            </div>
+            <div class="cert-header-right">
+              <h3 class="font-muol text-blue">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+              <h4 class="font-muol text-blue">ជាតិ សាសនា ព្រះមហាក្សត្រ</h4>
+            </div>
+          </div>
+          <div class="cert-title-section">
+            <h1 class="cert-main-title">ប័ណ្ណសរសើរ</h1>
+          </div>
+          <div class="cert-body">
+            <p>សូមធ្វើការសរសើរចំពោះសិស្សឈ្មោះ <span class="text-red font-muol">{{ student?.full_name }}</span></p>
+            <p>ភេទ <span class="text-red">{{ student?.gender === 'female' ? 'ស្រី' : 'ប្រុស' }}</span></p>
+            <p>ដែលទទួលបានលទ្ធផលល្អក្នុងការសិក្សា {{ contextPeriodLabel() }}</p>
+            <p>និងទទួលបានចំណាត់ថ្នាក់លេខ <span class="text-red font-muol">{{ toKhmerNum(studentRank?.rank) }}</span></p>
+            <p>ក្នុងចំណោមសិស្សសរុប <span class="text-red font-muol">{{ toKhmerNum(classStats?.total || 0) }}</span> នាក់</p>
+            <p>ដោយទទួលបានពិន្ទុមធ្យមភាគ <span class="text-red font-muol">{{ studentRank?.average }}</span></p>
+          </div>
+          <div class="cert-footer">
+            <div class="cert-footer-col">
+              <p>ថ្ងៃទី ........ ខែ ........ ឆ្នាំ........</p>
+              <p class="font-muol">នាយកសាលា</p>
+              <div class="cert-sign-space"></div>
+            </div>
+            <div class="cert-stamp-box"></div>
+            <div class="cert-footer-col">
+              <p>ថ្ងៃទី ........ ខែ ........ ឆ្នាំ........</p>
+              <p class="font-muol">គ្រូបន្ទុកថ្នាក់</p>
+              <div class="cert-sign-space"></div>
+            </div>
+          </div>
         </div>
       </div>
     </template>
@@ -665,6 +779,154 @@ async function submitParentReply() {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+.certificate-hidden {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  width: 297mm;
+  height: 210mm;
+  background: white;
+  overflow: hidden;
+}
+
+.cert-border {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cert-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.cert-watermark img {
+  width: 320px;
+  height: auto;
+}
+
+.cert-content {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  padding: 60px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #1e293b;
+}
+
+.cert-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.cert-header-left {
+  display: flex;
+  gap: 12px;
+  text-align: left;
+}
+
+.cert-logo img {
+  width: 80px;
+  height: auto;
+}
+
+.cert-header-text p {
+  font-size: 12px;
+  margin-bottom: 2px;
+  color: #1e293b;
+}
+
+.cert-header-right {
+  text-align: center;
+}
+
+.cert-header-right h3 {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.cert-header-right h4 {
+  font-size: 12px;
+}
+
+.cert-title-section {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.cert-main-title {
+  font-family: 'Khmer OS Muol Light', 'Hanuman', serif;
+  font-size: 56px;
+  color: #d92b34;
+  margin-bottom: 8px;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+}
+
+.cert-body {
+  text-align: center;
+  font-size: 18px;
+  line-height: 2.2;
+  color: #1e293b;
+  max-width: 750px;
+}
+
+.text-red { color: #d92b34; font-weight: 700; }
+
+.cert-footer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: auto;
+  padding: 0 30px 10px;
+}
+
+.cert-footer-col {
+  text-align: center;
+  flex: 1;
+  font-size: 13px;
+  color: #475569;
+}
+
+.cert-footer-col p {
+  margin-bottom: 6px;
+}
+
+.cert-sign-space {
+  height: 70px;
+}
+
+.cert-stamp-box {
+  width: 90px;
+  height: 110px;
+  border: 2px solid #d92b34;
+  margin: 0 30px 10px;
+  flex-shrink: 0;
+}
+
+.font-muol {
+  font-family: 'Khmer OS Muol Light', 'Hanuman', serif;
+  font-weight: normal;
+}
+
+.text-blue { color: #1a3b8e; }
 
 @media (max-width: 480px) {
   .att-stats {
