@@ -97,6 +97,7 @@ const router = createRouter({
         { path: 'scores/semester', name: 'teacher-scores-semester', component: () => import('@/views/teacher/ScoresSemesterView.vue') },
         { path: 'scores/ranking',  name: 'teacher-scores-ranking',  component: () => import('@/views/teacher/ScoresRankingView.vue') },
         { path: 'scores/certificates', name: 'teacher-scores-certificates', component: () => import('@/views/teacher/CertificateDesignView.vue') },
+        { path: 'scores/report-replies', name: 'teacher-scores-report-replies', component: () => import('@/views/teacher/ReportRepliesView.vue') },
         { path: 'sick-days',       name: 'teacher-sick-days',       component: () => import('@/views/teacher/SickDaysView.vue') },
         { path: 'growth',          name: 'teacher-growth',          component: () => import('@/views/teacher/GrowthView.vue') },
         { path: 'vaccinations',    name: 'teacher-vaccinations',    component: () => import('@/views/teacher/VaccinationsView.vue') },

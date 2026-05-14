@@ -354,6 +354,16 @@ function toKhmerNum(num) {
           បង្កើតតំណភ្ជាប់របាយការណ៍
         </button>
         <button 
+          v-if="classInfo"
+          class="btn btn-secondary" 
+          @click="router.push('/teacher/scores/report-replies')"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          មើលការឆ្លើយតប
+        </button>
+        <button 
           v-if="rankedList.length > 0"
           class="btn btn-secondary" 
           @click="router.push(`/teacher/scores/certificates?mode=${mode}&month=${selectedMonth}&semester=${selectedSemester}`)"
