@@ -233,16 +233,10 @@ const contextName = computed(() => {
 
             <!-- Content -->
             <div class="cert-content">
-              <h1 class="cert-title">ព្រះរាជាណាចក្រកម្ពុជា</h1>
-              <h2 class="cert-subtitle">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
-              
-              <div class="cert-logo">
-                <img src="@/assets/logo.png" alt="logo" v-if="false" />
-                <div class="placeholder-logo">🏅</div>
-              </div>
+              <!-- Spacer for the top emblem in the border -->
+              <div style="height: 140px;"></div>
 
               <h2 class="cert-main-heading">លិខិតសរសើរ</h2>
-              <p class="cert-text">គណៈគ្រប់គ្រងសាលា និងគ្រូថ្នាក់បឋមសិក្សា</p>
               
               <div class="cert-award-text">
                 ជូនចំពោះសិស្សឈ្មោះ
@@ -251,7 +245,7 @@ const contextName = computed(() => {
 
               <div class="cert-achievement">
                 ដែលបានខិតខំប្រឹងប្រែងសិក្សារហូតទទួលបាន <br/>
-                <strong style="font-size:24px; color:var(--primary-700);">ចំណាត់ថ្នាក់លេខ {{ student.rank }}</strong>
+                <strong class="rank-text">ចំណាត់ថ្នាក់លេខ {{ student.rank }}</strong>
               </div>
 
               <div class="cert-meta">
@@ -261,14 +255,12 @@ const contextName = computed(() => {
               </div>
 
               <div class="cert-footer">
+                <!-- Spacing adjusted to match the signature areas in the border -->
                 <div class="footer-left">
-                  <p>បានឃើញ និងឯកភាព</p>
-                  <p style="font-weight:700;">នាយកសាលា</p>
                   <div class="signature-space"></div>
                 </div>
                 <div class="footer-right">
-                  <p>ថ្ងៃទី ........ ខែ ........ ឆ្នាំ២០........</p>
-                  <p style="font-weight:700;">គ្រូបន្ទុកថ្នាក់</p>
+                  <p class="date-placeholder">ថ្ងៃទី ........ ខែ ........ ឆ្នាំ២០........</p>
                   <div class="signature-space"></div>
                 </div>
               </div>
@@ -382,7 +374,7 @@ const contextName = computed(() => {
 }
 
 .cert-watermark img {
-  width: 450px;
+  width: 320px;
   height: auto;
 }
 
@@ -420,26 +412,33 @@ const contextName = computed(() => {
 }
 
 .student-name {
-  font-size: 40px;
+  font-size: 48px;
   font-weight: 800;
-  color: var(--primary-700);
+  color: #1e3a8a; /* Deep elegant blue */
   margin-top: 10px;
-  text-decoration: underline;
-  text-underline-offset: 8px;
+  font-family: var(--font-khmer);
+  text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+}
+
+.rank-text {
+  font-size: 28px;
+  color: #b45309;
+  font-weight: 800;
 }
 
 .cert-achievement {
   font-size: 20px;
   line-height: 1.6;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
+  color: #334155;
 }
 
 .cert-meta {
   display: flex;
   gap: 40px;
-  font-size: 16px;
-  color: #475569;
-  margin-bottom: 60px;
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 80px;
 }
 
 .cert-footer {
@@ -447,10 +446,16 @@ const contextName = computed(() => {
   display: flex;
   justify-content: space-between;
   margin-top: auto;
-  padding: 0 40px;
+  padding: 0 100px;
 }
 
-.signature-space { height: 60px; }
+.date-placeholder {
+  font-size: 14px;
+  color: #475569;
+  margin-bottom: 10px;
+}
+
+.signature-space { height: 100px; }
 
 @media (max-width: 1300px) {
   .design-layout { grid-template-columns: 1fr; }
