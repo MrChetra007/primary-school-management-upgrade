@@ -253,32 +253,48 @@ async function handleExport() {
 async function generateReportLink() {
   if (!classInfo.value || !mode.value) return
 
-  const payload = {
-    school_id: schoolStore.schoolId,
-    class_id: classInfo.value.id,
-    academic_year_id: classInfo.value.academic_year_id,
-    created_by: auth.teacherProfile.id,
-    score_type: mode.value,
-    month: mode.value === 'monthly' ? selectedMonth.value : null,
-    semester: mode.value === 'semester' ? selectedSemester.value : null
+  const month = mode.value === 'monthly' ? selectedMonth.value : null
+  const semester = mode.value === 'semester' ? selectedSemester.value : null
+
+  const { data: existing } = await supabase
+    .from('report_links')
+    .select('id')
+    .eq('class_id', classInfo.value.id)
+    .eq('academic_year_id', classInfo.value.academic_year_id)
+    .eq('score_type', mode.value)
+    .eq('month', month)
+    .eq('semester', semester)
+    .maybeSingle()
+
+  if (existing) {
+    const link = `${window.location.origin}/parent/report/${existing.id}`
+    await navigator.clipboard.writeText(link)
+    showToast('តំណភ្ជាប់មានរួចហើយ! បានចម្លងឡើងវិញ', 'success')
+    return
   }
 
-  const { data, error } = await supabase
+  const { data: inserted, error } = await supabase
     .from('report_links')
-    .upsert(payload, {
-      onConflict: 'class_id,academic_year_id,score_type,month,semester'
+    .insert({
+      school_id: schoolStore.schoolId,
+      class_id: classInfo.value.id,
+      academic_year_id: classInfo.value.academic_year_id,
+      created_by: auth.teacherProfile.id,
+      score_type: mode.value,
+      month,
+      semester
     })
     .select('id')
     .single()
 
-  if (error || !data) {
+  if (error || !inserted) {
     showToast('មិនអាចបង្កើតតំណភ្ជាប់បានទេ', 'error')
     return
   }
 
-  const link = `${window.location.origin}/parent/report/${data.id}`
+  const link = `${window.location.origin}/parent/report/${inserted.id}`
   await navigator.clipboard.writeText(link)
-  showToast('បានចម្លងតំណភ្ជាប់!', 'success')
+  showToast('បានបង្កើត និងចម្លងតំណភ្ជាប់ថ្មី!', 'success')
 }
 
 function showToast(msg, type = 'success') {

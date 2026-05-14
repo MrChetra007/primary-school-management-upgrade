@@ -1,34 +1,23 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { useSchoolStore } from '@/stores/school'
-import { useAcademicYearStore } from '@/stores/academicYear'
 import { supabase } from '@/lib/supabase'
 import { ChevronLeftIcon, CheckCircleIcon, XCircleIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const auth = useAuthStore()
-const schoolStore = useSchoolStore()
-const academicYearStore = useAcademicYearStore()
 
 const loading = ref(true)
 const classInfo = ref(null)
 const reportLinks = ref([])
-const selectedScoreType = ref('monthly')
-const selectedMonth = ref(new Date().getMonth() + 1)
-const selectedSemester = ref(1)
+const selectedLinkId = ref('')
 const currentLink = ref(null)
 const messages = ref([])
 const allStudents = ref([])
 const toast = ref(null)
 
-const months = [
-  { id: 1, name: 'មករា' }, { id: 2, name: 'កុម្ភៈ' }, { id: 3, name: 'មីនា' },
-  { id: 4, name: 'មេសា' }, { id: 5, name: 'ឧសភា' }, { id: 6, name: 'មិថុនា' },
-  { id: 7, name: 'កក្កដា' }, { id: 8, name: 'សីហា' }, { id: 9, name: 'កញ្ញា' },
-  { id: 10, name: 'តុលា' }, { id: 11, name: 'វិច្ឆិកា' }, { id: 12, name: 'ធ្នូ' }
-]
+const months = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
 
 onMounted(async () => {
   if (auth.teacherProfile) {
@@ -55,7 +44,6 @@ async function loadClass() {
   if (classData) {
     classInfo.value = classData
     await fetchReportLinks()
-    await fetchData()
   }
   loading.value = false
 }
@@ -74,33 +62,23 @@ async function fetchReportLinks() {
   reportLinks.value = data || []
 }
 
-async function fetchData() {
-  if (!classInfo.value) return
-
-  const teacherId = auth.teacherProfile.id
-
-  const query = supabase
-    .from('report_links')
-    .select('id, class_id')
-    .eq('school_id', schoolStore.schoolId)
-    .eq('academic_year_id', classInfo.value.academic_year_id)
-    .eq('created_by', teacherId)
-    .eq('score_type', selectedScoreType.value)
-
-  if (selectedScoreType.value === 'monthly') {
-    query.eq('month', selectedMonth.value).is('semester', null)
-  } else {
-    query.is('month', null).eq('semester', selectedSemester.value)
+function linkLabel(link) {
+  if (link.score_type === 'monthly') {
+    return `ប្រចាំខែ${months[link.month - 1] || ''}`
   }
+  return `ឆមាសទី${link.semester || 1}`
+}
 
-  const { data: link } = await query.maybeSingle()
-
-  if (!link) {
+async function onLinkSelected() {
+  if (!selectedLinkId.value) {
     currentLink.value = null
     messages.value = []
     allStudents.value = []
     return
   }
+
+  const link = reportLinks.value.find(l => l.id === selectedLinkId.value)
+  if (!link) return
 
   currentLink.value = link
 
@@ -138,12 +116,7 @@ const mergedList = computed(() => {
 const repliedCount = computed(() => mergedList.value.filter(s => s.hasReply).length)
 const totalCount = computed(() => mergedList.value.length)
 
-watch([selectedScoreType, selectedMonth, selectedSemester], fetchData)
-
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
+watch(selectedLinkId, onLinkSelected)
 </script>
 
 <template>
@@ -170,27 +143,16 @@ function showToast(msg, type = 'success') {
       </div>
     </div>
 
-    <!-- Filters -->
+    <!-- Report Link Selector -->
     <div class="card filters-card" style="margin-bottom:24px;">
       <div class="card-body" style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap;">
-        <div class="form-group" style="width:200px;">
-          <label class="form-label">ប្រភេទពិន្ទុ</label>
-          <select class="form-select" v-model="selectedScoreType">
-            <option value="monthly">ប្រចាំខែ</option>
-            <option value="semester">ឆមាស</option>
-          </select>
-        </div>
-        <div v-if="selectedScoreType === 'monthly'" class="form-group" style="width:200px;">
-          <label class="form-label">ជ្រើសរើសខែ</label>
-          <select class="form-select" v-model="selectedMonth">
-            <option v-for="m in months" :key="m.id" :value="m.id">{{ m.name }}</option>
-          </select>
-        </div>
-        <div v-else class="form-group" style="width:200px;">
-          <label class="form-label">ជ្រើសរើសឆមាស</label>
-          <select class="form-select" v-model="selectedSemester">
-            <option :value="1">ឆមាសទី១</option>
-            <option :value="2">ឆមាសទី២</option>
+        <div class="form-group" style="width:320px;">
+          <label class="form-label">ជ្រើសរើសតំណភ្ជាប់របាយការណ៍</label>
+          <select class="form-select" v-model="selectedLinkId">
+            <option value="">-- ជ្រើសរើសតំណភ្ជាប់ --</option>
+            <option v-for="link in reportLinks" :key="link.id" :value="link.id">
+              {{ linkLabel(link) }} ({{ link.created_at?.split('T')[0] || '' }})
+            </option>
           </select>
         </div>
       </div>

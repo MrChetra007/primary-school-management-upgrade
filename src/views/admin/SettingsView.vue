@@ -29,7 +29,7 @@ function showToast(msg, type = 'success') {
 // ── SCHOOL INFO ───────────────────────────────────────────
 const schoolForm = ref({
   id: null, name_khmer: '', name_english: '', school_code: '',
-  director_name: '', address: '', phone: '', email: '', logo_base64: ''
+  director_name: '', address: '', phone: '', email: '', logo_url: ''
 })
 const uploadingLogo = ref(false)
 
@@ -60,12 +60,15 @@ async function uploadLogo(e) {
   const file = e.target.files[0]
   if (!file) return
   uploadingLogo.value = true
-  const reader = new FileReader()
-  reader.onload = (ev) => {
-    schoolForm.value.logo_base64 = ev.target.result
-    uploadingLogo.value = false
+  const path = `logos/${Date.now()}.${file.name.split('.').pop()}`
+  const { error } = await supabase.storage.from('school-logos').upload(path, file, { upsert: true })
+  if (!error) {
+    const { data } = supabase.storage.from('school-logos').getPublicUrl(path)
+    schoolForm.value.logo_url = data.publicUrl
+  } else {
+    showToast(error.message, 'error')
   }
-  reader.readAsDataURL(file)
+  uploadingLogo.value = false
 }
 
 // ── ACADEMIC YEARS ────────────────────────────────────────
@@ -251,7 +254,7 @@ function switchTab(id) {
           <div class="card-body" style="display:grid;grid-template-columns:200px 1fr;gap:24px;">
             <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
               <div class="logo-box">
-                <img v-if="schoolForm.logo_base64" :src="schoolForm.logo_base64" />
+                <img v-if="schoolForm.logo_url" :src="schoolForm.logo_url" />
                 <BuildingOfficeIcon v-else class="w-10 h-10 text-gray-400" />
               </div>
               <label class="btn btn-ghost btn-sm">
