@@ -23,7 +23,16 @@ const saved = ref(false)
 const toast = ref(null)
 const rankedList = ref([])
 const generating = ref(false)
+const showCertModal = ref(false)
+const selectedBorder = ref('border1')
 const certificateRef = ref(null)
+
+const borders = [
+  { id: 'border1', name: 'ម៉ូតទី ១' },
+  { id: 'border2', name: 'ម៉ូតទី ២' },
+  { id: 'border3', name: 'ម៉ូតទី ៣' },
+  { id: 'border4', name: 'ម៉ូតទី ៤' }
+]
 
 const { isRecording, audioUrl, error: voiceError, startRecording, stopRecording, uploadVoice } = useVoiceRecorder()
 
@@ -209,7 +218,12 @@ function contextPeriodLabel() {
   return `ប្រចាំឆមាសទី ${toKhmerNum(link.value.semester || 1)}`
 }
 
-async function generateCertificate() {
+function openCertModal() {
+  showCertModal.value = true
+  selectedBorder.value = 'border1'
+}
+
+async function downloadCertificate() {
   generating.value = true
   showToast('កំពុងរៀបចំប័ណ្ណសរសើរ...', 'info')
 
@@ -345,15 +359,14 @@ async function submitParentReply() {
             v-if="studentRank.rank <= 3"
             class="btn btn-primary"
             style="width: 100%; margin-top: 16px;"
-            :disabled="generating"
-            @click="generateCertificate"
+            @click="openCertModal"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
               <path d="M12 2L2 7l10 5 10-5-10-5z"/>
               <path d="M2 17l10 5 10-5"/>
               <path d="M2 12l10 5 10-5"/>
             </svg>
-            {{ generating ? 'កំពុងបង្កើត...' : 'ទាញយកប័ណ្ណសរសើរ' }}
+            រចនាប័ណ្ណសរសើរ
           </button>
         </div>
       </div>
@@ -503,50 +516,99 @@ async function submitParentReply() {
           </p>
         </div>
       </div>
-      <!-- Certificate (hidden, rendered to PDF) -->
-      <div ref="certificateRef" class="certificate-hidden">
-        <img :src="getImageUrl('border1')" class="cert-border" />
-        <div class="cert-watermark">
-          <img :src="getImageUrl('watermark')" />
-        </div>
-        <div class="cert-content">
-          <div class="cert-header">
-            <div class="cert-header-left">
-              <div class="cert-logo">
-                <img :src="getImageUrl('logo')" />
+      <!-- Certificate Modal -->
+      <div v-if="showCertModal" class="modal-overlay" @click.self="showCertModal = false">
+        <div class="modal modal-lg cert-modal">
+          <div class="modal-header">
+            <h3 class="modal-title">រចនាប័ណ្ណសរសើរ</h3>
+            <button class="btn btn-ghost btn-sm btn-icon" @click="showCertModal = false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <div class="cert-modal-layout">
+            <!-- Toolbar -->
+            <div class="cert-toolbar">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; color:var(--primary-700);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                <h3 style="font-size:15px; font-weight:700;">ជម្រើសស៊ុម</h3>
               </div>
-              <div class="cert-header-text">
-                <p class="font-muol">ក្រសួងអប់រំ យុវជន និងកីឡា</p>
-                <p class="font-muol">សាលាបឋមសិក្សា</p>
+              <div class="border-list">
+                <div
+                  v-for="b in borders"
+                  :key="b.id"
+                  class="border-option"
+                  :class="{ active: selectedBorder === b.id }"
+                  @click="selectedBorder = b.id"
+                >
+                  <img :src="getImageUrl(b.id)" class="border-thumb" />
+                  <span>{{ b.name }}</span>
+                </div>
               </div>
+              <button
+                class="btn btn-primary"
+                style="width:100%; margin-top:16px;"
+                :disabled="generating"
+                @click="downloadCertificate"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+                {{ generating ? 'កំពុងបង្កើត...' : 'ទាញយក PDF' }}
+              </button>
             </div>
-            <div class="cert-header-right">
-              <h3 class="font-muol text-blue">ព្រះរាជាណាចក្រកម្ពុជា</h3>
-              <h4 class="font-muol text-blue">ជាតិ សាសនា ព្រះមហាក្សត្រ</h4>
-            </div>
-          </div>
-          <div class="cert-title-section">
-            <h1 class="cert-main-title">ប័ណ្ណសរសើរ</h1>
-          </div>
-          <div class="cert-body">
-            <p>សូមធ្វើការសរសើរចំពោះសិស្សឈ្មោះ <span class="text-red font-muol">{{ student?.full_name }}</span></p>
-            <p>ភេទ <span class="text-red">{{ student?.gender === 'female' ? 'ស្រី' : 'ប្រុស' }}</span></p>
-            <p>ដែលទទួលបានលទ្ធផលល្អក្នុងការសិក្សា {{ contextPeriodLabel() }}</p>
-            <p>និងទទួលបានចំណាត់ថ្នាក់លេខ <span class="text-red font-muol">{{ toKhmerNum(studentRank?.rank) }}</span></p>
-            <p>ក្នុងចំណោមសិស្សសរុប <span class="text-red font-muol">{{ toKhmerNum(classStats?.total || 0) }}</span> នាក់</p>
-            <p>ដោយទទួលបានពិន្ទុមធ្យមភាគ <span class="text-red font-muol">{{ studentRank?.average }}</span></p>
-          </div>
-          <div class="cert-footer">
-            <div class="cert-footer-col">
-              <p>ថ្ងៃទី ........ ខែ ........ ឆ្នាំ........</p>
-              <p class="font-muol">នាយកសាលា</p>
-              <div class="cert-sign-space"></div>
-            </div>
-            <div class="cert-stamp-box"></div>
-            <div class="cert-footer-col">
-              <p>ថ្ងៃទី ........ ខែ ........ ឆ្នាំ........</p>
-              <p class="font-muol">គ្រូបន្ទុកថ្នាក់</p>
-              <div class="cert-sign-space"></div>
+            <!-- Preview -->
+            <div class="cert-preview-wrap">
+              <div ref="certificateRef" class="certificate-preview">
+                <img :src="getImageUrl(selectedBorder)" class="cert-border" />
+                <div class="cert-watermark">
+                  <img :src="getImageUrl('watermark')" />
+                </div>
+                <div class="cert-content">
+                  <div class="cert-header">
+                    <div class="cert-header-left">
+                      <div class="cert-logo">
+                        <img :src="getImageUrl('logo')" />
+                      </div>
+                      <div class="cert-header-text">
+                        <p class="font-muol">ក្រសួងអប់រំ យុវជន និងកីឡា</p>
+                        <p class="font-muol">សាលាបឋមសិក្សា</p>
+                      </div>
+                    </div>
+                    <div class="cert-header-right">
+                      <h3 class="font-muol text-blue">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                      <h4 class="font-muol text-blue">ជាតិ សាសនា ព្រះមហាក្សត្រ</h4>
+                    </div>
+                  </div>
+                  <div class="cert-title-section">
+                    <h1 class="cert-main-title">ប័ណ្ណសរសើរ</h1>
+                  </div>
+                  <div class="cert-body">
+                    <p>សូមធ្វើការសរសើរចំពោះសិស្សឈ្មោះ <span class="text-red font-muol">{{ student?.full_name }}</span></p>
+                    <p>ភេទ <span class="text-red">{{ student?.gender === 'female' ? 'ស្រី' : 'ប្រុស' }}</span></p>
+                    <p>ដែលទទួលបានលទ្ធផលល្អក្នុងការសិក្សា {{ contextPeriodLabel() }}</p>
+                    <p>និងទទួលបានចំណាត់ថ្នាក់លេខ <span class="text-red font-muol">{{ toKhmerNum(studentRank?.rank) }}</span></p>
+                    <p>ក្នុងចំណោមសិស្សសរុប <span class="text-red font-muol">{{ toKhmerNum(classStats?.total || 0) }}</span> នាក់</p>
+                    <p>ដោយទទួលបានពិន្ទុមធ្យមភាគ <span class="text-red font-muol">{{ studentRank?.average }}</span></p>
+                  </div>
+                  <div class="cert-footer">
+                    <div class="cert-footer-col">
+                      <p>ថ្ងៃទី ........ ខែ ........ ឆ្នាំ........</p>
+                      <p class="font-muol">នាយកសាលា</p>
+                      <div class="cert-sign-space"></div>
+                    </div>
+                    <div class="cert-stamp-box"></div>
+                    <div class="cert-footer-col">
+                      <p>ថ្ងៃទី ........ ខែ ........ ឆ្នាំ........</p>
+                      <p class="font-muol">គ្រូបន្ទុកថ្នាក់</p>
+                      <div class="cert-sign-space"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -780,14 +842,79 @@ async function submitParentReply() {
   50% { opacity: 0.3; }
 }
 
-.certificate-hidden {
-  position: fixed;
-  top: -9999px;
-  left: -9999px;
+.cert-modal {
+  max-width: 1100px !important;
+}
+
+.cert-modal-layout {
+  display: flex;
+  gap: 0;
+  min-height: 500px;
+}
+
+.cert-toolbar {
+  width: 220px;
+  flex-shrink: 0;
+  padding: 20px;
+  border-right: 1px solid var(--border-default);
+  overflow-y: auto;
+}
+
+.border-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.border-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 2px solid var(--border-default);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.border-option:hover {
+  background: var(--gray-50);
+}
+
+.border-option.active {
+  border-color: var(--primary-500);
+  background: var(--primary-50);
+}
+
+.border-thumb {
+  width: 56px;
+  height: 36px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid #cbd5e1;
+  flex-shrink: 0;
+}
+
+.cert-preview-wrap {
+  flex: 1;
+  padding: 24px;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.certificate-preview {
+  position: relative;
   width: 297mm;
   height: 210mm;
   background: white;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  flex-shrink: 0;
+  transform-origin: top left;
 }
 
 .cert-border {
