@@ -61,9 +61,9 @@ async function uploadLogo(e) {
   if (!file) return
   uploadingLogo.value = true
   const path = `logos/${Date.now()}.${file.name.split('.').pop()}`
-  const { error } = await supabase.storage.from('school-logos').upload(path, file, { upsert: true })
+  const { error } = await supabase.storage.from('teacher-profiles').upload(path, file, { upsert: true })
   if (!error) {
-    const { data } = supabase.storage.from('school-logos').getPublicUrl(path)
+    const { data } = supabase.storage.from('teacher-profiles').getPublicUrl(path)
     schoolForm.value.logo_url = data.publicUrl
   } else {
     showToast(error.message, 'error')
