@@ -26,8 +26,10 @@ const toast = ref(null)
 // Certificate Customization
 const selectedBorder = ref('border1')
 const borders = [
-  { id: 'border1', name: 'ម៉ូតទី ១ (Classic Gold)' },
-  { id: 'border3', name: 'ម៉ូតទី ២ (Elegant Floral)' }
+  { id: 'border1', name: 'ម៉ូតទី ១' },
+  { id: 'border2', name: 'ម៉ូតទី ២' },
+  { id: 'border3', name: 'ម៉ូតទី ៣' },
+  { id: 'border4', name: 'ម៉ូតទី ៤' }
 ]
 
 function getImageUrl(name) {
@@ -65,7 +67,7 @@ async function loadTopStudents() {
     // Get all students
     const { data: stuData } = await supabase
       .from('students')
-      .select('id, full_name')
+      .select('id, full_name, gender')
       .eq('class_id', classData.id)
     
     if (stuData && stuData.length > 0) {
@@ -82,7 +84,12 @@ async function loadTopStudents() {
         
         list = stuData.map(student => {
           const s = scores.filter(sc => sc.student_id === student.id).map(sc => ({ score: sc.score }))
-          return { full_name: student.full_name, average: computeMonthlyAverage(s) }
+          return { 
+            id: student.id,
+            full_name: student.full_name, 
+            gender: student.gender,
+            average: computeMonthlyAverage(s) 
+          }
         })
       } else {
         const months = semester === 1 ? [1, 2, 3] : [4, 5, 6]
@@ -98,7 +105,12 @@ async function loadTopStudents() {
           })
           const examScores = examRes.data?.filter(sc => sc.student_id === student.id).map(sc => ({ score: sc.score }))
           const examAvg = computeMonthlyAverage(examScores)
-          return { full_name: student.full_name, average: computeSemesterAverage(mAvgs, examAvg) }
+          return { 
+            id: student.id,
+            full_name: student.full_name, 
+            gender: student.gender,
+            average: computeSemesterAverage(mAvgs, examAvg) 
+          }
         })
       }
 
@@ -138,12 +150,18 @@ function showToast(msg, type = 'success') {
   setTimeout(() => { toast.value = null }, 3000)
 }
 
+function toKhmerNum(num) {
+  if (num === null || num === undefined) return ''
+  const khmerNums = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩']
+  return num.toString().replace(/\d/g, d => khmerNums[d])
+}
+
 const contextName = computed(() => {
   if (mode === 'monthly') {
     const months = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
     return `ប្រចាំខែ${months[month - 1]}`
   }
-  return `ប្រចាំឆមាសទី ${semester}`
+  return `ប្រចាំឆមាសទី ${toKhmerNum(semester)}`
 })
 </script>
 
@@ -228,39 +246,60 @@ const contextName = computed(() => {
             
             <!-- Watermark -->
             <div class="cert-watermark">
-              <img :src="getImageUrl('logo')" alt="watermark" />
+              <img :src="getImageUrl('watermark')" alt="watermark" />
             </div>
 
             <!-- Content -->
             <div class="cert-content">
-              <!-- Spacer for the top emblem in the border -->
-              <div style="height: 140px;"></div>
-
-              <h2 class="cert-main-heading">លិខិតសរសើរ</h2>
-              
-              <div class="cert-award-text">
-                ជូនចំពោះសិស្សឈ្មោះ
-                <div class="student-name">{{ student.full_name }}</div>
+              <!-- Top Header Section -->
+              <div class="cert-header">
+                <div class="header-left">
+                  <div class="moey-logo-small">
+                    <img :src="getImageUrl('logo')" alt="logo" />
+                  </div>
+                  <div class="header-text-left">
+                    <p class="font-muol">ក្រសួងអប់រំ យុវជន និងកីឡា</p>
+                    <p class="font-muol">ខេត្ត៖ {{ classInfo.school_province || '........' }}</p>
+                    <p class="font-muol">សាលាបឋមសិក្សា៖ {{ auth.school?.name || '........' }}</p>
+                  </div>
+                </div>
+                <div class="header-right">
+                  <h3 class="font-muol text-blue">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                  <h4 class="font-muol text-blue">ជាតិ សាសនា ព្រះមហាក្សត្រ</h4>
+                  <div class="wiggle-line">
+                    <svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0,5 Q25,0 50,5 T100,5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                  </div>
+                </div>
               </div>
 
-              <div class="cert-achievement">
-                ដែលបានខិតខំប្រឹងប្រែងសិក្សារហូតទទួលបាន <br/>
-                <strong class="rank-text">ចំណាត់ថ្នាក់លេខ {{ student.rank }}</strong>
+              <!-- Main Title -->
+              <div class="title-section">
+                <h1 class="cert-main-title">ប័ណ្ណសរសើរ</h1>
+                <h3 class="font-muol text-blue" style="font-size: 16px;">នាយកសាលាបឋមសិក្សា {{ auth.school?.name }}</h3>
               </div>
 
-              <div class="cert-meta">
-                <span>{{ contextName }}</span>
-                <span>មធ្យមភាគ៖ {{ student.average }}</span>
-                <span>ឆ្នាំសិក្សា៖ {{ classInfo.academic_years?.year_name }}</span>
+              <!-- Body Text -->
+              <div class="cert-body-text">
+                <p>សូមធ្វើការសរសើរចំពោះសិស្សឈ្មោះ <span class="highlight-red font-muol">{{ student.full_name }}</span> ភេទ <span class="highlight-red">{{ student.gender === 'female' ? 'ស្រី' : 'ប្រុស' }}</span></p>
+                <p>ជាសិស្សថ្នាក់ទី៖ <span class="highlight-red">{{ toKhmerNum(classInfo.class_name) }}</span> នៃឆ្នាំសិក្សា <span class="highlight-red">{{ toKhmerNum(classInfo.academic_years?.year_name) }}</span></p>
+                <p>ដែលទទួលបានលទ្ធផលល្អក្នុងសិក្សា និងទទួលបានចំណាត់ថ្នាក់លេខ <span class="highlight-red font-muol">{{ toKhmerNum(student.rank) }}</span> {{ contextName }}</p>
+                <p class="cert-closing-text">ប័ណ្ណសរសើរនេះប្រគល់ជូនសាមីខ្លួនប្រើប្រាស់តាមការដែលអាចប្រើប្រាស់បាន។</p>
               </div>
 
+              <!-- Footer Section -->
               <div class="cert-footer">
-                <!-- Spacing adjusted to match the signature areas in the border -->
-                <div class="footer-left">
+                <div class="footer-col">
+                  <p class="footer-date">ថ្ងៃទី ........ ខែ ........ ឆ្នាំ២០........</p>
+                  <p class="font-muol">នាយកសាលា</p>
                   <div class="signature-space"></div>
                 </div>
-                <div class="footer-right">
-                  <p class="date-placeholder">ថ្ងៃទី ........ ខែ ........ ឆ្នាំ២០........</p>
+                
+                <!-- Red Stamp Box -->
+                <div class="stamp-box"></div>
+
+                <div class="footer-col">
+                  <p class="footer-date">ថ្ងៃទី ........ ខែ ........ ឆ្នាំ២០........</p>
+                  <p class="font-muol">គ្រូបន្ទុកថ្នាក់</p>
                   <div class="signature-space"></div>
                 </div>
               </div>
@@ -382,7 +421,7 @@ const contextName = computed(() => {
   position: relative;
   z-index: 3;
   height: 100%;
-  padding: 60px 80px;
+  padding: 80px 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -411,51 +450,112 @@ const contextName = computed(() => {
   margin-bottom: 20px;
 }
 
-.student-name {
-  font-size: 48px;
-  font-weight: 800;
-  color: #1e3a8a; /* Deep elegant blue */
-  margin-top: 10px;
-  font-family: var(--font-khmer);
-  text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+.font-muol {
+  font-family: 'Khmer OS Muol Light', 'Hanuman', serif;
+  font-weight: normal;
 }
 
-.rank-text {
-  font-size: 28px;
-  color: #b45309;
-  font-weight: 800;
-}
+.text-blue { color: #1a3b8e; }
+.highlight-red { color: #d92b34; font-weight: 700; }
 
-.cert-achievement {
-  font-size: 20px;
-  line-height: 1.6;
-  margin-bottom: 20px;
-  color: #334155;
-}
-
-.cert-meta {
+.cert-header {
+  width: 100%;
   display: flex;
-  gap: 40px;
-  font-size: 14px;
-  color: #64748b;
-  margin-bottom: 80px;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+}
+
+.header-left {
+  display: flex;
+  gap: 12px;
+  text-align: left;
+  margin-top: 30px;
+  margin-right: 20px;
+}
+
+.moey-logo-small img {
+  width: 100px;
+  height: auto;
+}
+.header-text-left p {
+  font-size: 13px;
+  margin-bottom: 2px;
+  color: #1e293b;
+}
+
+.header-right {
+  text-align: center;
+    margin-top: 30px;
+  margin-left: 20px;
+}
+
+.header-right h3 { font-size: 18px; margin-bottom: 4px; }
+.header-right h4 { font-size: 14px; }
+
+.wiggle-line {
+  width: 80px;
+  margin: 4px auto 0;
+  color: #1a3b8e;
+}
+
+.title-section {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.cert-main-title {
+  font-family: 'Khmer OS Muol Light', 'Hanuman', serif;
+  font-size: 64px;
+  color: #d92b34;
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+}
+
+.cert-body-text {
+  text-align: center;
+  font-size: 20px;
+  line-height: 2;
+  color: #1e293b;
+  width: 100%;
+  max-width: 850px;
+}
+
+.cert-closing-text {
+  margin-top: 20px;
+  font-style: italic;
+  font-size: 16px;
 }
 
 .cert-footer {
   width: 100%;
   display: flex;
   justify-content: space-between;
+  align-items: flex-end;
   margin-top: auto;
-  padding: 0 100px;
+  padding: 0 40px 20px;
 }
 
-.date-placeholder {
-  font-size: 14px;
+.footer-col {
+  text-align: center;
+  flex: 1;
+}
+
+.footer-date {
+  font-size: 13px;
   color: #475569;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
-.signature-space { height: 100px; }
+.stamp-box {
+  width: 100px;
+  height: 120px;
+  border: 2px solid #d92b34;
+  margin: 0 40px 20px;
+  flex-shrink: 0;
+}
+
+.signature-space { height: 80px; }
 
 @media (max-width: 1300px) {
   .design-layout { grid-template-columns: 1fr; }

@@ -77,7 +77,7 @@ async function loadData() {
     // 2. Get Students
     const { data: stuData } = await supabase
       .from('students')
-      .select('id, full_name')
+      .select('id, full_name, gender')
       .eq('class_id', classData.id)
       .order('full_name')
     students.value = stuData || []
@@ -86,6 +86,30 @@ async function loadData() {
   }
   loading.value = false
 }
+
+const stats = ref({
+  total: 0,
+  female: 0,
+  male: 0,
+  passed: 0,
+  femalePassed: 0,
+  malePassed: 0,
+  failed: 0,
+  femaleFailed: 0,
+  maleFailed: 0,
+  classAverage: 0,
+  highestAverage: 0,
+  lowestAverage: 0,
+  ranges: {
+    '9.5-10': { total: 0, male: 0, female: 0, percent: 0 },
+    '8.0-9.49': { total: 0, male: 0, female: 0, percent: 0 },
+    '6.50-7.99': { total: 0, male: 0, female: 0, percent: 0 },
+    '5.00-6.49': { total: 0, male: 0, female: 0, percent: 0 },
+    'below-5': { total: 0, male: 0, female: 0, percent: 0 }
+  },
+  gradeCounts: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 },
+  gradePercents: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 }
+})
 
 async function fetchData() {
   if (!classInfo.value || students.value.length === 0) return
@@ -113,6 +137,7 @@ async function fetchData() {
     calculateSemesterRanking(semesterMonthlyScores, semesterExamScores)
   }
 
+  calculateStats()
   loading.value = false
 }
 
@@ -122,6 +147,7 @@ function calculateMonthlyRanking() {
     return {
       id: student.id,
       full_name: student.full_name,
+      gender: student.gender,
       average: computeMonthlyAverage(scores)
     }
   })
@@ -141,10 +167,66 @@ function calculateSemesterRanking(mScores, eScores) {
     return {
       id: student.id,
       full_name: student.full_name,
+      gender: student.gender,
       average: computeSemesterAverage(mAvgs, examAvg)
     }
   })
   rankedList.value = computeRank(list).sort((a, b) => a.rank - b.rank)
+}
+
+function calculateStats() {
+  const list = rankedList.value
+  if (list.length === 0) return
+
+  const s = {
+    total: list.length,
+    female: list.filter(p => (p.gender || '').toLowerCase() === 'female').length,
+    male: list.filter(p => (p.gender || '').toLowerCase() === 'male').length,
+    passed: list.filter(p => p.average >= 5).length,
+    femalePassed: list.filter(p => (p.gender || '').toLowerCase() === 'female' && p.average >= 5).length,
+    malePassed: list.filter(p => (p.gender || '').toLowerCase() === 'male' && p.average >= 5).length,
+    failed: list.filter(p => p.average < 5).length,
+    femaleFailed: list.filter(p => (p.gender || '').toLowerCase() === 'female' && p.average < 5).length,
+    maleFailed: list.filter(p => (p.gender || '').toLowerCase() === 'male' && p.average < 5).length,
+    classAverage: list.reduce((a, b) => a + b.average, 0) / list.length,
+    highestAverage: Math.max(...list.map(p => p.average)),
+    lowestAverage: Math.min(...list.map(p => p.average)),
+    ranges: {
+      '9.5-10': { total: 0, male: 0, female: 0, percent: 0 },
+      '8.0-9.49': { total: 0, male: 0, female: 0, percent: 0 },
+      '6.50-7.99': { total: 0, male: 0, female: 0, percent: 0 },
+      '5.00-6.49': { total: 0, male: 0, female: 0, percent: 0 },
+      'below-5': { total: 0, male: 0, female: 0, percent: 0 }
+    },
+    gradeCounts: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 },
+    gradePercents: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 }
+  }
+
+  list.forEach(p => {
+    const avg = p.average
+    const g = getGrade(avg)
+    s.gradeCounts[g]++
+
+    if (avg >= 9.5) { s.ranges['9.5-10'].total++; if(p.gender === 'female') s.ranges['9.5-10'].female++; else s.ranges['9.5-10'].male++ }
+    else if (avg >= 8.0) { s.ranges['8.0-9.49'].total++; if(p.gender === 'female') s.ranges['8.0-9.49'].female++; else s.ranges['8.0-9.49'].male++ }
+    else if (avg >= 6.5) { s.ranges['6.50-7.99'].total++; if(p.gender === 'female') s.ranges['6.50-7.99'].female++; else s.ranges['6.50-7.99'].male++ }
+    else if (avg >= 5.0) { s.ranges['5.00-6.49'].total++; if(p.gender === 'female') s.ranges['5.00-6.49'].female++; else s.ranges['5.00-6.49'].male++ }
+    else { s.ranges['below-5'].total++; if(p.gender === 'female') s.ranges['below-5'].female++; else s.ranges['below-5'].male++ }
+  })
+
+  Object.keys(s.ranges).forEach(k => s.ranges[k].percent = Math.round((s.ranges[k].total / s.total) * 100))
+  Object.keys(s.gradeCounts).forEach(k => s.gradePercents[k] = Math.round((s.gradeCounts[k] / s.total) * 100))
+
+  stats.value = s
+}
+
+function getGrade(score) {
+  if (score >= 9.0) return 'A'
+  if (score >= 8.0) return 'B'
+  if (score >= 7.0) return 'C'
+  if (score >= 6.0) return 'D'
+  if (score >= 5.0) return 'E'
+  return 'F'
 }
 
 const printArea = ref(null)
@@ -173,6 +255,12 @@ watch([mode, selectedMonth, selectedSemester], fetchData)
 
 function initials(name) {
   return (name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??'
+}
+
+function toKhmerNum(num) {
+  if (num === null || num === undefined) return ''
+  const khmerNums = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩']
+  return num.toString().replace(/\d/g, d => khmerNums[d])
 }
 </script>
 
@@ -269,6 +357,94 @@ function initials(name) {
     </div>
 
     <div v-else ref="printArea">
+      <!-- Summary Tiles Group 1 -->
+      <div class="tile-group no-print">
+        <div class="group-title">សង្ខេបសិស្ស</div>
+        <div class="tiles-row">
+          <div class="stat-tile border-purple">
+            <div class="tile-main">
+              <span class="tile-label">សិស្សសរុប</span>
+              <span class="tile-val">{{ stats.total }} នាក់</span>
+            </div>
+            <div class="tile-footer">
+              <span>ស្រី <b class="text-pink">{{ stats.female }}</b></span>
+              <span>ប្រុស <b class="text-blue">{{ stats.male }}</b></span>
+            </div>
+          </div>
+          <div class="stat-tile border-green">
+            <div class="tile-main">
+              <span class="tile-label">ជាប់មធ្យមភាគ</span>
+              <span class="tile-val">{{ stats.passed }} នាក់</span>
+            </div>
+            <div class="tile-footer">
+              <span>ស្រី <b class="text-pink">{{ stats.femalePassed }}</b></span>
+              <span>ប្រុស <b class="text-blue">{{ stats.malePassed }}</b></span>
+            </div>
+          </div>
+          <div class="stat-tile border-red">
+            <div class="tile-main">
+              <span class="tile-label">ធ្លាក់មធ្យមភាគ</span>
+              <span class="tile-val">{{ stats.failed }} នាក់</span>
+            </div>
+            <div class="tile-footer">
+              <span>ស្រី <b class="text-pink">{{ stats.femaleFailed }}</b></span>
+              <span>ប្រុស <b class="text-blue">{{ stats.maleFailed }}</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Range Distribution Group 2 -->
+      <div class="tile-group no-print">
+        <div class="group-title">ការចែកចាយមធ្យមភាគ</div>
+        <div class="tiles-row range-tiles">
+          <div v-for="(range, key) in stats.ranges" :key="key" class="stat-tile" :class="'border-range-' + key.replace('.', '-')">
+            <div class="tile-main">
+              <span class="tile-label">មធ្យមភាគ {{ key }}</span>
+              <div class="flex items-center gap-2">
+                <span class="tile-val">{{ range.total }} នាក់</span>
+                <span class="badge-percent">{{ toKhmerNum(range.percent) }}%</span>
+              </div>
+            </div>
+            <div class="tile-footer">
+              <span>ស្រី <b class="text-pink">{{ range.female }}</b></span>
+              <span>ប្រុស <b class="text-blue">{{ range.male }}</b></span>
+            </div>
+          </div>
+
+          <div class="stat-tile border-purple highlight-tile">
+            <div class="highlight-val">{{ stats.classAverage.toFixed(2) }}</div>
+            <div class="highlight-label">មធ្យមភាគថ្នាក់</div>
+            <div class="highlight-footer">
+              <div class="foot-item">
+                <span>ខ្ពស់បំផុត</span>
+                <b>{{ stats.highestAverage.toFixed(2) }}</b>
+              </div>
+              <div class="foot-item">
+                <span>ទាបបំផុត</span>
+                <b>{{ stats.lowestAverage.toFixed(2) }}</b>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grade Distribution -->
+      <div class="card no-print" style="margin-bottom:24px;">
+        <div class="card-header" style="padding:12px 16px; border-bottom:1px solid #f1f5f9;">
+          <h3 style="font-size:14px; font-weight:700;">ការចែកចាយកម្រិតពិន្ទុ</h3>
+        </div>
+        <div class="card-body" style="padding:16px;">
+          <div class="grade-grid">
+            <div v-for="g in ['A', 'B', 'C', 'D', 'E', 'F']" :key="g" class="grade-box" :class="'box-' + g">
+              <div class="grade-letter">{{ g }}</div>
+              <div class="grade-info">{{ stats.gradeCounts[g] }} នាក់</div>
+              <div class="grade-percent">{{ toKhmerNum(stats.gradePercents[g]) }}%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="print-only" style="text-align:center; margin-bottom:24px;">
         <h2 style="font-size:24px; font-weight:800;">ចំណាត់ថ្នាក់សិស្សប្រចាំ{{ mode === 'monthly' ? 'ខែ' : 'ឆមាស' }}</h2>
         <div style="display:flex; justify-content:center; gap:24px; margin-top:8px; color:#475569;">
@@ -277,79 +453,58 @@ function initials(name) {
           <span>ឆ្នាំសិក្សា៖ {{ classInfo.academic_years?.year_name }}</span>
         </div>
       </div>
-      <!-- Top 3 Podium -->
-      <div class="podium">
-        <!-- Rank 2 -->
-        <div v-if="rankedList[1]" class="podium-item second">
-          <div class="avatar-wrap">
-            <div class="avatar">{{ initials(rankedList[1].full_name) }}</div>
-            <div class="badge-rank">2</div>
-          </div>
-          <div class="podium-info">
-            <div class="name">{{ rankedList[1].full_name }}</div>
-            <div class="score">{{ rankedList[1].average }}</div>
-          </div>
-          <div class="step"></div>
-        </div>
 
-        <!-- Rank 1 -->
-        <div v-if="rankedList[0]" class="podium-item first">
-          <TrophyIcon class="w-8 h-8 trophy-gold" />
-          <div class="avatar-wrap">
-            <div class="avatar">{{ initials(rankedList[0].full_name) }}</div>
-            <div class="badge-rank">1</div>
-          </div>
-          <div class="podium-info">
-            <div class="name">{{ rankedList[0].full_name }}</div>
-            <div class="score">{{ rankedList[0].average }}</div>
-          </div>
-          <div class="step"></div>
-        </div>
-
-        <!-- Rank 3 -->
-        <div v-if="rankedList[2]" class="podium-item third">
-          <div class="avatar-wrap">
-            <div class="avatar">{{ initials(rankedList[2].full_name) }}</div>
-            <div class="badge-rank">3</div>
-          </div>
-          <div class="podium-info">
-            <div class="name">{{ rankedList[2].full_name }}</div>
-            <div class="score">{{ rankedList[2].average }}</div>
-          </div>
-          <div class="step"></div>
-        </div>
-      </div>
-
-      <!-- Ranking List -->
+      <!-- Ranking Table -->
       <div class="card ranking-card">
         <div class="table-wrapper">
           <table class="ranking-table">
             <thead>
               <tr>
-                <th style="width:80px;">ចំណាត់ថ្នាក់</th>
+                <th style="width:60px; text-align:center;">ល.រ</th>
                 <th>ឈ្មោះសិស្ស</th>
-                <th style="text-align:right;">មធ្យមភាគ</th>
-                <th style="width:120px; text-align:center;">ស្ថានភាព</th>
+                <th style="text-align:center; width:100px;">ភេទ</th>
+                <th style="text-align:center; width:150px;">មធ្យមភាគ</th>
+                <th style="text-align:center; width:80px;">កម្រិត</th>
+                <th style="text-align:center; width:100px; color:var(--danger-color);">ចំណាត់ថ្នាក់</th>
+                <th style="text-align:center; width:100px;" class="no-print">សកម្មភាព</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="student in rankedList" :key="student.id" :class="{ 'top-row': student.rank <= 3 }">
-                <td class="rank-col">
-                  <div class="rank-circle" :class="'rank-' + student.rank">
-                    {{ student.rank }}
-                  </div>
-                </td>
-                <td class="name-col">
+              <tr v-for="(student, idx) in rankedList" :key="student.id" :class="{ 'top-row': student.rank <= 3 }">
+                <td style="text-align:center; font-weight:700;">{{ idx + 1 }}</td>
+                <td>
                   <div style="display:flex; align-items:center; gap:12px;">
-                    <div class="mini-avatar">{{ initials(student.full_name) }}</div>
-                    <span>{{ student.full_name }}</span>
+                    <div class="mini-avatar" :style="{ background: student.gender === 'female' ? '#ec4899' : 'var(--primary-color)' }">
+                      {{ initials(student.full_name) }}
+                    </div>
+                    <span style="font-weight:700;">{{ student.full_name }}</span>
                   </div>
                 </td>
-                <td class="score-col">{{ student.average }}</td>
                 <td style="text-align:center;">
-                  <span class="badge" :class="student.average >= 50 ? 'badge-green' : 'badge-red'">
-                    {{ student.average >= 50 ? 'ជាប់' : 'ធ្លាក់' }}
+                  <span class="gender-badge" :class="student.gender">
+                    {{ student.gender === 'female' ? 'ស្រី' : 'ប្រុស' }}
                   </span>
+                </td>
+                <td>
+                  <div class="avg-cell">
+                    <span class="avg-val">{{ student.average }}</span>
+                    <div class="progress-bar-wrap">
+                      <div class="progress-fill" :class="'bg-' + getGrade(student.average)" :style="{ width: (student.average * 10) + '%' }"></div>
+                    </div>
+                  </div>
+                </td>
+                <td style="text-align:center;">
+                  <span class="grade-chip" :class="'chip-' + getGrade(student.average)">
+                    {{ getGrade(student.average) }}
+                  </span>
+                </td>
+                <td style="text-align:center;">
+                  <div class="rank-circle" :class="'rank-' + student.rank">{{ toKhmerNum(student.rank) }}</div>
+                </td>
+                <td style="text-align:center;" class="no-print">
+                  <button class="btn btn-ghost btn-sm" @click="router.push(`/teacher/scores/view?id=${student.id}`)">
+                    <EyeIcon class="w-4 h-4" />
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -362,7 +517,7 @@ function initials(name) {
 
 <style scoped>
 .ranking-view {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -391,137 +546,177 @@ function initials(name) {
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.stat-info {
+.stat-info-simple {
   display: flex;
   align-items: center;
   gap: 8px;
   color: #475569;
   font-size: 14px;
-  margin-bottom: 4px;
 }
 
-/* Podium Styles */
-.podium {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 12px;
-  margin: 40px 0;
-  height: 280px;
+.tile-group {
+  margin-bottom: 24px;
 }
 
-.podium-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 160px;
-}
-
-.avatar-wrap {
-  position: relative;
+.group-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
   margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
 }
 
-.avatar {
-  width: 70px;
-  height: 70px;
-  background: #f1f5f9;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 24px;
-  border: 4px solid white;
+.tiles-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.stat-tile {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+
+.stat-tile:hover {
+  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.first .avatar {
-  width: 90px;
-  height: 90px;
-  border-color: #fbbf24;
-  font-size: 32px;
+.border-purple { border-left: 4px solid #8b5cf6; }
+.border-green { border-left: 4px solid #10b981; }
+.border-red { border-left: 4px solid #ef4444; }
+
+.border-range-9-5-10 { border-left: 4px solid #059669; }
+.border-range-8-0-9-49 { border-left: 4px solid #3b82f6; }
+.border-range-6-50-7-99 { border-left: 4px solid #f59e0b; }
+.border-range-5-00-6-49 { border-left: 4px solid #f97316; }
+.border-range-below-5 { border-left: 4px solid #dc2626; }
+
+.tile-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-.second .avatar { border-color: #94a3b8; }
-.third .avatar { border-color: #b45309; }
+.tile-label { font-size: 14px; font-weight: 700; color: #4b5563; }
+.tile-val { font-size: 18px; font-weight: 800; color: #1e40af; }
 
-.badge-rank {
-  position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 28px;
-  height: 28px;
-  background: #1e293b;
-  color: white;
-  border-radius: 50%;
+.tile-footer {
   display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6b7280;
+  padding-top: 8px;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.text-pink { color: #ec4899; }
+.text-blue { color: #3b82f6; }
+
+.badge-percent {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.highlight-tile {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: 800;
-  border: 2px solid white;
-}
-
-.first .badge-rank { background: #fbbf24; }
-
-.podium-info {
   text-align: center;
-  margin-bottom: 8px;
 }
 
-.podium-info .name {
-  font-weight: 800;
-  font-size: 14px;
-  color: #1e293b;
+.highlight-val { font-size: 32px; font-weight: 800; color: #8b5cf6; }
+.highlight-label { font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 12px; }
+.highlight-footer { display: flex; width: 100%; justify-content: space-between; font-size: 11px; }
+.foot-item { display: flex; flex-direction: column; }
+
+.grade-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
 }
 
-.podium-info .score {
-  font-weight: 800;
-  font-size: 20px;
-  color: var(--primary-700);
+.grade-box {
+  text-align: center;
+  padding: 12px;
+  border-radius: 10px;
 }
 
-.step {
-  width: 100%;
-  background: white;
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+.box-A { background: #dcfce7; color: #166534; }
+.box-B { background: #dbeafe; color: #1e40af; }
+.box-C { background: #fef3c7; color: #92400e; }
+.box-D { background: #fde68a; color: #92400e; }
+.box-E { background: #fecaca; color: #991b1b; }
+.box-F { background: #f3f4f6; color: #6b7280; }
+
+.grade-letter { font-size: 18px; font-weight: 800; }
+.grade-info { font-size: 11px; margin: 4px 0; }
+.grade-percent { font-size: 10px; opacity: 0.8; }
+
+.gender-badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
 }
+.gender-badge.female { background: #fdf2f8; color: #db2777; }
+.gender-badge.male { background: #eff6ff; color: #2563eb; }
 
-.first .step { height: 120px; background: linear-gradient(to top, #fef3c7, white); }
-.second .step { height: 80px; background: linear-gradient(to top, #f1f5f9, white); }
-.third .step { height: 50px; background: linear-gradient(to top, #ffedd5, white); }
+.avg-cell { display: flex; flex-direction: column; gap: 4px; padding: 4px 0; }
+.avg-val { font-weight: 800; font-size: 14px; }
+.progress-bar-wrap { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; width: 100%; }
+.progress-fill { height: 100%; border-radius: 3px; }
 
-.trophy-gold { color: #fbbf24; margin-bottom: 8px; }
+.bg-A { background: #10b981; }
+.bg-B { background: #3b82f6; }
+.bg-C { background: #f59e0b; }
+.bg-D { background: #fbbf24; }
+.bg-E { background: #f97316; }
+.bg-F { background: #94a3b8; }
 
-/* Table Styles */
-.ranking-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+.grade-chip { padding: 4px 8px; border-radius: 4px; font-weight: 800; font-size: 11px; }
+.chip-A { background: #dcfce7; color: #15803d; }
+.chip-B { background: #dbeafe; color: #1d4ed8; }
+.chip-C { background: #fef3c7; color: #b45309; }
+.chip-D { background: #fef9c3; color: #a16207; }
+.chip-E { background: #ffedd5; color: #c2410c; }
+.chip-F { background: #f1f5f9; color: #475569; }
 
 .ranking-table th {
-  padding: 16px;
-  text-align: left;
+  padding: 12px;
   font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  background: #f8fafc;
   color: #475569;
-  border-bottom: 1px solid #f1f5f9;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .ranking-table td {
-  padding: 16px;
-  border-bottom: 1px solid #f8fafc;
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.top-row {
-  background: #f8fafc;
-}
-
-.rank-col {
-  text-align: center;
+.mini-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 12px;
+  color: white;
 }
 
 .rank-circle {
@@ -541,30 +736,30 @@ function initials(name) {
 .rank-2 { background: #f1f5f9; color: #475569; border: 2px solid #94a3b8; }
 .rank-3 { background: #ffedd5; color: #9a3412; border: 2px solid #d97706; }
 
-.mini-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: var(--primary-color);
+.btn-view {
+  background: #3b82f6;
   color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
 }
 
-.score-col {
-  text-align: right;
-  font-weight: 800;
-  font-size: 16px;
-  color: var(--text-primary);
-}
+.btn-view:hover { background: #2563eb; }
 
 .print-only { display: none; }
 @media print {
   .no-print { display: none !important; }
   .print-only { display: block !important; }
   .ranking-view { padding: 20px; }
+}
+
+@media (max-width: 768px) {
+  .grade-grid { grid-template-columns: repeat(3, 1fr); }
+  .tiles-row { grid-template-columns: 1fr; }
 }
 </style>
