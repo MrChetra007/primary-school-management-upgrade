@@ -1,100 +1,14 @@
 <script setup>
-import { RouterView, RouterLink, useRoute } from 'vue-router'
-import { 
-  HomeIcon, 
-  CalendarIcon, 
-  DocumentChartBarIcon, 
-  HeartIcon, 
-  ScaleIcon, 
-  BeakerIcon, 
-  FaceFrownIcon,
-  MagnifyingGlassIcon
-} from '@heroicons/vue/24/outline'
-
-const route = useRoute()
-const studentId = route.params.id
-
-const navItems = [
-  { path: 'overview', label: 'ទិដ្ឋភាពទូទៅ', icon: HomeIcon },
-  { path: 'attendance', label: 'វត្តមាន', icon: CalendarIcon },
-  { path: 'scores', label: 'ពិន្ទុសិក្សា', icon: DocumentChartBarIcon },
-  { path: 'health', label: 'សុខភាព', icon: HeartIcon },
-  { path: 'growth', label: 'កំណើនកាយ', icon: ScaleIcon },
-  { path: 'vaccinations', label: 'វ៉ាក់សាំង', icon: BeakerIcon },
-  { path: 'sick-days', label: 'ប្រវត្តិឈឺ', icon: FaceFrownIcon },
-]
+import { RouterView } from 'vue-router'
 </script>
 
 <template>
   <div class="parent-layout">
-    <!-- Header -->
-    <header class="parent-header">
-      <div class="header-container">
-        <RouterLink to="/parent" class="parent-brand">
-          <div class="parent-logo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="20" height="20">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-              <path d="M2 17l10 5 10-5"/>
-              <path d="M2 12l10 5 10-5"/>
-            </svg>
-          </div>
-          <div class="brand-text">
-            <span class="parent-brand-name">ប្រព័ន្ធគ្រប់គ្រងសាលារៀន</span>
-            <span class="parent-brand-sub">វិបផតថលមាតាបិតា</span>
-          </div>
-        </RouterLink>
-
-        <div class="header-actions">
-          <template v-if="studentId">
-            <RouterLink to="/parent" class="btn btn-secondary btn-sm">
-              <MagnifyingGlassIcon class="w-4 h-4" />
-              <span>ស្វែងរកថ្មី</span>
-            </RouterLink>
-          </template>
-          <div class="badge badge-blue">មាតាបិតា</div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Navigation Tabs -->
-    <nav v-if="studentId" class="parent-nav">
-      <div class="nav-container">
-        <div class="nav-scroll-wrapper">
-          <RouterLink 
-            v-for="item in navItems" 
-            :key="item.path"
-            :to="`/parent/student/${studentId}/${item.path}`"
-            class="nav-tab"
-            :class="{ active: route.path.includes(item.path) }"
-          >
-            <component :is="item.icon" class="nav-icon" />
-            <span>{{ item.label }}</span>
-          </RouterLink>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Content Area -->
     <main class="parent-main">
       <div class="content-container">
-        <RouterView v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </RouterView>
+        <RouterView />
       </div>
     </main>
-
-    <!-- Footer -->
-    <footer class="parent-footer">
-      <div class="footer-container">
-        <p>© {{ new Date().getFullYear() }} រក្សាសិទ្ធិគ្រប់យ៉ាងដោយសាលារៀន</p>
-        <div class="footer-links">
-          <span>ជំនួយ</span>
-          <span>ឯកជនភាព</span>
-        </div>
-      </div>
-    </footer>
   </div>
 </template>
 

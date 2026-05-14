@@ -1,0 +1,478 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { supabase } from '@/lib/supabase'
+import { useVoiceRecorder } from '@/composables/useVoiceRecorder'
+
+const route = useRoute()
+const reportLinkId = route.params.report_link_id
+const studentId = route.params.student_id
+
+const loading = ref(true)
+const link = ref(null)
+const student = ref(null)
+const scores = ref([])
+const attendances = ref([])
+const message = ref(null)
+const parentText = ref('')
+const saving = ref(false)
+const saved = ref(false)
+const toast = ref(null)
+
+const { isRecording, audioUrl, error: voiceError, startRecording, stopRecording, uploadVoice } = useVoiceRecorder()
+
+const months = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
+
+onMounted(async () => {
+  const { data: linkData } = await supabase
+    .from('report_links')
+    .select('*, classes!inner(class_name)')
+    .eq('id', reportLinkId)
+    .single()
+
+  if (!linkData) {
+    loading.value = false
+    return
+  }
+
+  link.value = linkData
+
+  const { data: stuData } = await supabase
+    .from('students')
+    .select('*')
+    .eq('id', studentId)
+    .single()
+
+  student.value = stuData
+
+  const scoreQuery = supabase
+    .from('scores')
+    .select('*, subjects(subject_name)')
+    .eq('student_id', studentId)
+    .eq('academic_year_id', linkData.academic_year_id)
+    .eq('score_type', linkData.score_type)
+
+  if (linkData.score_type === 'monthly') {
+    scoreQuery.eq('month', linkData.month)
+  }
+
+  const { data: scoreData } = await scoreQuery
+  scores.value = scoreData || []
+
+  const now = new Date()
+  const year = now.getFullYear()
+  let month = linkData.month || now.getMonth() + 1
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`
+  const endMonth = month === 12 ? 1 : month + 1
+  const endYear = month === 12 ? year + 1 : year
+  const endDate = `${endYear}-${String(endMonth).padStart(2, '0')}-01`
+
+  const { data: attData } = await supabase
+    .from('attendances')
+    .select('*')
+    .eq('student_id', studentId)
+    .gte('date', startDate)
+    .lt('date', endDate)
+
+  attendances.value = attData || []
+
+  const { data: msgData } = await supabase
+    .from('report_messages')
+    .select('*')
+    .eq('report_link_id', reportLinkId)
+    .eq('student_id', studentId)
+    .maybeSingle()
+
+  message.value = msgData || null
+  if (message.value?.parent_text) {
+    parentText.value = message.value.parent_text
+  }
+
+  loading.value = false
+})
+
+const average = computed(() => {
+  const valid = scores.value.filter(s => s.score !== null && s.score !== undefined)
+  if (valid.length === 0) return 0
+  const sum = valid.reduce((acc, s) => acc + Number(s.score), 0)
+  return (sum / valid.length).toFixed(2)
+})
+
+const attendanceStats = computed(() => {
+  const total = attendances.value.length
+  const present = attendances.value.filter(a => a.status === 'present').length
+  const absent = attendances.value.filter(a => a.status === 'absent').length
+  const late = attendances.value.filter(a => a.status === 'late').length
+  const permission = attendances.value.filter(a => a.status === 'permission').length
+  const rate = total > 0 ? Math.round((present / total) * 100) : 0
+  return { total, present, absent, late, permission, rate }
+})
+
+function contextLabel() {
+  if (!link.value) return ''
+  if (link.value.score_type === 'monthly') {
+    return `ប្រចាំខែ${months[link.value.month - 1] || ''}`
+  }
+  return `ឆមាសទី${link.value.semester || 1}`
+}
+
+function getGrade(score) {
+  if (score >= 9) return 'A'
+  if (score >= 8) return 'B'
+  if (score >= 7) return 'C'
+  if (score >= 6) return 'D'
+  if (score >= 5) return 'E'
+  return 'F'
+}
+
+function showToast(msg, type = 'success') {
+  toast.value = { msg, type }
+  setTimeout(() => { toast.value = null }, 3000)
+}
+
+async function submitParentReply() {
+  if (!parentText.value.trim() && !audioUrl.value) return
+  saving.value = true
+  saved.value = false
+
+  let parentVoiceUrl = message.value?.parent_voice_url || null
+  if (audioUrl.value) {
+    parentVoiceUrl = await uploadVoice(reportLinkId, studentId, 'parent')
+  }
+
+  const { error: upsertError } = await supabase
+    .from('report_messages')
+    .upsert({
+      report_link_id: reportLinkId,
+      student_id: studentId,
+      school_id: link.value.school_id,
+      parent_text: parentText.value.trim(),
+      parent_voice_url: parentVoiceUrl
+    }, { onConflict: 'report_link_id,student_id' })
+
+  saving.value = false
+
+  if (upsertError) {
+    showToast('បរាជ័យក្នុងការផ្ញើសារ', 'error')
+    return
+  }
+
+  saved.value = true
+  showToast('បានផ្ញើសារដោយជោគជ័យ', 'success')
+}
+</script>
+
+<template>
+  <div class="report-card-page">
+    <div v-if="loading" style="text-align: center; padding: 80px 20px;">
+      <div class="spinner"></div>
+      <p style="margin-top: 12px; color: var(--text-secondary);">កំពុងផ្ទុក...</p>
+    </div>
+
+    <div v-else-if="!link || !student" style="text-align: center; padding: 80px 20px;">
+      <p style="color: var(--danger-color); font-weight: 700;">ព័ត៌មានមិនត្រឹមត្រូវ</p>
+    </div>
+
+    <template v-else>
+      <div class="toast-container">
+        <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
+          {{ toast.msg }}
+        </div>
+      </div>
+
+      <!-- Student Header -->
+      <div class="card student-header">
+        <div class="card-body" style="display: flex; align-items: center; gap: 16px;">
+          <div class="student-avatar">{{ (student.full_name || '')[0] }}</div>
+          <div>
+            <h2 style="font-size: 20px; font-weight: 800; margin: 0;">{{ student.full_name }}</h2>
+            <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0;">
+              ថ្នាក់ {{ link.classes?.class_name }} · {{ contextLabel() }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scores -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">ពិន្ទុសិក្សា</h3>
+          <span class="badge badge-blue">មធ្យមភាគ {{ average }}</span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <table v-if="scores.length > 0" class="data-table">
+            <thead>
+              <tr>
+                <th>មុខវិជ្ជា</th>
+                <th style="text-align: center;">ពិន្ទុ</th>
+                <th style="text-align: center;">កម្រិត</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="s in scores" :key="s.id">
+                <td>{{ s.subjects?.subject_name }}</td>
+                <td style="text-align: center; font-weight: 700;">{{ s.score ?? '-' }}</td>
+                <td style="text-align: center;">
+                  <span class="grade-chip" :class="'chip-' + getGrade(s.score)">{{ getGrade(s.score) }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-else style="padding: 24px; text-align: center; color: var(--text-secondary);">
+            គ្មានទិន្នន័យពិន្ទុ
+          </div>
+        </div>
+      </div>
+
+      <!-- Attendance -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">វត្តមាន</h3>
+        </div>
+        <div class="card-body">
+          <div class="att-stats">
+            <div class="att-stat">
+              <span class="att-num">{{ attendanceStats.present }}</span>
+              <span class="att-label">វត្តមាន</span>
+            </div>
+            <div class="att-stat">
+              <span class="att-num text-orange">{{ attendanceStats.late }}</span>
+              <span class="att-label">យឺត</span>
+            </div>
+            <div class="att-stat">
+              <span class="att-num text-red">{{ attendanceStats.absent }}</span>
+              <span class="att-label">អវត្តមាន</span>
+            </div>
+            <div class="att-stat">
+              <span class="att-num text-blue">{{ attendanceStats.permission }}</span>
+              <span class="att-label">សុំច្បាប់</span>
+            </div>
+          </div>
+          <div style="margin-top: 12px;">
+            <div class="att-rate-bar">
+              <div class="att-rate-fill" :style="{ width: attendanceStats.rate + '%' }"></div>
+            </div>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+              អត្រាវត្តមាន {{ attendanceStats.rate }}% ({{ attendanceStats.total }} ថ្ងៃ)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teacher Message -->
+      <div class="card" v-if="message?.teacher_text || message?.teacher_voice_url">
+        <div class="card-header">
+          <h3 class="card-title">សារពីគ្រូ</h3>
+        </div>
+        <div class="card-body">
+          <p v-if="message.teacher_text" style="white-space: pre-wrap; line-height: 1.6;">{{ message.teacher_text }}</p>
+          <audio v-if="message.teacher_voice_url" :src="message.teacher_voice_url" controls style="width: 100%; margin-top: 8px;"></audio>
+        </div>
+      </div>
+
+      <!-- Parent Reply -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">ការឆ្លើយតបរបស់អ្នក</h3>
+        </div>
+        <div class="card-body">
+          <div v-if="message?.parent_text || message?.parent_voice_url" style="margin-bottom: 16px; padding: 12px; background: var(--gray-50); border-radius: 8px;">
+            <p v-if="message.parent_text" style="white-space: pre-wrap; line-height: 1.6; margin-bottom: 8px;">{{ message.parent_text }}</p>
+            <audio v-if="message.parent_voice_url" :src="message.parent_voice_url" controls style="width: 100%;"></audio>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">សរសេរសារ</label>
+            <textarea
+              class="form-textarea"
+              v-model="parentText"
+              placeholder="សរសេរសារទៅកាន់គ្រូ..."
+              rows="3"
+            ></textarea>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+            <button
+              v-if="!isRecording"
+              class="btn btn-secondary btn-sm"
+              @click="startRecording"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <circle cx="12" cy="12" r="6"/>
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+              ថតសំឡេង
+            </button>
+            <button
+              v-else
+              class="btn btn-danger btn-sm"
+              @click="stopRecording"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <rect x="6" y="6" width="12" height="12" rx="2"/>
+              </svg>
+              ឈប់ថត
+            </button>
+          </div>
+
+          <div v-if="isRecording" style="display: flex; align-items: center; gap: 8px; color: var(--danger-color); font-weight: 700; font-size: 13px;">
+            <span class="recording-dot"></span>
+            កំពុងថត...
+          </div>
+
+          <audio v-if="audioUrl && !isRecording" :src="audioUrl" controls style="width: 100%; margin-top: 8px;"></audio>
+
+          <p v-if="voiceError" style="color: var(--danger-color); font-size: 13px; margin-top: 8px;">{{ voiceError }}</p>
+
+          <button
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 16px;"
+            :disabled="saving || (!parentText.trim() && !audioUrl)"
+            @click="submitParentReply"
+          >
+            {{ saving ? 'កំពុងផ្ញើ...' : 'ផ្ញើសារ' }}
+          </button>
+
+          <p v-if="saved" style="color: var(--success-color); font-size: 13px; margin-top: 8px; text-align: center; font-weight: 600;">
+            បានផ្ញើសារដោយជោគជ័យ
+          </p>
+        </div>
+      </div>
+    </template>
+  </div>
+</template>
+
+<style scoped>
+.report-card-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-default);
+  border-top-color: var(--primary-500);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.student-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--gray-50);
+  text-align: left;
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 14px;
+}
+
+.grade-chip {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 11px;
+}
+
+.chip-A { background: #dcfce7; color: #15803d; }
+.chip-B { background: #dbeafe; color: #1d4ed8; }
+.chip-C { background: #fef3c7; color: #b45309; }
+.chip-D { background: #fef9c3; color: #a16207; }
+.chip-E { background: #ffedd5; color: #c2410c; }
+.chip-F { background: #f1f5f9; color: #475569; }
+
+.att-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.att-stat {
+  text-align: center;
+  padding: 12px;
+  background: var(--gray-50);
+  border-radius: 10px;
+}
+
+.att-num {
+  display: block;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary-600);
+}
+
+.att-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.text-orange { color: #f59e0b; }
+.text-red { color: #ef4444; }
+.text-blue { color: #3b82f6; }
+
+.att-rate-bar {
+  height: 8px;
+  background: var(--gray-100);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.att-rate-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-500), #10b981);
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.recording-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--danger-color);
+  border-radius: 50%;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@media (max-width: 480px) {
+  .att-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>

@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useSchoolStore } from '@/stores/school'
+import { useAcademicYearStore } from '@/stores/academicYear'
 import { supabase } from '@/lib/supabase'
 import { computeMonthlyAverage, computeSemesterAverage, computeRank } from '@/utils/scoreCalculator'
 import { 
@@ -19,6 +21,8 @@ import { generateMonthlyScorePDF } from '@/utils/exportPdf'
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const schoolStore = useSchoolStore()
+const academicYearStore = useAcademicYearStore()
 const loading = ref(true)
 const classInfo = ref(null)
 const students = ref([])
@@ -246,6 +250,37 @@ async function handleExport() {
   }
 }
 
+async function generateReportLink() {
+  if (!classInfo.value || !mode.value) return
+
+  const payload = {
+    school_id: schoolStore.schoolId,
+    class_id: classInfo.value.id,
+    academic_year_id: classInfo.value.academic_year_id,
+    created_by: auth.teacherProfile.id,
+    score_type: mode.value,
+    month: mode.value === 'monthly' ? selectedMonth.value : null,
+    semester: mode.value === 'semester' ? selectedSemester.value : null
+  }
+
+  const { data, error } = await supabase
+    .from('report_links')
+    .upsert(payload, {
+      onConflict: 'class_id,academic_year_id,score_type,month,semester'
+    })
+    .select('id')
+    .single()
+
+  if (error || !data) {
+    showToast('មិនអាចបង្កើតតំណភ្ជាប់បានទេ', 'error')
+    return
+  }
+
+  const link = `${window.location.origin}/parent/report/${data.id}`
+  await navigator.clipboard.writeText(link)
+  showToast('បានចម្លងតំណភ្ជាប់!', 'success')
+}
+
 function showToast(msg, type = 'success') {
   toast.value = { msg, type }
   setTimeout(() => { toast.value = null }, 3000)
@@ -307,6 +342,17 @@ function toKhmerNum(num) {
         <div v-else style="background:var(--primary-700); color:white; padding:6px 16px; border-radius:20px; font-size:12px; font-weight:700;">
           {{ mode === 'monthly' ? 'របាយការណ៍ប្រចាំខែ' : 'របាយការណ៍ឆមាស' }}
         </div>
+        <button 
+          v-if="classInfo"
+          class="btn btn-secondary" 
+          @click="generateReportLink"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+          បង្កើតតំណភ្ជាប់របាយការណ៍
+        </button>
         <button 
           v-if="rankedList.length > 0"
           class="btn btn-secondary" 

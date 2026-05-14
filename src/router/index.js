@@ -119,69 +119,18 @@ const router = createRouter({
       ],
     },
 
-    // ── Parent (public / anon) ────────────────────────────
+    // ── Parent (public / anon — link-only) ────────────────
     {
-      path: '/parent',
-      component: () => import('@/layouts/ParentLayout.vue'),
+      path: '/parent/report/:report_link_id',
+      name: 'parent-report-dropdown',
+      component: () => import('@/views/parent/ReportDropdownView.vue'),
       meta: { public: true },
-      children: [
-        { 
-          path: '', 
-          name: 'parent-search', 
-          component: () => import('@/views/parent/SearchView.vue'),
-          meta: { public: true } 
-        },
-        { 
-          path: 'student/:id', 
-          component: () => import('@/views/parent/StudentView.vue'),
-          meta: { public: true },
-          children: [
-            { path: '', name: 'parent-student-detail', redirect: { name: 'parent-student-overview' } },
-            { 
-              path: 'overview', 
-              name: 'parent-student-overview', 
-              component: () => import('@/views/parent/StudentResultView.vue'),
-              meta: { public: true }
-            },
-            { 
-              path: 'attendance', 
-              name: 'parent-attendance', 
-              component: () => import('@/views/parent/AttendanceView.vue'),
-              meta: { public: true }
-            },
-            { 
-              path: 'scores', 
-              name: 'parent-scores', 
-              component: () => import('@/views/parent/ScoresView.vue'),
-              meta: { public: true }
-            },
-            { 
-              path: 'health', 
-              name: 'parent-health', 
-              component: () => import('@/views/parent/HealthView.vue'),
-              meta: { public: true }
-            },
-            { 
-              path: 'growth', 
-              name: 'parent-growth', 
-              component: () => import('@/views/parent/GrowthView.vue'),
-              meta: { public: true }
-            },
-            { 
-              path: 'vaccinations', 
-              name: 'parent-vaccinations', 
-              component: () => import('@/views/parent/VaccinationsView.vue'),
-              meta: { public: true }
-            },
-            { 
-              path: 'sick-days', 
-              name: 'parent-sick-days', 
-              component: () => import('@/views/parent/SickDaysView.vue'),
-              meta: { public: true }
-            },
-          ]
-        },
-      ],
+    },
+    {
+      path: '/parent/report/:report_link_id/:student_id',
+      name: 'parent-report-card',
+      component: () => import('@/views/parent/ReportCardView.vue'),
+      meta: { public: true },
     },
 
     // ── 404 ───────────────────────────────────────────────
