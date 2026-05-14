@@ -72,6 +72,9 @@ async function save() {
   
   const { id, teachers: _t, academic_years: _y, class_subjects: _cs, subjects: selectedSubjects, ...payload } = form.value
   
+  // Sanitize optional UUIDs
+  if (!payload.teacher_id) payload.teacher_id = null
+  
   try {
     // 1. Save/Update Class
     const { data: classResult, error: classError } = isEdit.value

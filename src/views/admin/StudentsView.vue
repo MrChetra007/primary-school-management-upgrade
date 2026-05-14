@@ -81,6 +81,9 @@ async function save() {
   }
   saving.value = true
   const { id, classes: _c, ...payload } = form.value
+  
+  // Sanitize optional UUIDs
+  if (!payload.class_id) payload.class_id = null
   const { error } = isEdit.value
     ? await supabase.from('students').update(payload).eq('id', id)
     : await supabase.from('students').insert({ ...payload, school_id: auth.schoolId })
