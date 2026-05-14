@@ -147,7 +147,7 @@ function calculateMonthlyRanking() {
     return {
       id: student.id,
       full_name: student.full_name,
-      gender: student.gender,
+      gender: (student.gender || '').toLowerCase(),
       average: computeMonthlyAverage(scores)
     }
   })
@@ -167,7 +167,7 @@ function calculateSemesterRanking(mScores, eScores) {
     return {
       id: student.id,
       full_name: student.full_name,
-      gender: student.gender,
+      gender: (student.gender || '').toLowerCase(),
       average: computeSemesterAverage(mAvgs, examAvg)
     }
   })

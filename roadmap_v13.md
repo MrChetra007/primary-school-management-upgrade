@@ -149,22 +149,24 @@ src/
 
 ### 👩‍🏫 Teacher Pages `/teacher`
 
-| Route                         | Page                                               |
-| ----------------------------- | -------------------------------------------------- |
-| `/teacher/dashboard`          | Class overview                                     |
-| `/teacher/students`           | Their class students list                          |
-| `/teacher/students/:id`       | Student detail                                     |
-| `/teacher/attendance`         | Mark daily student attendance                      |
-| `/teacher/attendance/monthly` | Monthly student attendance — calendar view         |
-| `/teacher/attendance/my`      | Own attendance — monthly calendar view             |
-| `/teacher/scores`             | Score management — select Monthly or Semester mode |
-| `/teacher/scores/monthly`     | Monthly score entry                                |
-| `/teacher/scores/semester`    | Semester score entry                               |
-| `/teacher/sick-days`          | Add & manage student sick days                     |
-| `/teacher/growth`             | Add & view student growth                          |
-| `/teacher/vaccinations`       | View student vaccinations                          |
-| `/teacher/holidays`           | View school holidays (read only)                   |
-| `/teacher/reports`            | Print class attendance & score reports             |
+| Route                              | Page                                                   |
+| ---------------------------------- | ------------------------------------------------------ |
+| `/teacher/dashboard`               | Class overview                                         |
+| `/teacher/students`                | Their class students list                              |
+| `/teacher/students/:id`            | Student detail                                         |
+| `/teacher/attendance`              | Mark daily student attendance                          |
+| `/teacher/attendance/monthly`      | Monthly student attendance — calendar view             |
+| `/teacher/attendance/my`           | Own attendance — monthly calendar view                 |
+| `/teacher/scores`                  | Score management — select Monthly or Semester mode     |
+| `/teacher/scores/monthly`          | Monthly score entry                                    |
+| `/teacher/scores/semester`         | Semester score entry                                   |
+| `/teacher/scores/ranking`          | Score ranking — monthly/semester ranked list + stats   |
+| `/teacher/scores/certificates`     | Certificate design — generate Top 5 award certificates |
+| `/teacher/sick-days`               | Add & manage student sick days                         |
+| `/teacher/growth`                  | Add & view student growth                              |
+| `/teacher/vaccinations`            | View student vaccinations                              |
+| `/teacher/holidays`                | View school holidays (read only)                       |
+| `/teacher/reports`                 | Print class attendance & score reports                 |
 
 ---
 
