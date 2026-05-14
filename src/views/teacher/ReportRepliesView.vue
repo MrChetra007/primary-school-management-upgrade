@@ -128,6 +128,7 @@ const mergedList = computed(() => {
     const hasReply = msg && (msg.parent_text || msg.parent_voice_url)
     return {
       ...student,
+      gender: (student.gender || '').toLowerCase(),
       message: msg || null,
       hasReply: !!hasReply
     }
