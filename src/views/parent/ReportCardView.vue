@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '@/lib/supabase'
+import { computeRank } from '@/utils/scoreCalculator'
 import { useVoiceRecorder } from '@/composables/useVoiceRecorder'
 
 const route = useRoute()
@@ -18,6 +19,7 @@ const parentText = ref('')
 const saving = ref(false)
 const saved = ref(false)
 const toast = ref(null)
+const rankedList = ref([])
 
 const { isRecording, audioUrl, error: voiceError, startRecording, stopRecording, uploadVoice } = useVoiceRecorder()
 
@@ -88,6 +90,43 @@ onMounted(async () => {
     parentText.value = message.value.parent_text
   }
 
+  // Fetch all class students for ranking
+  const { data: classStudents } = await supabase
+    .from('students')
+    .select('id, full_name, gender')
+    .eq('class_id', linkData.class_id)
+    .eq('is_graduated', false)
+
+  if (classStudents?.length) {
+    const allIds = classStudents.map(s => s.id)
+    const rankScoreQuery = supabase
+      .from('scores')
+      .select('student_id, score')
+      .in('student_id', allIds)
+      .eq('academic_year_id', linkData.academic_year_id)
+      .eq('score_type', linkData.score_type)
+
+    if (linkData.score_type === 'monthly') {
+      rankScoreQuery.eq('month', linkData.month)
+    }
+
+    const { data: allScores } = await rankScoreQuery
+
+    const list = classStudents.map(s => {
+      const ss = (allScores || []).filter(sc => sc.student_id === s.id).map(sc => ({ score: sc.score }))
+      return {
+        id: s.id,
+        full_name: s.full_name,
+        gender: s.gender,
+        average: ss.length > 0
+          ? Number((ss.reduce((a, b) => a + Number(b.score), 0) / ss.length).toFixed(2))
+          : 0
+      }
+    })
+
+    rankedList.value = computeRank(list).sort((a, b) => a.rank - b.rank)
+  }
+
   loading.value = false
 })
 
@@ -96,6 +135,23 @@ const average = computed(() => {
   if (valid.length === 0) return 0
   const sum = valid.reduce((acc, s) => acc + Number(s.score), 0)
   return (sum / valid.length).toFixed(2)
+})
+
+const studentRank = computed(() => {
+  return rankedList.value.find(r => r.id === studentId) || null
+})
+
+const classStats = computed(() => {
+  const list = rankedList.value
+  if (list.length === 0) return null
+  const avg = list.reduce((a, b) => a + b.average, 0) / list.length
+  return {
+    total: list.length,
+    classAverage: Number(avg.toFixed(2)),
+    highest: Math.max(...list.map(p => p.average)),
+    lowest: Math.min(...list.map(p => p.average)),
+    passed: list.filter(p => p.average >= 5).length
+  }
 })
 
 const attendanceStats = computed(() => {
@@ -189,6 +245,49 @@ async function submitParentReply() {
             <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0;">
               ថ្នាក់ {{ link.classes?.class_name }} · {{ contextLabel() }}
             </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ranking -->
+      <div class="card" v-if="studentRank">
+        <div class="card-header">
+          <h3 class="card-title">ចំណាត់ថ្នាក់</h3>
+        </div>
+        <div class="card-body">
+          <div class="rank-hero">
+            <div class="rank-big-circle" :class="'rank-tier-' + Math.min(studentRank.rank, 5)">
+              <span class="rank-big-num">{{ studentRank.rank }}</span>
+              <span class="rank-big-label">ក្នុងចំណោម {{ classStats?.total }}</span>
+            </div>
+            <div class="rank-hero-stats">
+              <div class="rh-stat">
+                <span class="rh-val">{{ studentRank.average }}</span>
+                <span class="rh-label">មធ្យមភាគ</span>
+              </div>
+              <div class="rh-stat">
+                <span class="rh-val">{{ classStats?.classAverage }}</span>
+                <span class="rh-label">មធ្យមភាគថ្នាក់</span>
+              </div>
+              <div class="rh-stat">
+                <span class="rh-val">{{ classStats?.highest }}</span>
+                <span class="rh-label">ខ្ពស់បំផុត</span>
+              </div>
+            </div>
+          </div>
+          <div class="rank-bars">
+            <div class="rank-bar-row">
+              <span class="rank-bar-label">សិស្សសរុប</span>
+              <span class="rank-bar-val">{{ classStats?.total }} នាក់</span>
+            </div>
+            <div class="rank-bar-row">
+              <span class="rank-bar-label">ជាប់មធ្យមភាគ</span>
+              <span class="rank-bar-val success">{{ classStats?.passed }} នាក់</span>
+            </div>
+            <div class="rank-bar-row">
+              <span class="rank-bar-label">ធ្លាក់មធ្យមភាគ</span>
+              <span class="rank-bar-val danger">{{ (classStats?.total || 0) - (classStats?.passed || 0) }} នាក់</span>
+            </div>
           </div>
         </div>
       </div>
@@ -456,6 +555,103 @@ async function submitParentReply() {
   border-radius: 4px;
   transition: width 0.3s;
 }
+
+.rank-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.rank-big-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rank-tier-1 { background: #fef3c7; border: 3px solid #fbbf24; }
+.rank-tier-2 { background: #f1f5f9; border: 3px solid #94a3b8; }
+.rank-tier-3 { background: #ffedd5; border: 3px solid #d97706; }
+.rank-tier-4 { background: #e0f2fe; border: 3px solid #38bdf8; }
+.rank-tier-5 { background: #fce7f3; border: 3px solid #f472b6; }
+
+.rank-big-num {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.rank-tier-1 .rank-big-num { color: #b45309; }
+.rank-tier-2 .rank-big-num { color: #475569; }
+.rank-tier-3 .rank-big-num { color: #9a3412; }
+.rank-tier-4 .rank-big-num { color: #0369a1; }
+.rank-tier-5 .rank-big-num { color: #be185d; }
+
+.rank-big-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.rank-hero-stats {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+}
+
+.rh-stat {
+  text-align: center;
+  flex: 1;
+  padding: 8px;
+  background: var(--gray-50);
+  border-radius: 10px;
+}
+
+.rh-val {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--primary-600);
+}
+
+.rh-label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.rank-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rank-bar-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--gray-50);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.rank-bar-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.rank-bar-val {
+  font-weight: 700;
+}
+
+.rank-bar-val.success { color: var(--color-success); }
+.rank-bar-val.danger { color: var(--color-danger); }
 
 .recording-dot {
   width: 8px;
