@@ -66,6 +66,7 @@ const router = createRouter({
         { path: 'classes',         name: 'admin-classes',         component: () => import('@/views/admin/ClassesView.vue') },
         { path: 'teachers',        name: 'admin-teachers',        component: () => import('@/views/admin/TeachersView.vue') },
         { path: 'students',        name: 'admin-students',        component: () => import('@/views/admin/StudentsView.vue') },
+        { path: 'students/age',    name: 'admin-student-age',     component: () => import('@/views/admin/StudentAgeView.vue') },
         { path: 'students/:id',    name: 'admin-student-detail',  component: () => import('@/views/admin/StudentDetailView.vue') },
         { path: 'attendance/students', name: 'admin-attendance-students', component: () => import('@/views/admin/AttendanceStudentsView.vue') },
         { path: 'attendance/teachers', name: 'admin-attendance-teachers', component: () => import('@/views/admin/AttendanceTeachersView.vue') },
