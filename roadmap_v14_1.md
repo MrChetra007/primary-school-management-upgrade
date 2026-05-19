@@ -80,6 +80,7 @@ src/
 │   ├── admin/
 │   │   ├── AcademicYearView.vue   # Standalone — no layout (Layer 1)
 │   │   ├── DashboardView.vue      # Uses AdminLayout (Layer 2)
+│   │   ├── StudentAgeView.vue     # Student age report + distribution
 │   │   └── ...                    # All other admin views use AdminLayout
 │   ├── teacher/
 │   ├── librarian/
@@ -153,9 +154,10 @@ src/
 | `/admin/teachers`            | Teacher profile management                                               |
 | `/admin/students`            | All students CRUD — scoped to selected year                              |
 | `/admin/students/:id`        | Student detail + health + growth + vaccinations                          |
+| `/admin/students/age`        | Student age report — filter by class/gender/age range, distribution grid |
 | `/admin/attendance/students` | Student attendance (view all classes, filter by class/date)              |
 | `/admin/attendance/teachers` | Teacher attendance (view & manage all)                                   |
-| `/admin/scores`              | Scores — filter by class + score type + month                            |
+| `/admin/scores`              | Scores — filter by class + score type + month, with stats summary tiles  |
 | `/admin/health`              | Student health records overview                                          |
 | `/admin/sick-days`           | Sick days overview                                                       |
 | `/admin/holidays`            | School holidays CRUD — scoped to selected year                           |
