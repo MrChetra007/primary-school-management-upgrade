@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { computeMonthlyAverage, computeSemesterAverage, computeRank } from '@/utils/scoreCalculator'
 import { generateMonthlyScorePDF, generateSemesterScorePDF } from '@/utils/exportPdf'
-import { BuildingOfficeIcon, DocumentIcon } from '@heroicons/vue/24/outline'
+import { BuildingOfficeIcon, DocumentIcon, UserGroupIcon, StarIcon } from '@heroicons/vue/24/outline'
 
 const yearStore = useAcademicYearStore()
 
@@ -23,6 +23,32 @@ const selectedSemester = ref(1)
 // Scores Data
 const rawScores = ref([])
 const scoreMatrix = ref([])
+
+const rankedList = ref([])
+
+const stats = ref({
+  total: 0,
+  female: 0,
+  male: 0,
+  passed: 0,
+  femalePassed: 0,
+  malePassed: 0,
+  failed: 0,
+  femaleFailed: 0,
+  maleFailed: 0,
+  classAverage: 0,
+  highestAverage: 0,
+  lowestAverage: 0,
+  ranges: {
+    '9.5-10': { total: 0, male: 0, female: 0, percent: 0 },
+    '8.0-9.49': { total: 0, male: 0, female: 0, percent: 0 },
+    '6.50-7.99': { total: 0, male: 0, female: 0, percent: 0 },
+    '5.00-6.49': { total: 0, male: 0, female: 0, percent: 0 },
+    'below-5': { total: 0, male: 0, female: 0, percent: 0 }
+  },
+  gradeCounts: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 },
+  gradePercents: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 }
+})
 
 const months = [
   { id: 1, name: 'មករា' }, { id: 2, name: 'កុម្ភៈ' }, { id: 3, name: 'មីនា' },
@@ -65,19 +91,21 @@ async function fetchSubjects() {
 async function fetchData() {
   if (!selectedClassId.value) return
   loading.value = true
+  rankedList.value = []
   
   await fetchSubjects()
 
   // 1. Fetch Students
   const { data: stuData } = await supabase
     .from('students')
-    .select('id, full_name')
+    .select('id, full_name, gender')
     .eq('class_id', selectedClassId.value)
     .order('full_name')
   students.value = stuData || []
 
   if (students.value.length === 0) {
     scoreMatrix.value = []
+    rankedList.value = []
     loading.value = false
     return
   }
@@ -122,6 +150,7 @@ function buildMonthlyMatrix() {
     return {
       student_id: student.id,
       full_name: student.full_name,
+      gender: (student.gender || '').toLowerCase(),
       subjects: studentScores,
       average: avg
     }
@@ -129,6 +158,8 @@ function buildMonthlyMatrix() {
 
   const ranked = computeRank(matrix)
   scoreMatrix.value = ranked.sort((a, b) => a.full_name.localeCompare(b.full_name))
+  rankedList.value = computeRank(matrix)
+  calculateStats()
 }
 
 function buildSemesterMatrix(mScores) {
@@ -151,6 +182,7 @@ function buildSemesterMatrix(mScores) {
     return {
       student_id: student.id,
       full_name: student.full_name,
+      gender: (student.gender || '').toLowerCase(),
       examSubjects: examSubMap,
       monthlyAverages: mAvgs,
       examAverage: examAvg,
@@ -160,6 +192,69 @@ function buildSemesterMatrix(mScores) {
 
   const ranked = computeRank(matrix)
   scoreMatrix.value = ranked.sort((a, b) => a.full_name.localeCompare(b.full_name))
+  rankedList.value = computeRank(matrix)
+  calculateStats()
+}
+
+function calculateStats() {
+  const list = rankedList.value
+  if (list.length === 0) return
+
+  const s = {
+    total: list.length,
+    female: list.filter(p => (p.gender || '').toLowerCase() === 'female').length,
+    male: list.filter(p => (p.gender || '').toLowerCase() === 'male').length,
+    passed: list.filter(p => p.average >= 5).length,
+    femalePassed: list.filter(p => (p.gender || '').toLowerCase() === 'female' && p.average >= 5).length,
+    malePassed: list.filter(p => (p.gender || '').toLowerCase() === 'male' && p.average >= 5).length,
+    failed: list.filter(p => p.average < 5).length,
+    femaleFailed: list.filter(p => (p.gender || '').toLowerCase() === 'female' && p.average < 5).length,
+    maleFailed: list.filter(p => (p.gender || '').toLowerCase() === 'male' && p.average < 5).length,
+    classAverage: list.reduce((a, b) => a + b.average, 0) / list.length,
+    highestAverage: Math.max(...list.map(p => p.average)),
+    lowestAverage: Math.min(...list.map(p => p.average)),
+    ranges: {
+      '9.5-10': { total: 0, male: 0, female: 0, percent: 0 },
+      '8.0-9.49': { total: 0, male: 0, female: 0, percent: 0 },
+      '6.50-7.99': { total: 0, male: 0, female: 0, percent: 0 },
+      '5.00-6.49': { total: 0, male: 0, female: 0, percent: 0 },
+      'below-5': { total: 0, male: 0, female: 0, percent: 0 }
+    },
+    gradeCounts: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 },
+    gradePercents: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 }
+  }
+
+  list.forEach(p => {
+    const avg = p.average
+    const g = getGrade(avg)
+    s.gradeCounts[g]++
+
+    if (avg >= 9.5) { s.ranges['9.5-10'].total++; if(p.gender === 'female') s.ranges['9.5-10'].female++; else s.ranges['9.5-10'].male++ }
+    else if (avg >= 8.0) { s.ranges['8.0-9.49'].total++; if(p.gender === 'female') s.ranges['8.0-9.49'].female++; else s.ranges['8.0-9.49'].male++ }
+    else if (avg >= 6.5) { s.ranges['6.50-7.99'].total++; if(p.gender === 'female') s.ranges['6.50-7.99'].female++; else s.ranges['6.50-7.99'].male++ }
+    else if (avg >= 5.0) { s.ranges['5.00-6.49'].total++; if(p.gender === 'female') s.ranges['5.00-6.49'].female++; else s.ranges['5.00-6.49'].male++ }
+    else { s.ranges['below-5'].total++; if(p.gender === 'female') s.ranges['below-5'].female++; else s.ranges['below-5'].male++ }
+  })
+
+  Object.keys(s.ranges).forEach(k => s.ranges[k].percent = Math.round((s.ranges[k].total / s.total) * 100))
+  Object.keys(s.gradeCounts).forEach(k => s.gradePercents[k] = Math.round((s.gradeCounts[k] / s.total) * 100))
+
+  stats.value = s
+}
+
+function getGrade(score) {
+  if (score >= 9.0) return 'A'
+  if (score >= 8.0) return 'B'
+  if (score >= 7.0) return 'C'
+  if (score >= 6.0) return 'D'
+  if (score >= 5.0) return 'E'
+  return 'F'
+}
+
+function toKhmerNum(num) {
+  if (num === null || num === undefined) return ''
+  const khmerNums = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩']
+  return num.toString().replace(/\d/g, d => khmerNums[d])
 }
 
 const printArea = ref(null)
@@ -247,8 +342,97 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
       <p class="empty-state-title">មិនមានពិន្ទុសម្រាប់កំឡុងពេលនេះទេ</p>
     </div>
 
-    <div v-else ref="printArea" class="card">
-      <div class="table-wrapper horizontal-scroll">
+    <div v-else ref="printArea">
+      <!-- Summary Tiles -->
+      <div class="tile-group no-print">
+        <div class="group-title">សង្ខេបសិស្ស</div>
+        <div class="tiles-row">
+          <div class="stat-tile border-purple">
+            <div class="tile-main">
+              <span class="tile-label">សិស្សសរុប</span>
+              <span class="tile-val">{{ stats.total }} នាក់</span>
+            </div>
+            <div class="tile-footer">
+              <span>ស្រី <b class="text-pink">{{ stats.female }}</b></span>
+              <span>ប្រុស <b class="text-blue">{{ stats.male }}</b></span>
+            </div>
+          </div>
+          <div class="stat-tile border-green">
+            <div class="tile-main">
+              <span class="tile-label">ជាប់មធ្យមភាគ</span>
+              <span class="tile-val">{{ stats.passed }} នាក់</span>
+            </div>
+            <div class="tile-footer">
+              <span>ស្រី <b class="text-pink">{{ stats.femalePassed }}</b></span>
+              <span>ប្រុស <b class="text-blue">{{ stats.malePassed }}</b></span>
+            </div>
+          </div>
+          <div class="stat-tile border-red">
+            <div class="tile-main">
+              <span class="tile-label">ធ្លាក់មធ្យមភាគ</span>
+              <span class="tile-val">{{ stats.failed }} នាក់</span>
+            </div>
+            <div class="tile-footer">
+              <span>ស្រី <b class="text-pink">{{ stats.femaleFailed }}</b></span>
+              <span>ប្រុស <b class="text-blue">{{ stats.maleFailed }}</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Range Distribution -->
+      <div class="tile-group no-print">
+        <div class="group-title">ការចែកចាយមធ្យមភាគ</div>
+        <div class="tiles-row range-tiles">
+          <div v-for="(range, key) in stats.ranges" :key="key" class="stat-tile" :class="'border-range-' + key.replace('.', '-')">
+            <div class="tile-main">
+              <span class="tile-label">មធ្យមភាគ {{ key }}</span>
+              <div class="flex items-center gap-2">
+                <span class="tile-val">{{ range.total }} នាក់</span>
+                <span class="badge-percent">{{ toKhmerNum(range.percent) }}%</span>
+              </div>
+            </div>
+            <div class="tile-footer">
+              <span>ស្រី <b class="text-pink">{{ range.female }}</b></span>
+              <span>ប្រុស <b class="text-blue">{{ range.male }}</b></span>
+            </div>
+          </div>
+
+          <div class="stat-tile border-purple highlight-tile">
+            <div class="highlight-val">{{ stats.classAverage.toFixed(2) }}</div>
+            <div class="highlight-label">មធ្យមភាគថ្នាក់</div>
+            <div class="highlight-footer">
+              <div class="foot-item">
+                <span>ខ្ពស់បំផុត</span>
+                <b>{{ stats.highestAverage.toFixed(2) }}</b>
+              </div>
+              <div class="foot-item">
+                <span>ទាបបំផុត</span>
+                <b>{{ stats.lowestAverage.toFixed(2) }}</b>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grade Distribution -->
+      <div class="card no-print" style="margin-bottom:24px;">
+        <div class="card-header" style="padding:12px 16px; border-bottom:1px solid #f1f5f9;">
+          <h3 style="font-size:14px; font-weight:700;">ការចែកចាយកម្រិតពិន្ទុ</h3>
+        </div>
+        <div class="card-body" style="padding:16px;">
+          <div class="grade-grid">
+            <div v-for="g in ['A', 'B', 'C', 'D', 'E', 'F']" :key="g" class="grade-box" :class="'box-' + g">
+              <div class="grade-letter">{{ g }}</div>
+              <div class="grade-info">{{ stats.gradeCounts[g] }} នាក់</div>
+              <div class="grade-percent">{{ toKhmerNum(stats.gradePercents[g]) }}%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrapper horizontal-scroll">
         <table class="matrix-table" :class="{ 'semester-mode': scoreMode === 'semester' }">
           <thead>
             <!-- Monthly Mode -->
@@ -313,6 +497,7 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
         </table>
       </div>
     </div>
+  </div>
   </div>
 </template>
 
@@ -383,6 +568,117 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
 }
 
 .text-danger { color: #ef4444; }
+
+/* Stats Tile Styles */
+.tile-group {
+  margin-bottom: 24px;
+}
+
+.group-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.tiles-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.stat-tile {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+
+.stat-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.border-purple { border-left: 4px solid #8b5cf6; }
+.border-green { border-left: 4px solid #10b981; }
+.border-red { border-left: 4px solid #ef4444; }
+
+.border-range-9-5-10 { border-left: 4px solid #059669; }
+.border-range-8-0-9-49 { border-left: 4px solid #3b82f6; }
+.border-range-6-50-7-99 { border-left: 4px solid #f59e0b; }
+.border-range-5-00-6-49 { border-left: 4px solid #f97316; }
+.border-range-below-5 { border-left: 4px solid #dc2626; }
+
+.tile-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.tile-label { font-size: 14px; font-weight: 700; color: #4b5563; }
+.tile-val { font-size: 18px; font-weight: 800; color: #1e40af; }
+
+.tile-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6b7280;
+  padding-top: 8px;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.text-pink { color: #ec4899; }
+.text-blue { color: #3b82f6; }
+
+.badge-percent {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.highlight-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.highlight-val { font-size: 32px; font-weight: 800; color: #8b5cf6; }
+.highlight-label { font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 12px; }
+.highlight-footer { display: flex; width: 100%; justify-content: space-between; font-size: 11px; }
+.foot-item { display: flex; flex-direction: column; }
+
+.grade-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.grade-box {
+  text-align: center;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.box-A { background: #dcfce7; color: #166534; }
+.box-B { background: #dbeafe; color: #1e40af; }
+.box-C { background: #fef3c7; color: #92400e; }
+.box-D { background: #fde68a; color: #92400e; }
+.box-E { background: #fecaca; color: #991b1b; }
+.box-F { background: #f3f4f6; color: #6b7280; }
+
+.grade-letter { font-size: 18px; font-weight: 800; }
+.grade-info { font-size: 11px; margin: 4px 0; }
+.grade-percent { font-size: 10px; opacity: 0.8; }
 
 /* Adjustments for Semester mode which has more columns */
 .semester-mode {
