@@ -53,7 +53,7 @@ async function handleCheckIn() {
 async function loadData() {
   loading.value = true
   const teacherId = auth.teacherProfile.id
-  
+
   // 1. Get Class Info
   const { data: classData } = await supabase
     .from('classes')
@@ -64,35 +64,49 @@ async function loadData() {
 
   if (classData) {
     classInfo.value = classData
-    
-    // 2. Student Count
-    const { count } = await supabase
-      .from('students')
-      .select('*', { count: 'exact', head: true })
-      .eq('class_id', classData.id)
-    studentsCount.value = count || 0
 
-    // 3. Attendance Today
-    const today = new Date().toISOString().split('T')[0]
-    const { data: attData } = await supabase
-      .from('attendances')
-      .select('status, student_id')
-      .eq('date', today)
+    // 2. Get Students (reuse for count + attendance)
+    const { data: studentData } = await supabase
+      .from('students')
+      .select('id')
       .eq('class_id', classData.id)
-    
-    if (attData) {
-      attendanceToday.value.total = studentsCount.value
-      attendanceToday.value.present = attData.filter(a => a.status === 'present').length
+
+    const ids = studentData?.map(s => s.id) || []
+    studentsCount.value = ids.length
+
+    // 3. Attendance Today — filter by student_id, attendances has no class_id
+    const today = new Date().toISOString().split('T')[0]
+    if (ids.length > 0) {
+      const { data: attData, error: attError } = await supabase
+        .from('attendances')
+        .select('status, student_id')
+        .eq('date', today)
+        .in('student_id', ids)
+
+      if (attError) {
+        console.error('Attendance error:', attError)
+      } else {
+        attendanceToday.value.total = ids.length
+        attendanceToday.value.present = attData?.filter(a => a.status === 'present').length ?? 0
+      }
+    } else {
+      attendanceToday.value.total = 0
+      attendanceToday.value.present = 0
     }
 
     // 4. Recent Scores
-    const { data: scoreData } = await supabase
+    const { data: scoreData, error: scoreError } = await supabase
       .from('scores')
       .select('*, students!inner(full_name, class_id), subjects(subject_name)')
       .eq('students.class_id', classData.id)
       .order('created_at', { ascending: false })
       .limit(5)
-    recentScores.value = scoreData || []
+
+    if (scoreError) {
+      console.error('Scores error:', scoreError)
+    } else {
+      recentScores.value = scoreData || []
+    }
   }
 
   loading.value = false
@@ -116,7 +130,7 @@ const attendancePercent = computed(() => {
       </div>
       <div style="display:flex; gap:10px; align-items:center;">
         <!-- Check-in Status -->
-        <div v-if="myAttendanceToday" class="badge" :class="myAttendanceToday.status === 'present' ? 'badge-green' : 'badge-yellow'" 
+        <div v-if="myAttendanceToday" class="badge" :class="myAttendanceToday.status === 'present' ? 'badge-green' : 'badge-yellow'"
              style="padding:10px 16px; flex-direction:column; align-items:flex-start; gap:2px; height:auto;">
           <div style="font-weight:700;">
             <template v-if="myAttendanceToday.status === 'present'">
@@ -133,7 +147,7 @@ const attendancePercent = computed(() => {
         </div>
 
         <!-- Check-in Button -->
-        <button v-else class="btn btn-primary" style="padding:10px 24px; font-weight:bold; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);" 
+        <button v-else class="btn btn-primary" style="padding:10px 24px; font-weight:bold; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);"
                 @click="handleCheckIn" :disabled="checkingIn">
           {{ checkingIn ? 'កំពុងបញ្ចូល...' : 'ចូលធ្វើការ (Check-in)' }}
         </button>
