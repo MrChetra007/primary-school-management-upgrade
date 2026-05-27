@@ -129,8 +129,8 @@ watch(selectedClassId, fetchData)
   <div class="age-view">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Student Age Report</h1>
-        <p class="page-subtitle">View and analyze student age distribution by class</p>
+        <h1 class="page-title">របាយការណ៍អាយុសិស្ស</h1>
+        <p class="page-subtitle">មើល និងវិភាគការបែងចែកអាយុសិស្សតាមថ្នាក់រៀន</p>
       </div>
     </div>
 
@@ -138,26 +138,26 @@ watch(selectedClassId, fetchData)
     <div class="card no-print" style="margin-bottom:20px;">
       <div class="card-body filter-grid">
         <div class="form-group">
-          <label class="form-label">Class</label>
+          <label class="form-label">ថ្នាក់រៀន</label>
           <select class="form-select" v-model="selectedClassId">
             <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.class_name }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Gender</label>
+          <label class="form-label">ភេទ</label>
           <select class="form-select" v-model="selectedGender">
-            <option value="all">All</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
+            <option value="all">ទាំងអស់</option>
+            <option value="male">ប្រុស</option>
+            <option value="female">ស្រី</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Age From</label>
-          <input type="number" class="form-input" v-model.number="ageFrom" min="0" max="20" placeholder="Min" />
+          <label class="form-label">អាយុចាប់ពី</label>
+          <input type="number" class="form-input" v-model.number="ageFrom" min="0" max="20" placeholder="ទាបបំផុត" />
         </div>
         <div class="form-group">
-          <label class="form-label">Age To</label>
-          <input type="number" class="form-input" v-model.number="ageTo" min="0" max="20" placeholder="Max" />
+          <label class="form-label">រហូតដល់អាយុ</label>
+          <input type="number" class="form-input" v-model.number="ageTo" min="0" max="20" placeholder="ខ្ពស់បំផុត" />
         </div>
       </div>
     </div>
@@ -168,46 +168,46 @@ watch(selectedClassId, fetchData)
 
     <div v-else-if="!selectedClassId" class="empty-state">
       <UserGroupIcon class="w-12 h-12 text-gray-400" />
-      <p class="empty-state-title">Please select a class to view student ages</p>
+      <p class="empty-state-title">សូមជ្រើសរើសថ្នាក់រៀនដើម្បីមើលអាយុសិស្ស</p>
     </div>
 
     <div v-else-if="allStudents.length === 0" class="empty-state">
       <AcademicCapIcon class="w-12 h-12 text-gray-400" />
-      <p class="empty-state-title">No students found in this class</p>
+      <p class="empty-state-title">មិនមានសិស្សនៅក្នុងថ្នាក់រៀននេះទេ</p>
     </div>
 
     <div v-else>
       <!-- Summary Tiles -->
       <div class="tile-group">
-        <div class="group-title">Summary</div>
+        <div class="group-title">សេចក្តីសង្ខេប</div>
         <div class="tiles-row">
           <div class="stat-tile border-purple">
             <div class="tile-main">
-              <span class="tile-label">Total Students</span>
+              <span class="tile-label">សិស្សសរុប</span>
               <span class="tile-val">{{ stats.total }}</span>
             </div>
             <div class="tile-footer">
-              <span>Female <b class="text-pink">{{ stats.female }}</b></span>
-              <span>Male <b class="text-blue">{{ stats.male }}</b></span>
+              <span>ស្រី <b class="text-pink">{{ stats.female }}</b></span>
+              <span>ប្រុស <b class="text-blue">{{ stats.male }}</b></span>
             </div>
           </div>
           <div class="stat-tile border-green">
             <div class="tile-main">
-              <span class="tile-label">Average Age</span>
-              <span class="tile-val">{{ stats.avgAge.toFixed(1) }} yrs</span>
+              <span class="tile-label">អាយុមធ្យម</span>
+              <span class="tile-val">{{ stats.avgAge.toFixed(1) }} ឆ្នាំ</span>
             </div>
             <div class="tile-footer">
-              <span>Youngest <b>{{ stats.minAge }}</b></span>
-              <span>Oldest <b>{{ stats.maxAge }}</b></span>
+              <span>ក្មេងជាងគេ <b>{{ stats.minAge }}</b></span>
+              <span>ចាស់ជាងគេ <b>{{ stats.maxAge }}</b></span>
             </div>
           </div>
           <div class="stat-tile border-blue">
             <div class="tile-main">
-              <span class="tile-label">Age Range</span>
-              <span class="tile-val">{{ stats.minAge }} – {{ stats.maxAge }} yrs</span>
+              <span class="tile-label">ចន្លោះអាយុ</span>
+              <span class="tile-val">{{ stats.minAge }} – {{ stats.maxAge }} ឆ្នាំ</span>
             </div>
             <div class="tile-footer">
-              <span>Total filtered <b>{{ filtered.length }}</b></span>
+              <span>ចំនួនចម្រោះសរុប <b>{{ filtered.length }}</b></span>
             </div>
           </div>
         </div>
@@ -216,11 +216,11 @@ watch(selectedClassId, fetchData)
       <!-- Age Distribution -->
       <div class="card no-print" style="margin-bottom:24px;">
         <div class="card-header" style="padding:12px 16px; border-bottom:1px solid #f1f5f9;">
-          <h3 style="font-size:14px; font-weight:700;">Age Distribution</h3>
+          <h3 style="font-size:14px; font-weight:700;">ការបែងចែកអាយុ</h3>
         </div>
         <div class="card-body" style="padding:16px;">
           <div v-if="Object.keys(stats.ageDistribution).length === 0" style="text-align:center; color:#94a3b8; padding:24px;">
-            No age data available
+            មិនមានទិន្នន័យអាយុទេ
           </div>
           <div v-else class="age-dist-grid">
             <div
@@ -231,7 +231,7 @@ watch(selectedClassId, fetchData)
             >
               <div class="age-value">{{ age }}</div>
               <div class="age-count">{{ stats.ageDistribution[age] || 0 }}</div>
-              <div class="age-label">yrs</div>
+              <div class="age-label">ឆ្នាំ</div>
             </div>
           </div>
         </div>
@@ -244,11 +244,11 @@ watch(selectedClassId, fetchData)
             <thead>
               <tr>
                 <th style="width:40px;">#</th>
-                <th style="text-align:left;">Name</th>
-                <th style="text-align:center; width:100px;">Gender</th>
-                <th style="text-align:center; width:140px;">Date of Birth</th>
-                <th style="text-align:center; width:80px;">Age</th>
-                <th style="text-align:center; width:120px;">Class</th>
+                <th style="text-align:left;">ឈ្មោះ</th>
+                <th style="text-align:center; width:100px;">ភេទ</th>
+                <th style="text-align:center; width:140px;">ថ្ងៃខែឆ្នាំកំណើត</th>
+                <th style="text-align:center; width:80px;">អាយុ</th>
+                <th style="text-align:center; width:120px;">ថ្នាក់</th>
               </tr>
             </thead>
             <tbody>
@@ -264,7 +264,7 @@ watch(selectedClassId, fetchData)
                 </td>
                 <td style="text-align:center;">
                   <span class="badge" :class="(s.gender || '').toLowerCase() === 'female' ? 'badge-red' : 'badge-blue'">
-                    {{ (s.gender || '').toLowerCase() === 'female' ? 'Female' : 'Male' }}
+                    {{ (s.gender || '').toLowerCase() === 'female' ? 'ស្រី' : 'ប្រុស' }}
                   </span>
                 </td>
                 <td style="text-align:center; font-size:13px;">{{ formatDate(s.dob) }}</td>
@@ -279,7 +279,7 @@ watch(selectedClassId, fetchData)
           </table>
         </div>
         <div v-if="filtered.length === 0" class="card-body" style="text-align:center; color:#94a3b8; padding:24px;">
-          No students match the current filters
+          មិនមានសិស្សត្រូវនឹងលក្ខខណ្ឌចម្រោះឡើយ
         </div>
       </div>
     </div>

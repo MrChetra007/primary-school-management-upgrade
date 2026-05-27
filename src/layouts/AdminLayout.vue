@@ -44,7 +44,7 @@ const navGroups = [
       { to: "/admin/teachers", icon: "users", label: "គ្រូបង្រៀន" }, // Teachers
       { to: "/admin/classes", icon: "layers", label: "ថ្នាក់រៀន" }, // Classes
       { to: "/admin/students", icon: "user", label: "សិស្ស" }, // Students
-      { to: "/admin/students/age", icon: "calendar", label: "Student Age" }, // Student Age
+      { to: "/admin/students/age", icon: "calendar", label: "អាយុសិស្ស" }, // Student Age
       { to: "/admin/users", icon: "shield", label: "គណនីអ្នកប្រើប្រាស់" }, // User Accounts
     ],
   },
