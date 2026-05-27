@@ -33,7 +33,7 @@ import { CalendarIcon, TrophyIcon } from '@heroicons/vue/24/outline'
       </router-link>
 
       <!-- Student Ranking -->
-      <router-link to="/teacher/scores/ranking" class="card hover-card" style="text-decoration:none; grid-column: span 2;">
+      <!-- <router-link to="/teacher/scores/ranking" class="card hover-card" style="text-decoration:none; grid-column: span 2;">
         <div class="card-body" style="text-align:center; padding:32px 24px; display:flex; align-items:center; justify-content:center; gap:24px;">
           <div style="background:var(--primary-color); padding:12px; border-radius:12px; color:white;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32">
@@ -46,7 +46,7 @@ import { CalendarIcon, TrophyIcon } from '@heroicons/vue/24/outline'
           </div>
           <div class="btn btn-secondary" style="margin-left:24px;">មើលចំណាត់ថ្នាក់</div>
         </div>
-      </router-link>
+      </router-link> -->
     </div>
   </div>
 </template>

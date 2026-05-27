@@ -403,6 +403,7 @@ create table scores (
   score_type       score_type not null,
   score            numeric,
   month            int2,                   -- 1-12, null for semester
+  semester         int2,                   -- 1 or 2, null for monthly
   created_at       timestamptz default now()
 );
 

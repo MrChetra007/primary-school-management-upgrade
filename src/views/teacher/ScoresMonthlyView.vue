@@ -203,12 +203,6 @@ watch(selectedMonth, fetchScores)
           </svg>
           មើលចំណាត់ថ្នាក់
         </button>
-        <button class="btn btn-secondary" @click="handleExport" :disabled="loading || scoreMatrix.length === 0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-          </svg>
-          ទាញយក PDF
-        </button>
         <button class="btn btn-primary" @click="saveAll" :disabled="saving || loading">
           <ArrowDownTrayIcon class="w-4 h-4" /> 
           {{ saving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកទាំងអស់' }}
