@@ -205,7 +205,7 @@ const attendancePercent = computed(() => {
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns: 2fr 1fr; gap:20px;">
+      <div style="display:flex;flex-direction:column; gap:20px;">
         <!-- Recent Scores -->
         <div class="card">
           <div class="card-header">
