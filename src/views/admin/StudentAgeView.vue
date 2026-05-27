@@ -106,9 +106,10 @@ const stats = computed(() => {
   const male = list.filter(s => (s.gender || '').toLowerCase() === 'male').length
 
   const dist = {}
+  for (let i = 5; i <= 15; i++) dist[String(i)] = 0
   ages.forEach(a => {
-    const key = a >= 12 ? '12+' : String(a)
-    dist[key] = (dist[key] || 0) + 1
+    const key = a >= 5 && a <= 15 ? String(a) : 'other'
+    if (dist[key] !== undefined) dist[key]++
   })
 
   return {
@@ -224,7 +225,7 @@ watch(selectedClassId, fetchData)
           </div>
           <div v-else class="age-dist-grid">
             <div
-              v-for="age in ['5','6','7','8','9','10','11','12+']"
+              v-for="age in ['5','6','7','8','9','10','11','12','13','14','15']"
               :key="age"
               class="age-box"
               :class="{ 'box-active': stats.ageDistribution[age], 'box-empty': !stats.ageDistribution[age] }"
@@ -256,7 +257,7 @@ watch(selectedClassId, fetchData)
                 <td style="text-align:center;">{{ idx + 1 }}</td>
                 <td>
                   <div style="display:flex; align-items:center; gap:10px;">
-                    <div class="mini-avatar" :style="{ background: (s.gender || '').toLowerCase() === 'female' ? '#ec4899' : 'var(--primary-color)' }">
+                    <div class="mini-avatar" :style="{ background: (s.gender || '').toLowerCase() === 'female' ? '#ec4899' : '#3b82f6' }">
                       {{ initials(s.full_name) }}
                     </div>
                     <span style="font-weight:600;">{{ s.full_name }}</span>
@@ -359,7 +360,7 @@ watch(selectedClassId, fetchData)
 
 .age-dist-grid {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(11, 1fr);
   gap: 12px;
 }
 
@@ -455,10 +456,10 @@ watch(selectedClassId, fetchData)
   color: #b45309;
 }
 
-@media (max-width: 768px) {
-  .age-dist-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  @media (max-width: 768px) {
+    .age-dist-grid {
+      grid-template-columns: repeat(6, 1fr);
+    }
   .tiles-row {
     grid-template-columns: 1fr;
   }
