@@ -23,6 +23,8 @@ const borrowForm = ref({ book_id: '', student_id: '', borrow_date: '', due_date:
 const studentSearch = ref('')
 const students = ref([])
 const studentResults = ref([])
+const bookSearch = ref('')
+const bookResults = ref([])
 
 const emptyBook = () => ({ id: null, title: '', author: '', isbn: '', category: '', total_copies: 1, available_copies: 1 })
 const bookForm = ref(emptyBook())
@@ -52,6 +54,42 @@ async function loadStudents() {
 function searchStudents() {
   const q = studentSearch.value.toLowerCase()
   studentResults.value = q.length > 1 ? students.value.filter(s => s.full_name.toLowerCase().includes(q)).slice(0, 8) : []
+}
+
+function searchBooks() {
+  const q = bookSearch.value.toLowerCase()
+  bookResults.value = q.length > 0 ? books.value.filter(b =>
+    b.title.toLowerCase().includes(q) ||
+    (b.author || '').toLowerCase().includes(q) ||
+    (b.isbn || '').includes(q)
+  ).slice(0, 8) : []
+}
+
+function selectBook(b) {
+  borrowForm.value.book_id = b.id
+  bookSearch.value = b.title
+  bookResults.value = []
+  showQuickCreate.value = false
+}
+
+async function createAndSelectBook() {
+  if (!bookSearch.value.trim()) return
+  saving.value = true
+  const { data, error } = await supabase.from('books').insert({
+    title: bookSearch.value.trim(),
+    author: '',
+    isbn: '',
+    category: '',
+    total_copies: 1,
+    available_copies: 1,
+    school_id: auth.schoolId
+  }).select()
+  saving.value = false
+  if (error) { showToast(error.message, 'error'); return }
+  const newBook = data[0]
+  books.value.push(newBook)
+  selectBook(newBook)
+  showToast('បានបង្កើតសៀវភៅថ្មីរួចរាល់!', 'success')
 }
 
 function selectStudent(s) {
@@ -86,6 +124,8 @@ async function doDeleteBook() {
 function openBorrow() {
   borrowForm.value = { book_id: '', student_id: '', borrow_date: new Date().toISOString().split('T')[0], due_date: '', status: 'borrowed' }
   studentSearch.value = ''
+  bookSearch.value = ''
+  bookResults.value = []
   showBorrowModal.value = true
 }
 
@@ -329,12 +369,18 @@ function getStatusLabel(status) {
         <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
           <div class="form-group">
             <label class="form-label">សៀវភៅ *</label>
-            <select class="form-select" v-model="borrowForm.book_id">
-              <option value="">— ជ្រើសរើសសៀវភៅ —</option>
-              <option v-for="b in books.filter(b => b.available_copies > 0)" :key="b.id" :value="b.id">
-                {{ b.title }} (នៅសល់ {{ b.available_copies }})
-              </option>
-            </select>
+            <input class="form-input" v-model="bookSearch" @input="searchBooks" placeholder="វាយចំណងជើង ឬអ្នកនិពន្ធដើម្បីស្វែងរក..." />
+            <div v-if="bookResults.length > 0" style="border:1px solid var(--border-default);border-radius:8px;margin-top:4px;background:white;box-shadow:var(--shadow-md);overflow:hidden;">
+              <div v-for="b in bookResults" :key="b.id" style="padding:8px 12px;cursor:pointer;font-size:13px;" @click="selectBook(b)" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                <strong>{{ b.title }}</strong> <span style="color:var(--text-muted);font-size:11px;">{{ b.author ? '- ' + b.author : '' }} (នៅសល់ {{ b.available_copies }})</span>
+              </div>
+            </div>
+            <div v-else-if="bookSearch.length > 0 && !borrowForm.book_id" style="margin-top:6px;">
+              <button class="btn btn-ghost btn-sm" @click="createAndSelectBook" :disabled="saving">
+                + បង្កើតសៀវភៅថ្មី "{{ bookSearch }}"
+              </button>
+              <p style="font-size:11px;color:var(--text-muted);margin-top:4px;">វាលផ្សេងទៀតនឹងទទេ អ្នកអាចកែប្រែក្រោយបាន</p>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">សិស្ស *</label>

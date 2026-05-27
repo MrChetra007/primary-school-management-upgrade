@@ -17,6 +17,8 @@ const search = ref('')
 
 const studentSearch = ref('')
 const studentResults = ref([])
+const bookSearch = ref('')
+const bookResults = ref([])
 
 const borrowForm = ref({ 
   book_id: '', 
@@ -41,7 +43,7 @@ async function loadBorrows() {
 }
 
 async function loadBooks() {
-  const { data } = await supabase.from('books').select('id, title, available_copies').gt('available_copies', 0)
+  const { data } = await supabase.from('books').select('id, title, author, available_copies').order('title')
   books.value = data || []
 }
 
@@ -69,6 +71,48 @@ function selectStudent(s) {
   borrowForm.value.student_id = s.id
   studentSearch.value = s.full_name
   studentResults.value = []
+}
+
+function searchBooks() {
+  const q = bookSearch.value.toLowerCase()
+  bookResults.value = q.length > 0 ? books.value.filter(b =>
+    b.title.toLowerCase().includes(q) ||
+    (b.author || '').toLowerCase().includes(q)
+  ).slice(0, 8) : []
+}
+
+function selectBook(b) {
+  borrowForm.value.book_id = b.id
+  bookSearch.value = b.title
+  bookResults.value = []
+}
+
+async function createAndSelectBook() {
+  if (!bookSearch.value.trim()) return
+  saving.value = true
+  const { data, error } = await supabase.from('books').insert({
+    title: bookSearch.value.trim(),
+    author: '',
+    isbn: '',
+    category: '',
+    total_copies: 1,
+    available_copies: 1,
+    school_id: auth.schoolId
+  }).select()
+  saving.value = false
+  if (error) { showToast(error.message, 'error'); return }
+  const newBook = data[0]
+  books.value.push(newBook)
+  selectBook(newBook)
+  showToast('បានបង្កើតសៀវភៅថ្មីរួចរាល់!', 'success')
+}
+
+function openBorrowModal() {
+  borrowForm.value = { book_id: '', student_id: '', borrow_date: new Date().toISOString().split('T')[0], due_date: '', status: 'borrowed' }
+  studentSearch.value = ''
+  bookSearch.value = ''
+  bookResults.value = []
+  showModal.value = true
 }
 
 async function issueBook() {
@@ -134,7 +178,7 @@ function showToast(msg, type = 'success') {
         <h1 class="page-title">កំណត់ត្រាខ្ចីសៀវភៅ</h1>
         <p class="page-subtitle">តាមដានសៀវភៅដែលបានចេញ និងត្រឡប់</p>
       </div>
-      <button class="btn btn-primary" @click="showModal = true">
+      <button class="btn btn-primary" @click="openBorrowModal">
         <ArrowUpTrayIcon class="w-4 h-4" /> ចេញសៀវភៅ
       </button>
     </div>
@@ -216,12 +260,18 @@ function showToast(msg, type = 'success') {
         <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
           <div class="form-group">
             <label class="form-label">ជ្រើសរើសសៀវភៅ *</label>
-            <select class="form-select" v-model="borrowForm.book_id">
-              <option value="">— ជ្រើសរើសសៀវភៅដែលនៅសល់ —</option>
-              <option v-for="book in books" :key="book.id" :value="book.id">
-                {{ book.title }} (នៅសល់ {{ book.available_copies }})
-              </option>
-            </select>
+            <input class="form-input" v-model="bookSearch" @input="searchBooks" placeholder="វាយចំណងជើង ឬអ្នកនិពន្ធ..." />
+            <div v-if="bookResults.length > 0" style="border:1px solid var(--border-default);border-radius:8px;margin-top:4px;background:white;box-shadow:var(--shadow-md);overflow:hidden;">
+              <div v-for="b in bookResults" :key="b.id" style="padding:8px 12px;cursor:pointer;font-size:13px;" @click="selectBook(b)" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                <strong>{{ b.title }}</strong> <span style="color:var(--text-muted);font-size:11px;">{{ b.author ? '- ' + b.author : '' }} (នៅសល់ {{ b.available_copies }})</span>
+              </div>
+            </div>
+            <div v-else-if="bookSearch.length > 0 && !borrowForm.book_id" style="margin-top:6px;">
+              <button class="btn btn-ghost btn-sm" @click="createAndSelectBook" :disabled="saving">
+                + បង្កើតសៀវភៅថ្មី "{{ bookSearch }}"
+              </button>
+              <p style="font-size:11px;color:var(--text-muted);margin-top:4px;">វាលផ្សេងទៀតនឹងទទេ អ្នកអាចកែប្រែក្រោយបាន</p>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">សិស្ស *</label>
