@@ -4,63 +4,58 @@ import { supabase } from '@/lib/supabase'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { computeMonthlyAverage, computeSemesterAverage, computeRank } from '@/utils/scoreCalculator'
 import { generateMonthlyScorePDF, generateSemesterScorePDF } from '@/utils/exportPdf'
-import { BuildingOfficeIcon, DocumentIcon, UserGroupIcon, StarIcon } from '@heroicons/vue/24/outline'
+import { BuildingOfficeIcon, DocumentIcon } from '@heroicons/vue/24/outline'
 
 const yearStore = useAcademicYearStore()
 
-// State
-const classes = ref([])
-const subjects = ref([])
-const students = ref([])
-const loading = ref(true)
+// ─── State ────────────────────────────────────────────────────────────────────
+const classes   = ref([])
+const subjects  = ref([])
+const students  = ref([])
+const loading   = ref(true)
+const exporting = ref(false)
 
-// Filters
-const selectedClassId = ref(null)
-const scoreMode = ref('monthly') // 'monthly' or 'semester'
-const selectedMonth = ref(new Date().getMonth() + 1)
+// ─── Filters ──────────────────────────────────────────────────────────────────
+const selectedClassId  = ref(null)
+const scoreMode        = ref('monthly')   // 'monthly' | 'semester'
+const selectedMonth    = ref(new Date().getMonth() + 1)
 const selectedSemester = ref(1)
 
-// Scores Data
-const rawScores = ref([])
+// ─── Score Data ───────────────────────────────────────────────────────────────
+const rawScores  = ref([])
 const scoreMatrix = ref([])
+const rankedList  = ref([])
 
-const rankedList = ref([])
-
+// ─── Stats ────────────────────────────────────────────────────────────────────
 const stats = ref({
-  total: 0,
-  female: 0,
-  male: 0,
-  passed: 0,
-  femalePassed: 0,
-  malePassed: 0,
-  failed: 0,
-  femaleFailed: 0,
-  maleFailed: 0,
-  classAverage: 0,
-  highestAverage: 0,
-  lowestAverage: 0,
+  total: 0, female: 0, male: 0,
+  passed: 0, femalePassed: 0, malePassed: 0,
+  failed: 0, femaleFailed: 0, maleFailed: 0,
+  classAverage: 0, highestAverage: 0, lowestAverage: 0,
   ranges: {
-    '9.5-10': { total: 0, male: 0, female: 0, percent: 0 },
-    '8.0-9.49': { total: 0, male: 0, female: 0, percent: 0 },
+    '9.5-10':    { total: 0, male: 0, female: 0, percent: 0 },
+    '8.0-9.49':  { total: 0, male: 0, female: 0, percent: 0 },
     '6.50-7.99': { total: 0, male: 0, female: 0, percent: 0 },
     '5.00-6.49': { total: 0, male: 0, female: 0, percent: 0 },
-    'below-5': { total: 0, male: 0, female: 0, percent: 0 }
+    'below-5':   { total: 0, male: 0, female: 0, percent: 0 }
   },
-  gradeCounts: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 },
+  gradeCounts:  { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 },
   gradePercents: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 }
 })
 
+// ─── Constants ────────────────────────────────────────────────────────────────
 const months = [
-  { id: 1, name: 'មករា' }, { id: 2, name: 'កុម្ភៈ' }, { id: 3, name: 'មីនា' },
-  { id: 4, name: 'មេសា' }, { id: 5, name: 'ឧសភា' }, { id: 6, name: 'មិថុនា' },
-  { id: 7, name: 'កក្កដា' }, { id: 8, name: 'សីហា' }, { id: 9, name: 'កញ្ញា' },
-  { id: 10, name: 'តុលា' }, { id: 11, name: 'វិច្ឆិកា' }, { id: 12, name: 'ធ្នូ' }
+  { id: 1,  name: 'មករា' },   { id: 2,  name: 'កុម្ភៈ' },  { id: 3,  name: 'មីនា' },
+  { id: 4,  name: 'មេសា' },   { id: 5,  name: 'ឧសភា' },   { id: 6,  name: 'មិថុនា' },
+  { id: 7,  name: 'កក្កដា' }, { id: 8,  name: 'សីហា' },   { id: 9,  name: 'កញ្ញា' },
+  { id: 10, name: 'តុលា' },   { id: 11, name: 'វិច្ឆិកា' }, { id: 12, name: 'ធ្នូ' }
 ]
 
-const semesterMonths = computed(() => {
-  return selectedSemester.value === 1 ? [1, 2, 3] : [4, 5, 6]
-})
+const semesterMonths = computed(() =>
+  selectedSemester.value === 1 ? [1, 2, 3] : [4, 5, 6]
+)
 
+// ─── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(async () => {
   loading.value = true
   await Promise.all([fetchClasses(), fetchSubjects()])
@@ -70,6 +65,7 @@ onMounted(async () => {
   loading.value = false
 })
 
+// ─── Data Fetching ────────────────────────────────────────────────────────────
 async function fetchClasses() {
   const { data } = await supabase
     .from('classes')
@@ -92,10 +88,9 @@ async function fetchData() {
   if (!selectedClassId.value) return
   loading.value = true
   rankedList.value = []
-  
+
   await fetchSubjects()
 
-  // 1. Fetch Students
   const { data: stuData } = await supabase
     .from('students')
     .select('id, full_name, gender')
@@ -105,8 +100,8 @@ async function fetchData() {
 
   if (students.value.length === 0) {
     scoreMatrix.value = []
-    rankedList.value = []
-    loading.value = false
+    rankedList.value  = []
+    loading.value     = false
     return
   }
 
@@ -122,20 +117,24 @@ async function fetchData() {
     rawScores.value = data || []
     buildMonthlyMatrix()
   } else {
-    // Semester Mode
     const [examRes, monthRes] = await Promise.all([
-      supabase.from('scores').select('*').in('student_id', studentIds).eq('semester', selectedSemester.value).eq('score_type', 'semester'),
-      supabase.from('scores').select('*').in('student_id', studentIds).in('month', semesterMonths.value).eq('score_type', 'monthly')
+      supabase.from('scores').select('*')
+        .in('student_id', studentIds)
+        .eq('semester', selectedSemester.value)
+        .eq('score_type', 'semester'),
+      supabase.from('scores').select('*')
+        .in('student_id', studentIds)
+        .in('month', semesterMonths.value)
+        .eq('score_type', 'monthly')
     ])
-    
     rawScores.value = examRes.data || []
-    const semesterMonthlyScores = monthRes.data || []
-    buildSemesterMatrix(semesterMonthlyScores)
+    buildSemesterMatrix(monthRes.data || [])
   }
 
   loading.value = false
 }
 
+// ─── Matrix Builders ──────────────────────────────────────────────────────────
 function buildMonthlyMatrix() {
   const matrix = students.value.map(student => {
     const studentScores = {}
@@ -143,22 +142,20 @@ function buildMonthlyMatrix() {
       const match = rawScores.value.find(s => s.student_id === student.id && s.subject_id === sub.id)
       studentScores[sub.id] = match?.score ?? ''
     })
-
     const scoresArray = Object.values(studentScores).filter(s => s !== '').map(s => ({ score: s }))
     const avg = computeMonthlyAverage(scoresArray)
-
     return {
       student_id: student.id,
-      full_name: student.full_name,
-      gender: (student.gender || '').toLowerCase(),
-      subjects: studentScores,
-      average: avg
+      full_name:  student.full_name,
+      gender:     (student.gender || '').toLowerCase(),
+      subjects:   studentScores,
+      average:    avg
     }
   })
 
   const ranked = computeRank(matrix)
-  scoreMatrix.value = ranked.sort((a, b) => a.full_name.localeCompare(b.full_name))
-  rankedList.value = computeRank(matrix)
+  scoreMatrix.value = ranked.slice().sort((a, b) => a.full_name.localeCompare(b.full_name))
+  rankedList.value  = ranked
   calculateStats()
 }
 
@@ -171,73 +168,80 @@ function buildSemesterMatrix(mScores) {
     })
 
     const mAvgs = semesterMonths.value.map(m => {
-      const scores = mScores.filter(s => s.student_id === student.id && s.month === m).map(s => ({ score: s.score }))
+      const scores = mScores
+        .filter(s => s.student_id === student.id && s.month === m)
+        .map(s => ({ score: s.score }))
       return computeMonthlyAverage(scores)
     })
 
     const examArray = Object.values(examSubMap).filter(s => s !== '').map(s => ({ score: s }))
-    const examAvg = computeMonthlyAverage(examArray)
-    const finalAvg = computeSemesterAverage(mAvgs, examAvg)
+    const examAvg   = computeMonthlyAverage(examArray)
+    const finalAvg  = computeSemesterAverage(mAvgs, examAvg)
 
     return {
-      student_id: student.id,
-      full_name: student.full_name,
-      gender: (student.gender || '').toLowerCase(),
-      examSubjects: examSubMap,
+      student_id:      student.id,
+      full_name:       student.full_name,
+      gender:          (student.gender || '').toLowerCase(),
+      examSubjects:    examSubMap,
       monthlyAverages: mAvgs,
-      examAverage: examAvg,
-      average: finalAvg
+      examAverage:     examAvg,
+      average:         finalAvg
     }
   })
 
   const ranked = computeRank(matrix)
-  scoreMatrix.value = ranked.sort((a, b) => a.full_name.localeCompare(b.full_name))
-  rankedList.value = computeRank(matrix)
+  scoreMatrix.value = ranked.slice().sort((a, b) => a.full_name.localeCompare(b.full_name))
+  rankedList.value  = ranked
   calculateStats()
 }
 
+// ─── Stats Calculator ─────────────────────────────────────────────────────────
 function calculateStats() {
   const list = rankedList.value
   if (list.length === 0) return
 
   const s = {
-    total: list.length,
-    female: list.filter(p => (p.gender || '').toLowerCase() === 'female').length,
-    male: list.filter(p => (p.gender || '').toLowerCase() === 'male').length,
-    passed: list.filter(p => p.average >= 5).length,
-    femalePassed: list.filter(p => (p.gender || '').toLowerCase() === 'female' && p.average >= 5).length,
-    malePassed: list.filter(p => (p.gender || '').toLowerCase() === 'male' && p.average >= 5).length,
-    failed: list.filter(p => p.average < 5).length,
-    femaleFailed: list.filter(p => (p.gender || '').toLowerCase() === 'female' && p.average < 5).length,
-    maleFailed: list.filter(p => (p.gender || '').toLowerCase() === 'male' && p.average < 5).length,
-    classAverage: list.reduce((a, b) => a + b.average, 0) / list.length,
-    highestAverage: Math.max(...list.map(p => p.average)),
-    lowestAverage: Math.min(...list.map(p => p.average)),
+    total:        list.length,
+    female:       list.filter(p => p.gender === 'female').length,
+    male:         list.filter(p => p.gender !== 'female').length,
+    passed:       list.filter(p => p.average >= 5).length,
+    femalePassed: list.filter(p => p.gender === 'female' && p.average >= 5).length,
+    malePassed:   list.filter(p => p.gender !== 'female' && p.average >= 5).length,
+    failed:       list.filter(p => p.average < 5).length,
+    femaleFailed: list.filter(p => p.gender === 'female' && p.average < 5).length,
+    maleFailed:   list.filter(p => p.gender !== 'female' && p.average < 5).length,
+    classAverage:    list.reduce((a, b) => a + b.average, 0) / list.length,
+    highestAverage:  Math.max(...list.map(p => p.average)),
+    lowestAverage:   Math.min(...list.map(p => p.average)),
     ranges: {
-      '9.5-10': { total: 0, male: 0, female: 0, percent: 0 },
-      '8.0-9.49': { total: 0, male: 0, female: 0, percent: 0 },
+      '9.5-10':    { total: 0, male: 0, female: 0, percent: 0 },
+      '8.0-9.49':  { total: 0, male: 0, female: 0, percent: 0 },
       '6.50-7.99': { total: 0, male: 0, female: 0, percent: 0 },
       '5.00-6.49': { total: 0, male: 0, female: 0, percent: 0 },
-      'below-5': { total: 0, male: 0, female: 0, percent: 0 }
+      'below-5':   { total: 0, male: 0, female: 0, percent: 0 }
     },
-    gradeCounts: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 },
+    gradeCounts:  { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 },
     gradePercents: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 }
   }
 
   list.forEach(p => {
     const avg = p.average
-    const g = getGrade(avg)
-    s.gradeCounts[g]++
+    s.gradeCounts[getGrade(avg)]++
 
-    if (avg >= 9.5) { s.ranges['9.5-10'].total++; if(p.gender === 'female') s.ranges['9.5-10'].female++; else s.ranges['9.5-10'].male++ }
-    else if (avg >= 8.0) { s.ranges['8.0-9.49'].total++; if(p.gender === 'female') s.ranges['8.0-9.49'].female++; else s.ranges['8.0-9.49'].male++ }
-    else if (avg >= 6.5) { s.ranges['6.50-7.99'].total++; if(p.gender === 'female') s.ranges['6.50-7.99'].female++; else s.ranges['6.50-7.99'].male++ }
-    else if (avg >= 5.0) { s.ranges['5.00-6.49'].total++; if(p.gender === 'female') s.ranges['5.00-6.49'].female++; else s.ranges['5.00-6.49'].male++ }
-    else { s.ranges['below-5'].total++; if(p.gender === 'female') s.ranges['below-5'].female++; else s.ranges['below-5'].male++ }
+    const isFemale = p.gender === 'female'
+    if      (avg >= 9.5) { s.ranges['9.5-10'].total++;    isFemale ? s.ranges['9.5-10'].female++    : s.ranges['9.5-10'].male++ }
+    else if (avg >= 8.0) { s.ranges['8.0-9.49'].total++;  isFemale ? s.ranges['8.0-9.49'].female++  : s.ranges['8.0-9.49'].male++ }
+    else if (avg >= 6.5) { s.ranges['6.50-7.99'].total++; isFemale ? s.ranges['6.50-7.99'].female++ : s.ranges['6.50-7.99'].male++ }
+    else if (avg >= 5.0) { s.ranges['5.00-6.49'].total++; isFemale ? s.ranges['5.00-6.49'].female++ : s.ranges['5.00-6.49'].male++ }
+    else                 { s.ranges['below-5'].total++;   isFemale ? s.ranges['below-5'].female++   : s.ranges['below-5'].male++ }
   })
 
-  Object.keys(s.ranges).forEach(k => s.ranges[k].percent = Math.round((s.ranges[k].total / s.total) * 100))
-  Object.keys(s.gradeCounts).forEach(k => s.gradePercents[k] = Math.round((s.gradeCounts[k] / s.total) * 100))
+  Object.keys(s.ranges).forEach(k => {
+    s.ranges[k].percent = Math.round((s.ranges[k].total / s.total) * 100)
+  })
+  Object.keys(s.gradeCounts).forEach(k => {
+    s.gradePercents[k] = Math.round((s.gradeCounts[k] / s.total) * 100)
+  })
 
   stats.value = s
 }
@@ -253,51 +257,65 @@ function getGrade(score) {
 
 function toKhmerNum(num) {
   if (num === null || num === undefined) return ''
-  const khmerNums = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩']
-  return num.toString().replace(/\d/g, d => khmerNums[d])
+  const k = ['០','១','២','៣','៤','៥','៦','៧','៨','៩']
+  return num.toString().replace(/\d/g, d => k[d])
 }
 
-const printArea = ref(null)
+// ─── Export ───────────────────────────────────────────────────────────────────
 async function handleExport() {
-  if (!printArea.value) return
+  if (exporting.value || rankedList.value.length === 0) return
+  exporting.value = true
+
   const metadata = {
-    schoolName: 'សាលាបឋមសិក្សា',
-    className: classes.value.find(c => c.id === selectedClassId.value)?.class_name,
-    year: yearStore.selectedYearName
+    schoolName:   'សាលារបប់សិក្សា ស្ពាយជាតិ',
+    districtName: 'ស្ពាយជាតិ',
+    className:    classes.value.find(c => c.id === selectedClassId.value)?.class_name || '',
+    year:         yearStore.selectedYearName
   }
-  
+
   try {
     if (scoreMode.value === 'monthly') {
-      metadata.month = months.find(m => m.id === selectedMonth.value)?.name
-      await generateMonthlyScorePDF(printArea.value, metadata)
+      metadata.month = months.find(m => m.id === selectedMonth.value)?.name || ''
+      await generateMonthlyScorePDF(rankedList.value, metadata)
     } else {
       metadata.semester = selectedSemester.value
-      await generateSemesterScorePDF(printArea.value, metadata)
+      await generateSemesterScorePDF(rankedList.value, metadata)
     }
   } catch (e) {
-    console.error(e)
+    console.error('PDF export failed:', e)
+  } finally {
+    exporting.value = false
   }
 }
 
+// ─── Watchers ─────────────────────────────────────────────────────────────────
 watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
 </script>
 
 <template>
   <div class="scores-view">
-    <div class="page-header no-print">
+
+    <!-- ── Page Header ─────────────────────────────────────────────────────── -->
+    <div class="page-header">
       <div>
         <h1 class="page-title">របាយការណ៍ពិន្ទុ</h1>
         <p class="page-subtitle">មើល និងទាញយកទិន្នន័យលទ្ធផលសិស្ស</p>
       </div>
-      <button class="btn btn-secondary" @click="handleExport" :disabled="loading || scoreMatrix.length === 0">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+      <button
+        class="btn btn-secondary"
+        @click="handleExport"
+        :disabled="loading || exporting || rankedList.length === 0"
+      >
+        <span v-if="exporting" class="spinner" />
+        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
         </svg>
-        ទាញយក PDF
+        {{ exporting ? 'កំពុងបង្កើត...' : 'ទាញយក PDF' }}
       </button>
     </div>
 
-    <div class="card no-print" style="margin-bottom:20px;">
+    <!-- ── Filters ─────────────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:20px;">
       <div class="card-body filter-grid">
         <div class="form-group">
           <label class="form-label">ជ្រើសរើសថ្នាក់</label>
@@ -328,25 +346,31 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
       </div>
     </div>
 
+    <!-- ── Loading ─────────────────────────────────────────────────────────── -->
     <div v-if="loading" class="card card-body">
       <div class="skeleton" style="height:400px; border-radius:12px;"></div>
     </div>
 
+    <!-- ── Empty: no class ─────────────────────────────────────────────────── -->
     <div v-else-if="!selectedClassId" class="empty-state">
       <BuildingOfficeIcon class="w-12 h-12 text-gray-400" />
       <p class="empty-state-title">សូមជ្រើសរើសថ្នាក់ដើម្បីមើលពិន្ទុ</p>
     </div>
 
+    <!-- ── Empty: no scores ────────────────────────────────────────────────── -->
     <div v-else-if="scoreMatrix.length === 0" class="empty-state">
       <DocumentIcon class="w-12 h-12 text-gray-400" />
       <p class="empty-state-title">មិនមានពិន្ទុសម្រាប់កំឡុងពេលនេះទេ</p>
     </div>
 
-    <div v-else ref="printArea">
+    <!-- ── Main Content ────────────────────────────────────────────────────── -->
+    <template v-else>
+
       <!-- Summary Tiles -->
-      <div class="tile-group no-print">
+      <div class="tile-group">
         <div class="group-title">សង្ខេបសិស្ស</div>
         <div class="tiles-row">
+
           <div class="stat-tile border-purple">
             <div class="tile-main">
               <span class="tile-label">សិស្សសរុប</span>
@@ -357,6 +381,7 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
               <span>ប្រុស <b class="text-blue">{{ stats.male }}</b></span>
             </div>
           </div>
+
           <div class="stat-tile border-green">
             <div class="tile-main">
               <span class="tile-label">ជាប់មធ្យមភាគ</span>
@@ -367,6 +392,7 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
               <span>ប្រុស <b class="text-blue">{{ stats.malePassed }}</b></span>
             </div>
           </div>
+
           <div class="stat-tile border-red">
             <div class="tile-main">
               <span class="tile-label">ធ្លាក់មធ្យមភាគ</span>
@@ -377,17 +403,24 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
               <span>ប្រុស <b class="text-blue">{{ stats.maleFailed }}</b></span>
             </div>
           </div>
+
         </div>
       </div>
 
       <!-- Range Distribution -->
-      <div class="tile-group no-print">
+      <div class="tile-group">
         <div class="group-title">ការចែកចាយមធ្យមភាគ</div>
         <div class="tiles-row range-tiles">
-          <div v-for="(range, key) in stats.ranges" :key="key" class="stat-tile" :class="'border-range-' + key.replace('.', '-')">
+
+          <div
+            v-for="(range, key) in stats.ranges"
+            :key="key"
+            class="stat-tile"
+            :class="'border-range-' + key.replace(/\./g, '-')"
+          >
             <div class="tile-main">
               <span class="tile-label">មធ្យមភាគ {{ key }}</span>
-              <div class="flex items-center gap-2">
+              <div style="display:flex; align-items:center; gap:6px;">
                 <span class="tile-val">{{ range.total }} នាក់</span>
                 <span class="badge-percent">{{ toKhmerNum(range.percent) }}%</span>
               </div>
@@ -398,6 +431,7 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
             </div>
           </div>
 
+          <!-- Class average highlight tile -->
           <div class="stat-tile border-purple highlight-tile">
             <div class="highlight-val">{{ stats.classAverage.toFixed(2) }}</div>
             <div class="highlight-label">មធ្យមភាគថ្នាក់</div>
@@ -412,17 +446,23 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
       <!-- Grade Distribution -->
-      <div class="card no-print" style="margin-bottom:24px;">
+      <div class="card" style="margin-bottom:24px;">
         <div class="card-header" style="padding:12px 16px; border-bottom:1px solid #f1f5f9;">
           <h3 style="font-size:14px; font-weight:700;">ការចែកចាយកម្រិតពិន្ទុ</h3>
         </div>
         <div class="card-body" style="padding:16px;">
           <div class="grade-grid">
-            <div v-for="g in ['A', 'B', 'C', 'D', 'E', 'F']" :key="g" class="grade-box" :class="'box-' + g">
+            <div
+              v-for="g in ['A','B','C','D','E','F']"
+              :key="g"
+              class="grade-box"
+              :class="'box-' + g"
+            >
               <div class="grade-letter">{{ g }}</div>
               <div class="grade-info">{{ stats.gradeCounts[g] }} នាក់</div>
               <div class="grade-percent">{{ toKhmerNum(stats.gradePercents[g]) }}%</div>
@@ -431,77 +471,88 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
         </div>
       </div>
 
+      <!-- Score Matrix Table -->
       <div class="card">
         <div class="table-wrapper horizontal-scroll">
-        <table class="matrix-table" :class="{ 'semester-mode': scoreMode === 'semester' }">
-          <thead>
-            <!-- Monthly Mode -->
-            <template v-if="scoreMode === 'monthly'">
-              <tr>
-                <th style="width:40px;">ល.រ</th>
-                <th style="min-width:160px; text-align:left;">ឈ្មោះសិស្ស</th>
-                <th v-for="sub in subjects" :key="sub.id" class="sub-col">
-                  <div class="vertical-text">{{ sub.subject_name }}</div>
-                </th>
-                <th class="summary-col">មធ្យមភាគ</th>
-                <th class="summary-col">លំដាប់</th>
-              </tr>
-            </template>
+          <table class="matrix-table" :class="{ 'semester-mode': scoreMode === 'semester' }">
+            <thead>
 
-            <!-- Semester Mode -->
-            <template v-else>
-              <tr>
-                <th rowspan="2" style="width:40px;">ល.រ</th>
-                <th rowspan="2" style="min-width:150px; text-align:left;">ឈ្មោះសិស្ស</th>
-                <th :colspan="subjects.length">ពិន្ទុប្រឡងឆមាស</th>
-                <th rowspan="2" class="summary-col">មធ្យមភាគ<br/>ប្រឡង</th>
-                <th colspan="3">មធ្យមភាគប្រចាំខែ</th>
-                <th rowspan="2" class="summary-col highlight">មធ្យមភាគ<br/>ឆមាស</th>
-                <th rowspan="2" class="summary-col highlight">លំដាប់</th>
-              </tr>
-              <tr>
-                <th v-for="sub in subjects" :key="sub.id" class="sub-col small">
-                  <div class="vertical-text small">{{ sub.subject_name }}</div>
-                </th>
-                <th v-for="m in semesterMonths" :key="m" class="month-col">ខែ {{ m }}</th>
-              </tr>
-            </template>
-          </thead>
-          <tbody>
-            <tr v-for="(row, idx) in scoreMatrix" :key="row.student_id">
-              <td style="text-align:center;">{{ idx + 1 }}</td>
-              <td style="font-weight:700; text-align:left;">{{ row.full_name }}</td>
-              
+              <!-- Monthly headers -->
               <template v-if="scoreMode === 'monthly'">
-                <td v-for="sub in subjects" :key="sub.id">
-                  {{ row.subjects[sub.id] || '—' }}
-                </td>
+                <tr>
+                  <th style="width:40px;">ល.រ</th>
+                  <th style="min-width:160px; text-align:left;">ឈ្មោះសិស្ស</th>
+                  <th v-for="sub in subjects" :key="sub.id" class="sub-col">
+                    <div class="vertical-text">{{ sub.subject_name }}</div>
+                  </th>
+                  <th class="summary-col">មធ្យមភាគ</th>
+                  <th class="summary-col">លំដាប់</th>
+                </tr>
               </template>
 
+              <!-- Semester headers -->
               <template v-else>
-                <td v-for="sub in subjects" :key="sub.id">
-                  {{ row.examSubjects[sub.id] || '—' }}
-                </td>
-                <td class="avg-cell">{{ row.examAverage }}</td>
-                <td v-for="(avg, midx) in row.monthlyAverages" :key="midx" class="monthly-val">
-                  {{ avg > 0 ? avg : '—' }}
-                </td>
+                <tr>
+                  <th rowspan="2" style="width:40px;">ល.រ</th>
+                  <th rowspan="2" style="min-width:150px; text-align:left;">ឈ្មោះសិស្ស</th>
+                  <th :colspan="subjects.length">ពិន្ទុប្រឡងឆមាស</th>
+                  <th rowspan="2" class="summary-col">មធ្យមភាគ<br/>ប្រឡង</th>
+                  <th colspan="3">មធ្យមភាគប្រចាំខែ</th>
+                  <th rowspan="2" class="summary-col highlight">មធ្យមភាគ<br/>ឆមាស</th>
+                  <th rowspan="2" class="summary-col highlight">លំដាប់</th>
+                </tr>
+                <tr>
+                  <th v-for="sub in subjects" :key="sub.id" class="sub-col small">
+                    <div class="vertical-text small">{{ sub.subject_name }}</div>
+                  </th>
+                  <th v-for="m in semesterMonths" :key="m" class="month-col">ខែ {{ m }}</th>
+                </tr>
               </template>
 
-              <td class="avg-cell highlight" :class="{ 'text-danger': row.average < 50 }">
-                {{ row.average }}
-              </td>
-              <td class="rank-cell highlight">{{ row.rank }}</td>
-            </tr>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <tr v-for="(row, idx) in scoreMatrix" :key="row.student_id">
+                <td style="text-align:center;">{{ idx + 1 }}</td>
+                <td style="font-weight:700; text-align:left;">{{ row.full_name }}</td>
+
+                <!-- Monthly scores -->
+                <template v-if="scoreMode === 'monthly'">
+                  <td v-for="sub in subjects" :key="sub.id">
+                    {{ row.subjects[sub.id] !== '' ? row.subjects[sub.id] : '—' }}
+                  </td>
+                </template>
+
+                <!-- Semester scores -->
+                <template v-else>
+                  <td v-for="sub in subjects" :key="sub.id">
+                    {{ row.examSubjects[sub.id] !== '' ? row.examSubjects[sub.id] : '—' }}
+                  </td>
+                  <td class="avg-cell">{{ row.examAverage }}</td>
+                  <td
+                    v-for="(avg, midx) in row.monthlyAverages"
+                    :key="midx"
+                    class="monthly-val"
+                  >
+                    {{ avg > 0 ? avg : '—' }}
+                  </td>
+                </template>
+
+                <td class="avg-cell highlight" :class="{ 'text-danger': row.average < 5 }">
+                  {{ row.average }}
+                </td>
+                <td class="rank-cell highlight">{{ row.rank }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  </div>
+
+    </template>
   </div>
 </template>
 
 <style scoped>
+/* ── Layout ──────────────────────────────────────────────────────────────── */
 .scores-view {
   display: flex;
   flex-direction: column;
@@ -513,13 +564,28 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
   gap: 16px;
 }
 
+/* ── Export button spinner ───────────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Score Table ─────────────────────────────────────────────────────────── */
 .matrix-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
 }
 
-.matrix-table th, .matrix-table td {
+.matrix-table th,
+.matrix-table td {
   border: 1px solid var(--border-default);
   padding: 6px;
   text-align: center;
@@ -569,7 +635,7 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
 
 .text-danger { color: #ef4444; }
 
-/* Stats Tile Styles */
+/* ── Stat Tiles ──────────────────────────────────────────────────────────── */
 .tile-group {
   margin-bottom: 24px;
 }
@@ -585,7 +651,7 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
 
 .tiles-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
 }
 
@@ -604,14 +670,14 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
 }
 
 .border-purple { border-left: 4px solid #8b5cf6; }
-.border-green { border-left: 4px solid #10b981; }
-.border-red { border-left: 4px solid #ef4444; }
+.border-green  { border-left: 4px solid #10b981; }
+.border-red    { border-left: 4px solid #ef4444; }
 
-.border-range-9-5-10 { border-left: 4px solid #059669; }
-.border-range-8-0-9-49 { border-left: 4px solid #3b82f6; }
+.border-range-9-5-10    { border-left: 4px solid #059669; }
+.border-range-8-0-9-49  { border-left: 4px solid #3b82f6; }
 .border-range-6-50-7-99 { border-left: 4px solid #f59e0b; }
 .border-range-5-00-6-49 { border-left: 4px solid #f97316; }
-.border-range-below-5 { border-left: 4px solid #dc2626; }
+.border-range-below-5   { border-left: 4px solid #dc2626; }
 
 .tile-main {
   display: flex;
@@ -621,7 +687,7 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
 }
 
 .tile-label { font-size: 14px; font-weight: 700; color: #4b5563; }
-.tile-val { font-size: 18px; font-weight: 800; color: #1e40af; }
+.tile-val   { font-size: 18px; font-weight: 800; color: #1e40af; }
 
 .tile-footer {
   display: flex;
@@ -644,6 +710,7 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
   font-weight: 800;
 }
 
+/* ── Class Average Highlight Tile ────────────────────────────────────────── */
 .highlight-tile {
   display: flex;
   flex-direction: column;
@@ -652,11 +719,12 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
   text-align: center;
 }
 
-.highlight-val { font-size: 32px; font-weight: 800; color: #8b5cf6; }
-.highlight-label { font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 12px; }
+.highlight-val    { font-size: 32px; font-weight: 800; color: #8b5cf6; }
+.highlight-label  { font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 12px; }
 .highlight-footer { display: flex; width: 100%; justify-content: space-between; font-size: 11px; }
-.foot-item { display: flex; flex-direction: column; }
+.foot-item        { display: flex; flex-direction: column; }
 
+/* ── Grade Distribution ──────────────────────────────────────────────────── */
 .grade-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -676,18 +744,12 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
 .box-E { background: #fecaca; color: #991b1b; }
 .box-F { background: #f3f4f6; color: #6b7280; }
 
-.grade-letter { font-size: 18px; font-weight: 800; }
-.grade-info { font-size: 11px; margin: 4px 0; }
+.grade-letter  { font-size: 18px; font-weight: 800; }
+.grade-info    { font-size: 11px; margin: 4px 0; }
 .grade-percent { font-size: 10px; opacity: 0.8; }
 
-/* Adjustments for Semester mode which has more columns */
-.semester-mode {
-  font-size: 11px;
-}
-.semester-mode .sub-col {
-  height: 70px;
-}
-.semester-mode .vertical-text {
-  font-size: 10px;
-}
+/* ── Semester table adjustments ──────────────────────────────────────────── */
+.semester-mode { font-size: 11px; }
+.semester-mode .sub-col { height: 70px; }
+.semester-mode .vertical-text { font-size: 10px; }
 </style>
