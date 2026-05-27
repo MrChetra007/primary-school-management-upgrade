@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import EditorCanvas from '@/components/honorBoard/EditorCanvas.vue'
 import TemplateGallery from '@/components/honorBoard/TemplateGallery.vue'
@@ -18,7 +18,7 @@ const monthName  = ref(route.query.monthName || '')
 const semester   = ref(route.query.semester || '')
 
 // ─── Template selection ────────────────────────────────────────────────────
-const selectedTemplateIndex = ref(1)   // 1-based: template1.jpg, template2.jpg …
+const selectedTemplateIndex = ref(1)
 const MAX_MONTHLY_TEMPLATES  = 3
 const MAX_SEMESTER_TEMPLATES = 2
 
@@ -36,13 +36,12 @@ function templateSrc(index) {
 const activeTemplateSrc = computed(() => templateSrc(selectedTemplateIndex.value))
 
 // ─── Text layers ───────────────────────────────────────────────────────────
-// Default positions: rank1 top-center, rank2/3 mid row, rank4/5 bottom row
 const DEFAULT_POSITIONS = [
-  { x: 0.5,  y: 0.28 },  // rank 1
-  { x: 0.25, y: 0.52 },  // rank 2
-  { x: 0.75, y: 0.52 },  // rank 3
-  { x: 0.25, y: 0.75 },  // rank 4
-  { x: 0.75, y: 0.75 },  // rank 5
+  { x: 0.5,  y: 0.28 },
+  { x: 0.25, y: 0.52 },
+  { x: 0.75, y: 0.52 },
+  { x: 0.25, y: 0.75 },
+  { x: 0.75, y: 0.75 },
 ]
 
 const layers = ref([])
@@ -53,13 +52,12 @@ function initLayers() {
     id:       i + 1,
     rank:     i + 1,
     text:     student.full_name || `សិស្សលំដាប់ ${i + 1}`,
-    x:        DEFAULT_POSITIONS[i].x,   // fractional 0-1
+    x:        DEFAULT_POSITIONS[i].x,
     y:        DEFAULT_POSITIONS[i].y,
     fontSize: 18,
     color:    '#8B0000',
     bold:     true,
   }))
-  // If fewer than 5 students, fill remaining slots as empty editable layers
   for (let i = top5.value.length; i < 5; i++) {
     layers.value.push({
       id:       i + 1,
@@ -94,8 +92,10 @@ async function handleDownload() {
   if (canvasRef.value) await canvasRef.value.exportPNG()
 }
 
-// ─── Sidebar toggle (mobile) ───────────────────────────────────────────────
-const showSidebar = ref(true)
+// ─── Mobile controls accordion ─────────────────────────────────────────────
+const showControls = ref(false)
+
+function toggleControls() { showControls.value = !showControls.value }
 </script>
 
 <template>
@@ -110,28 +110,27 @@ const showSidebar = ref(true)
       :year="year"
       @back="router.back()"
       @download="handleDownload"
-      @toggle-sidebar="showSidebar = !showSidebar"
     />
+
+    <!-- ── Template Gallery Header (horizontal strip) ────────────────────── -->
+    <div class="template-header">
+      <div class="template-header-inner">
+        <span class="template-label">📄 គំរូ</span>
+        <TemplateGallery
+          :score-mode="scoreMode"
+          :max-templates="maxTemplates"
+          :selected-index="selectedTemplateIndex"
+          :template-src-fn="templateSrc"
+          @select="selectedTemplateIndex = $event"
+        />
+      </div>
+    </div>
 
     <div class="editor-body">
 
-      <!-- ── Left Sidebar ─────────────────────────────────────────────────── -->
-      <aside class="sidebar" :class="{ collapsed: !showSidebar }">
-
-        <!-- Template Gallery -->
-        <section class="sidebar-section">
-          <div class="section-label">📄 គំរូ (Template)</div>
-          <TemplateGallery
-            :score-mode="scoreMode"
-            :max-templates="maxTemplates"
-            :selected-index="selectedTemplateIndex"
-            :template-src-fn="templateSrc"
-            @select="selectedTemplateIndex = $event"
-          />
-        </section>
-
-        <!-- Text Layer Controls -->
-        <section class="sidebar-section">
+      <!-- ── Desktop Sidebar (layer list + controls) ─────────────────────── -->
+      <aside class="sidebar-desktop">
+        <div class="sidebar-section">
           <div class="section-label">✏️ កែសម្រួលអត្ថបទ</div>
           <div class="layer-list">
             <div
@@ -152,11 +151,10 @@ const showSidebar = ref(true)
             @update="patch => updateLayer(selectedLayer.id, patch)"
           />
           <div v-else class="hint-text">ចុចលើអត្ថបទនៅលើ Canvas ដើម្បីកែសម្រួល</div>
-        </section>
-
+        </div>
       </aside>
 
-      <!-- ── Canvas Area ────────────────────────────────────────────────────── -->
+      <!-- ── Canvas Area ──────────────────────────────────────────────────── -->
       <main class="canvas-area">
         <EditorCanvas
           ref="canvasRef"
@@ -166,6 +164,41 @@ const showSidebar = ref(true)
           @select-layer="selectLayer"
           @update-layer="({ id, patch }) => updateLayer(id, patch)"
         />
+
+        <!-- ── Mobile controls toggle ─────────────────────────────────────── -->
+        <div class="mobile-controls-bar">
+          <button class="mobile-ctrl-btn" @click="toggleControls">
+            <span>✏️ កែសម្រួលអត្ថបទ</span>
+            <svg
+              :class="{ rotated: showControls }"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              width="16" height="16"
+            >
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+        </div>
+
+        <div v-show="showControls" class="mobile-controls-panel">
+          <div class="layer-list">
+            <div
+              v-for="layer in layers"
+              :key="layer.id"
+              class="layer-chip"
+              :class="{ active: selectedLayerId === layer.id }"
+              @click="selectLayer(layer.id)"
+            >
+              <span class="rank-badge">{{ layer.rank }}</span>
+              <span class="layer-name">{{ layer.text || '(គ្មានឈ្មោះ)' }}</span>
+            </div>
+          </div>
+          <TextLayerControls
+            v-if="selectedLayer"
+            :layer="selectedLayer"
+            @update="patch => updateLayer(selectedLayer.id, patch)"
+          />
+          <div v-else class="hint-text">ចុចលើអត្ថបទនៅលើ Canvas ដើម្បីកែសម្រួល</div>
+        </div>
       </main>
 
     </div>
@@ -182,14 +215,41 @@ const showSidebar = ref(true)
   font-family: 'Noto Sans Khmer', sans-serif;
 }
 
+/* ── Template Header ─────────────────────────────────────────────────────── */
+.template-header {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.template-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: min-content;
+}
+
+.template-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Editor body ─────────────────────────────────────────────────────────── */
 .editor-body {
   display: flex;
   flex: 1;
   overflow: hidden;
 }
 
-/* ── Sidebar ─────────────────────────────────────────────────────────────── */
-.sidebar {
+/* ── Desktop Sidebar ─────────────────────────────────────────────────────── */
+.sidebar-desktop {
   width: 280px;
   min-width: 280px;
   background: #fff;
@@ -197,19 +257,10 @@ const showSidebar = ref(true)
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  transition: width 0.3s, min-width 0.3s;
-}
-
-.sidebar.collapsed {
-  width: 0;
-  min-width: 0;
-  overflow: hidden;
 }
 
 .sidebar-section {
   padding: 16px;
-  border-bottom: 1px solid #f1f5f9;
 }
 
 .section-label {
@@ -277,23 +328,75 @@ const showSidebar = ref(true)
 .canvas-area {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   overflow: auto;
   padding: 24px;
 }
 
+/* ── Mobile controls ─────────────────────────────────────────────────────── */
+.mobile-controls-bar,
+.mobile-controls-panel {
+  display: none;
+}
+
+/* ── Desktop ─────────────────────────────────────────────────────────────── */
+@media (min-width: 769px) {
+  .sidebar-desktop { display: flex; }
+}
+
 /* ── Mobile ──────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .editor-body { flex-direction: column; }
-  .sidebar {
-    width: 100%;
-    min-width: 100%;
-    max-height: 300px;
-    border-right: none;
-    border-bottom: 1px solid #e5e7eb;
+  .sidebar-desktop { display: none; }
+
+  .canvas-area {
+    padding: 12px;
+    justify-content: flex-start;
   }
-  .sidebar.collapsed { max-height: 0; }
-  .canvas-area { padding: 12px; }
+
+  .mobile-controls-bar {
+    display: flex;
+    width: 100%;
+    max-width: 600px;
+    margin-top: 12px;
+  }
+
+  .mobile-ctrl-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #374151;
+    cursor: pointer;
+    font-family: 'Noto Sans Khmer', sans-serif;
+    transition: background 0.15s;
+  }
+
+  .mobile-ctrl-btn:hover { background: #f8fafc; }
+
+  .mobile-ctrl-btn svg {
+    transition: transform 0.2s;
+  }
+
+  .mobile-ctrl-btn svg.rotated {
+    transform: rotate(180deg);
+  }
+
+  .mobile-controls-panel {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 8px;
+  }
 }
 </style>

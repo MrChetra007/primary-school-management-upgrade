@@ -7,7 +7,7 @@ defineProps({
   year:      { type: String, default: '' },
 })
 
-const emit = defineEmits(['back', 'download', 'toggle-sidebar'])
+const emit = defineEmits(['back', 'download'])
 </script>
 
 <template>
@@ -18,11 +18,6 @@ const emit = defineEmits(['back', 'download', 'toggle-sidebar'])
       <button class="icon-btn" @click="emit('back')" title="ត្រឡប់ក្រោយ">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
           <path d="M19 12H5M12 5l-7 7 7 7"/>
-        </svg>
-      </button>
-      <button class="icon-btn sidebar-toggle" @click="emit('toggle-sidebar')" title="បង្ហាញ/លាក់ Sidebar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-          <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
         </svg>
       </button>
       <div class="title-block">
@@ -130,7 +125,6 @@ const emit = defineEmits(['back', 'download', 'toggle-sidebar'])
 .btn-download:hover { background: #7c3aed; }
 
 @media (max-width: 500px) {
-  .sidebar-toggle { display: none; }
-  .title-sub      { display: none; }
+  .title-sub { display: none; }
 }
 </style>
