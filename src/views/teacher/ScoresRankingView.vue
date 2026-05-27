@@ -593,7 +593,7 @@ function toKhmerNum(num) {
                 <td style="text-align:center; font-weight:700;">{{ idx + 1 }}</td>
                 <td>
                   <div style="display:flex; align-items:center; gap:12px;">
-                    <div class="mini-avatar" :style="{ background: student.gender === 'female' ? '#ec4899' : 'var(--primary-color)' }">
+                    <div class="mini-avatar" :style="{ background: student.gender === 'female' ? '#ec4899' : '#3b82f6' }">
                       {{ initials(student.full_name) }}
                     </div>
                     <span style="font-weight:700;">{{ student.full_name }}</span>
