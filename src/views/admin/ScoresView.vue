@@ -291,7 +291,27 @@ async function handleExport() {
 }
 
 function handleNavigateToHonorBoard() {
-  router.push({ name: 'admin-honor-board-editor' })
+  const top5 = rankedList.value.slice(0, 5).map(s => ({
+    full_name: s.full_name,
+    average: s.average,
+    rank: s.rank,
+    gender: s.gender
+  }))
+  const className = classes.value.find(c => c.id === selectedClassId.value)?.class_name || ''
+  const monthName = scoreMode.value === 'monthly'
+    ? months.find(m => m.id === selectedMonth.value)?.name || ''
+    : ''
+  router.push({
+    name: 'admin-honor-board-editor',
+    query: {
+      mode: scoreMode.value,
+      students: JSON.stringify(top5),
+      className,
+      year: yearStore.selectedYearName || '',
+      monthName,
+      semester: scoreMode.value === 'semester' ? String(selectedSemester.value) : ''
+    }
+  })
 }
 
 // ─── Watchers ─────────────────────────────────────────────────────────────────
