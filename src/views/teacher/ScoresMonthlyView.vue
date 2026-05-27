@@ -295,16 +295,35 @@ watch(selectedMonth, fetchScores)
   margin: 0 auto;
 }
 
+.table-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 70vh;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
 .matrix-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: white;
 }
 
-.matrix-table th, .matrix-table td {
-  border: 1px solid var(--border-default);
+.matrix-table th,
+.matrix-table td {
+  border-bottom: 1px solid var(--border-default);
+  border-right: 1px solid var(--border-default);
   padding: 8px;
   text-align: center;
+}
+
+.matrix-table thead tr th:first-child,
+.matrix-table tbody tr td:first-child {
+  border-left: 1px solid var(--border-default);
+}
+.matrix-table thead tr:first-child th {
+  border-top: 1px solid var(--border-default);
 }
 
 .matrix-table th {
@@ -312,6 +331,48 @@ watch(selectedMonth, fetchScores)
   font-size: 12px;
   font-weight: 700;
   color: #64748b;
+}
+
+/* Freeze header row — scroll down */
+.matrix-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8fafc;
+}
+
+/* Freeze column 1 (ល.រ) — scroll right */
+.matrix-table th:nth-child(1),
+.matrix-table td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: 50px;
+  background: #f8fafc;
+}
+
+/* Freeze column 2 (student name) — scroll right */
+.matrix-table th:nth-child(2),
+.matrix-table td:nth-child(2) {
+  position: sticky;
+  left: 50px;
+  z-index: 3;
+  min-width: 180px;
+  text-align: left;
+  background: white;
+  box-shadow: 2px 0 6px -2px rgba(0, 0, 0, 0.08);
+}
+
+/* Corner cells — sticky in both directions, highest z-index */
+.matrix-table thead th:nth-child(1),
+.matrix-table thead th:nth-child(2) {
+  z-index: 4;
+  background: #f8fafc;
+}
+
+.matrix-table tbody tr:hover td:nth-child(1),
+.matrix-table tbody tr:hover td:nth-child(2) {
+  background: #f1f5f9;
 }
 
 .sub-col {
@@ -374,5 +435,12 @@ watch(selectedMonth, fetchScores)
   .card { box-shadow: none; border: none; }
   .print-header { text-align: center; margin-bottom: 20px; }
   .print-header h2 { font-size: 18px; margin-bottom: 5px; }
+
+  .table-wrapper { max-height: none; overflow: visible; }
+  .matrix-table th,
+  .matrix-table td {
+    position: static !important;
+    box-shadow: none !important;
+  }
 }
 </style>

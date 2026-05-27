@@ -326,35 +326,89 @@ watch(selectedSemester, fetchAllScores)
 </template>
 
 <style scoped>
-.scores-semester-view {
-  max-width: 1400px;
+.scores-monthly-view {
+  max-width: 1200px;
   margin: 0 auto;
+}
+
+/* Make the wrapper scrollable and set up the sticky context */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
 }
 
 .matrix-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate; /* Changed from collapse — required for sticky to work */
+  border-spacing: 0;
   background: white;
-  font-size: 12px;
 }
 
-.matrix-table th, .matrix-table td {
-  border: 1px solid var(--border-default);
-  padding: 4px;
+.matrix-table th,
+.matrix-table td {
+  border-bottom: 1px solid var(--border-default);
+  border-right: 1px solid var(--border-default);
+  padding: 8px;
   text-align: center;
+}
+
+/* Restore the top and left borders that border-separate removes */
+.matrix-table thead tr th:first-child,
+.matrix-table tbody tr td:first-child {
+  border-left: 1px solid var(--border-default);
+}
+.matrix-table thead tr:first-child th {
+  border-top: 1px solid var(--border-default);
 }
 
 .matrix-table th {
   background: #f8fafc;
+  font-size: 12px;
   font-weight: 700;
   color: #64748b;
 }
 
+/* Freeze column 1 (ល.រ) */
+.matrix-table th:nth-child(1),
+.matrix-table td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 50px;
+  background: #f8fafc;
+}
+
+/* Freeze column 2 (student name) */
+.matrix-table th:nth-child(2),
+.matrix-table td:nth-child(2) {
+  position: sticky;
+  left: 50px; /* must match the width of column 1 above */
+  z-index: 2;
+  min-width: 180px;
+  text-align: left;
+  background: white;
+  box-shadow: 2px 0 6px -2px rgba(0, 0, 0, 0.08);
+}
+
+/* Header cells need higher z-index so they sit above body cells when scrolling */
+.matrix-table thead th:nth-child(1),
+.matrix-table thead th:nth-child(2) {
+  z-index: 3;
+  background: #f8fafc;
+}
+
+/* Data rows: alternate the frozen cell background for readability */
+.matrix-table tbody tr:hover td:nth-child(1),
+.matrix-table tbody tr:hover td:nth-child(2) {
+  background: #f1f5f9;
+}
+
 .sub-col {
-  width: 36px;
-  height: 80px;
+  width: 50px;
+  height: 100px;
   vertical-align: bottom;
-  padding-bottom: 8px !important;
+  padding-bottom: 12px !important;
 }
 
 .vertical-text {
@@ -362,17 +416,16 @@ watch(selectedSemester, fetchAllScores)
   transform: rotate(180deg);
   white-space: nowrap;
   display: inline-block;
-  font-size: 10px;
 }
 
 .score-input {
-  width: 32px;
-  padding: 2px;
+  width: 44px;
+  padding: 4px;
   border: 1px solid transparent;
   text-align: center;
   font-weight: 600;
   border-radius: 4px;
-  font-size: 11px;
+  transition: all 0.2s;
 }
 
 .score-input:focus {
@@ -381,26 +434,22 @@ watch(selectedSemester, fetchAllScores)
   background: #f1f5f9;
 }
 
-.monthly-val {
-  color: #94a3b8;
-  font-size: 11px;
+.score-input::-webkit-inner-spin-button,
+.score-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .avg-cell {
-  font-weight: 700;
-  background: #f8fafc;
-  min-width: 45px;
-}
-
-.highlight {
-  background: #f1f5f9 !important;
-  font-weight: 800 !important;
+  font-weight: 800;
+  background: #f1f5f9;
+  color: #1e293b;
 }
 
 .rank-cell {
   font-weight: 800;
   color: var(--primary-color);
-  background: #eff6ff !important;
+  background: #eff6ff;
 }
 
 .text-danger { color: #ef4444; }
@@ -410,8 +459,17 @@ watch(selectedSemester, fetchAllScores)
 @media print {
   .no-print { display: none !important; }
   .only-print { display: block !important; }
-  .matrix-table { font-size: 9px; }
+  .matrix-table { font-size: 10px; }
   .score-input { border: none; background: transparent; }
   .card { box-shadow: none; border: none; }
+  .print-header { text-align: center; margin-bottom: 20px; }
+  .print-header h2 { font-size: 18px; margin-bottom: 5px; }
+
+  /* Reset sticky for print so columns render normally */
+  .matrix-table th,
+  .matrix-table td {
+    position: static !important;
+    box-shadow: none !important;
+  }
 }
 </style>
