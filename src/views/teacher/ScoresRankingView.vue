@@ -621,7 +621,7 @@ function toKhmerNum(num) {
                   <div class="rank-circle" :class="'rank-' + student.rank">{{ toKhmerNum(student.rank) }}</div>
                 </td>
                 <td style="text-align:center;" class="no-print">
-                  <button class="btn btn-ghost btn-sm" @click="router.push(`/teacher/scores/view?id=${student.id}`)">
+                  <button class="btn btn-ghost btn-sm" @click="router.push(`/teacher/scores/summary/${student.id}?mode=${mode}&month=${selectedMonth}&semester=${selectedSemester}`)">
                     <EyeIcon class="w-4 h-4" />
                   </button>
                 </td>
