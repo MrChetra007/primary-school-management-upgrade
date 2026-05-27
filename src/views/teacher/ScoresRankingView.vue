@@ -11,12 +11,13 @@ import {
   CalendarIcon, 
   StarIcon,
   ChevronLeftIcon,
+  EyeIcon,
   AcademicCapIcon,
   CheckIcon,
   XCircleIcon
 } from '@heroicons/vue/24/outline'
 import { useRoute, useRouter } from 'vue-router'
-import { generateMonthlyScorePDF } from '@/utils/exportPdf'
+import { generateMonthlyScorePDF, generateSemesterScorePDF } from '@/utils/exportPdf'
 
 const route = useRoute()
 const router = useRouter()
@@ -29,6 +30,7 @@ const students = ref([])
 const subjects = ref([])
 const rawScores = ref([])
 const rankedList = ref([])
+const exporting = ref(false)
 const toast = ref(null)
 
 const mode = ref(route.query.mode || 'monthly') 
@@ -233,21 +235,55 @@ function getGrade(score) {
   return 'F'
 }
 
-const printArea = ref(null)
 async function handleExport() {
-  if (!printArea.value) return
+  if (exporting.value || rankedList.value.length === 0) return
+  exporting.value = true
+
   const metadata = {
-    schoolName: 'សាលាបឋមសិក្សា',
-    className: classInfo.value?.class_name,
-    month: mode.value === 'monthly' ? months.find(m => m.id === selectedMonth.value)?.name : `ឆមាសទី ${selectedSemester.value}`,
-    year: classInfo.value?.academic_years?.year_name
+    schoolName:   '.........................',
+    districtName: '.........................',
+    className:    classInfo.value?.class_name || '',
+    year:         classInfo.value?.academic_years?.year_name || ''
   }
+
   try {
-    await generateMonthlyScorePDF(printArea.value, metadata)
+    if (mode.value === 'monthly') {
+      metadata.month = months.find(m => m.id === selectedMonth.value)?.name || ''
+      await generateMonthlyScorePDF(rankedList.value, metadata)
+    } else {
+      metadata.semester = selectedSemester.value
+      await generateSemesterScorePDF(rankedList.value, metadata)
+    }
     showToast('បង្កើត PDF បានជោគជ័យ!', 'success')
   } catch (e) {
     showToast('មិនអាចបង្កើត PDF បានទេ', 'error')
+  } finally {
+    exporting.value = false
   }
+}
+
+function handleNavigateToHonorBoard() {
+  const top5 = rankedList.value.slice(0, 5).map(s => ({
+    full_name: s.full_name,
+    average: s.average,
+    rank: s.rank,
+    gender: s.gender
+  }))
+  const className = classInfo.value?.class_name || ''
+  const monthName = mode.value === 'monthly'
+    ? months.find(m => m.id === selectedMonth.value)?.name || ''
+    : ''
+  router.push({
+    name: 'teacher-honor-board-editor',
+    query: {
+      mode: mode.value,
+      students: JSON.stringify(top5),
+      className,
+      year: classInfo.value?.academic_years?.year_name || '',
+      monthName,
+      semester: mode.value === 'semester' ? String(selectedSemester.value) : ''
+    }
+  })
 }
 
 async function generateReportLink() {
@@ -387,11 +423,22 @@ function toKhmerNum(num) {
           <AcademicCapIcon class="w-4 h-4 mr-2" />
           បង្កើតលិខិតសរសើរ (Top 5)
         </button>
-        <button class="btn btn-primary" @click="handleExport" :disabled="loading || rankedList.length === 0">
+        <button
+          class="btn btn-secondary"
+          @click="handleNavigateToHonorBoard"
+          :disabled="loading || exporting || rankedList.length === 0"
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
           </svg>
-          ទាញយក PDF
+          ទាញយកតារាងកិត្តិយស
+        </button>
+        <button class="btn btn-primary" @click="handleExport" :disabled="loading || exporting || rankedList.length === 0">
+          <span v-if="exporting" class="spinner" />
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          {{ exporting ? 'កំពុងបង្កើត...' : 'ទាញយក PDF' }}
         </button>
       </div>
     </div>
@@ -428,7 +475,7 @@ function toKhmerNum(num) {
       <p class="empty-state-title">មិនទាន់មានទិន្នន័យពិន្ទុសម្រាប់បង្ហាញចំណាត់ថ្នាក់</p>
     </div>
 
-    <div v-else ref="printArea">
+    <div v-else>
       <!-- Summary Tiles Group 1 -->
       <div class="tile-group no-print">
         <div class="group-title">សង្ខេបសិស្ស</div>
