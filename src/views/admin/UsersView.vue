@@ -47,21 +47,54 @@ onMounted(fetchUsers)
 
 async function fetchUsers() {
   loading.value = true
-  const { data, error } = await supabase
+
+  const { data: usersData, error: usersError } = await supabase
     .from('users')
-    .select(`
-      id,
-      email,
-      role,
-      status,
-      created_at,
-      teachers (*)
-    `)
+    .select('*')
     .order('created_at', { ascending: false })
-  
-  if (error) showToast(error.message, 'error')
-  else users.value = data || []
-  loading.value = false
+
+  if (usersError) {
+    showToast(usersError.message, 'error')
+    loading.value = false
+    return
+  }
+
+  const { data: teachersData, error: teachersError } = await supabase
+    .from('teachers')
+    .select('*')
+
+  if (teachersError) {
+    showToast(teachersError.message, 'error')
+    loading.value = false
+    return
+  }
+
+  // Merge: attach teacher profile to each user by user_id
+  const teacherMap = {}
+  teachersData.forEach(t => { teacherMap[t.user_id] = t })
+
+  users.value = (usersData || []).map(u => ({
+    ...u,
+    teachers: teacherMap[u.id] ? [teacherMap[u.id]] : []
+  }))
+
+  console.log('========================================')
+  console.log('USERS WITH TEACHER PROFILES:')
+  console.log('========================================')
+  users.value.forEach(u => {
+    const t = u.teachers?.[0]
+    console.log(`User ID: ${u.id} | Email: ${u.email} | Role: ${u.role} | Status: ${u.status}`)
+    if (t) {
+      console.log(`  └─ Teacher ID: ${t.id} | Name: ${t.full_name} | Gender: ${t.gender} | Phone: ${t.phone_number} | Degree: ${t.degree}`)
+    } else {
+      console.log(`  └─ No teacher profile found`)
+    }
+    console.log('---')
+  })
+  console.log(`Total: ${users.value.length} users`)
+  console.log('========================================')
+
+  loading.value = false;
 }
 
 async function handleCreateUser() {
@@ -305,7 +338,7 @@ function showToast(msg, type = 'success') {
                   </div>
                   <div v-else class="avatar" :class="user.role">{{ (user.teachers?.[0]?.full_name || user.email).charAt(0).toUpperCase() }}</div>
                   <div>
-                    <div class="user-name">{{ user.teachers?.[0]?.full_name || 'System User' }}</div>
+                    <div class="user-name">{{ user.teachers?.[0]?.full_name || user.email }}</div>
                     <div class="user-sub">{{ user.teachers?.[0]?.gender === 'M' ? 'ប្រុស (Male)' : 'ស្រី (Female)' }}</div>
                   </div>
                 </div>
