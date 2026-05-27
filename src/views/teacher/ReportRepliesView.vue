@@ -59,7 +59,13 @@ async function fetchReportLinks() {
     .eq('created_by', auth.teacherProfile.id)
     .order('created_at', { ascending: false })
 
-  reportLinks.value = data || []
+  const seen = new Set()
+  reportLinks.value = (data || []).filter(link => {
+    const key = `${link.class_id}-${link.academic_year_id}-${link.score_type}-${link.month}-${link.semester}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 function linkLabel(link) {

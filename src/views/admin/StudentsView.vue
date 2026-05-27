@@ -32,6 +32,7 @@ const bulkClassId = ref("");
 const savingBulk = ref(false);
 const showBulkDeleteModal = ref(false);
 const deletingBulk = ref(false);
+const refactoring = ref(false);
 
 const isPartiallySelected = computed(() => {
   if (selectedStudents.value.length === 0) return false;
@@ -225,6 +226,23 @@ function showToast(msg, type = "success") {
   setTimeout(() => {
     toast.value = null;
   }, 3000);
+}
+
+async function refactorNames() {
+  if (refactoring.value) return
+  if (!confirm('ប្តូរឈ្មោះសិស្សទាំងអស់ពី "នាមត្រកូល នាមខ្លួន" ទៅជា "នាមខ្លួន នាមត្រកូល"?')) return
+  refactoring.value = true
+  let updated = 0
+  for (const s of students.value) {
+    const parts = (s.full_name || '').trim().split(/\s+/)
+    if (parts.length < 2) continue
+    const swapped = [...parts.slice(1), parts[0]].join(' ')
+    const { error } = await supabase.from('students').update({ full_name: swapped }).eq('id', s.id)
+    if (!error) updated++
+  }
+  refactoring.value = false
+  showToast(`បានប្តូរឈ្មោះសិស្សចំនួន ${updated} នាក់!`, 'success')
+  loadStudents()
 }
 
 function initials(name) {
@@ -480,6 +498,13 @@ async function doImport() {
           នាំចូល Excel
         </button>
 
+        <button class="btn btn-ghost" @click="refactorNames" :disabled="refactoring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
+            <polyline points="1 4 1 10 7 10" />
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+          </svg>
+          {{ refactoring ? 'កំពុងប្តូរ...' : 'ប្តូរឈ្មោះ (នាមខ្លួន នាមត្រកូល)' }}
+        </button>
         <button class="btn btn-primary" @click="openAdd">
           <svg
             viewBox="0 0 24 24"
@@ -904,6 +929,17 @@ async function doImport() {
             បោះបង់
           </button>
           <button class="btn btn-danger" @click="doDelete">យល់ព្រមលុប</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Refactor progress modal ────────────────────────────────────────────── -->
+    <div v-if="refactoring" class="modal-overlay">
+      <div class="modal" style="max-width: 360px; text-align:center;">
+        <div class="modal-body" style="padding:40px 24px;">
+          <div class="spinner" style="width:40px;height:40px;border-width:4px;margin:0 auto 16px;"></div>
+          <h3 style="margin-bottom:8px;">កំពុងប្តូរឈ្មោះសិស្ស...</h3>
+          <p style="color:var(--text-secondary);font-size:13px;">សូមរង់ចាំមួយភ្លែត</p>
         </div>
       </div>
     </div>

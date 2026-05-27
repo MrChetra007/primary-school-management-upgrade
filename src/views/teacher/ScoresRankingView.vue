@@ -292,15 +292,23 @@ async function generateReportLink() {
   const month = mode.value === 'monthly' ? selectedMonth.value : null
   const semester = mode.value === 'semester' ? selectedSemester.value : null
 
-  const { data: existing } = await supabase
+  let linkQuery = supabase
     .from('report_links')
     .select('id')
     .eq('class_id', classInfo.value.id)
     .eq('academic_year_id', classInfo.value.academic_year_id)
     .eq('score_type', mode.value)
-    .eq('month', month)
-    .eq('semester', semester)
-    .maybeSingle()
+  if (month !== null) {
+    linkQuery = linkQuery.eq('month', month)
+  } else {
+    linkQuery = linkQuery.is('month', null)
+  }
+  if (semester !== null) {
+    linkQuery = linkQuery.eq('semester', semester)
+  } else {
+    linkQuery = linkQuery.is('semester', null)
+  }
+  const { data: existing } = await linkQuery.maybeSingle()
 
   if (existing) {
     const link = `${window.location.origin}/parent/report/${existing.id}`
