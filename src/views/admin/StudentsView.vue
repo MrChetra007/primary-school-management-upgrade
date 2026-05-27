@@ -33,6 +33,7 @@ const savingBulk = ref(false);
 const showBulkDeleteModal = ref(false);
 const deletingBulk = ref(false);
 const refactoring = ref(false);
+const refactorProgress = ref({ current: 0, total: 0 });
 
 const isPartiallySelected = computed(() => {
   if (selectedStudents.value.length === 0) return false;
@@ -230,18 +231,34 @@ function showToast(msg, type = "success") {
 
 async function refactorNames() {
   if (refactoring.value) return
-  if (!confirm('ប្តូរឈ្មោះសិស្សទាំងអស់ពី "នាមត្រកូល នាមខ្លួន" ទៅជា "នាមខ្លួន នាមត្រកូល"?')) return
+
+  const targetIds = selectedStudents.value.length > 0
+    ? selectedStudents.value
+    : students.value.map(s => s.id)
+
+  if (targetIds.length === 0) return
+  if (!confirm(`ប្តូរឈ្មោះសិស្សចំនួន ${targetIds.length} នាក់ពី "នាមត្រកូល នាមខ្លួន" ទៅជា "នាមខ្លួន នាមត្រកូល"?`)) return
+
   refactoring.value = true
+  refactorProgress.value = { current: 0, total: targetIds.length }
   let updated = 0
-  for (const s of students.value) {
-    const parts = (s.full_name || '').trim().split(/\s+/)
-    if (parts.length < 2) continue
-    const swapped = [...parts.slice(1), parts[0]].join(' ')
-    const { error } = await supabase.from('students').update({ full_name: swapped }).eq('id', s.id)
-    if (!error) updated++
+
+  for (const id of targetIds) {
+    const s = students.value.find(st => st.id === id)
+    if (s) {
+      const parts = (s.full_name || '').trim().split(/\s+/)
+      if (parts.length >= 2) {
+        const swapped = [...parts.slice(1), parts[0]].join(' ')
+        const { error } = await supabase.from('students').update({ full_name: swapped }).eq('id', s.id)
+        if (!error) updated++
+      }
+    }
+    refactorProgress.value.current++
   }
+
   refactoring.value = false
   showToast(`បានប្តូរឈ្មោះសិស្សចំនួន ${updated} នាក់!`, 'success')
+  selectedStudents.value = []
   loadStudents()
 }
 
@@ -935,10 +952,17 @@ async function doImport() {
 
     <!-- ── Refactor progress modal ────────────────────────────────────────────── -->
     <div v-if="refactoring" class="modal-overlay">
-      <div class="modal" style="max-width: 360px; text-align:center;">
+      <div class="modal" style="max-width: 400px; text-align:center;">
         <div class="modal-body" style="padding:40px 24px;">
-          <div class="spinner" style="width:40px;height:40px;border-width:4px;margin:0 auto 16px;"></div>
-          <h3 style="margin-bottom:8px;">កំពុងប្តូរឈ្មោះសិស្ស...</h3>
+          <h3 style="margin-bottom:12px;">កំពុងប្តូរឈ្មោះសិស្ស...</h3>
+          <div style="background:#e2e8f0; border-radius:8px; height:24px; overflow:hidden; margin-bottom:8px;">
+            <div style="height:100%; background:linear-gradient(90deg, #3b82f6, #8b5cf6); border-radius:8px; transition:width 0.2s; display:flex; align-items:center; justify-content:center;"
+                 :style="{ width: (refactorProgress.total > 0 ? (refactorProgress.current / refactorProgress.total * 100) : 0) + '%' }">
+              <span v-if="refactorProgress.current > 0" style="font-size:11px;font-weight:700;color:white;white-space:nowrap;">
+                {{ refactorProgress.current }}/{{ refactorProgress.total }}
+              </span>
+            </div>
+          </div>
           <p style="color:var(--text-secondary);font-size:13px;">សូមរង់ចាំមួយភ្លែត</p>
         </div>
       </div>
