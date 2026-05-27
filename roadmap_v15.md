@@ -272,7 +272,7 @@ src/
 - [x] School holidays
 - [x] Library overview (read-only)
 - [x] User management (via Edge Function)
-- [ ] **Student Rollup UI** — rollup modal on Academic Years page
+- [x] **Student Rollup UI** — rollup modal on Academic Years page
 
 ### ✅ Phase 4 — Teacher Features
 - [x] Dashboard with teacher check-in
@@ -386,7 +386,7 @@ src/
 
 ## 🚀 Known Gaps / Next Actions
 
-1. **Student Rollup UI** — the DB function exists but the rollup modal on the Academic Years page needs to be connected
+1. **Student Rollup UI** — fully built (target-year dropdown, clone classes, execute, results summary)
 2. **Edge Function `manage-user`** — needs `school_id` payload verification
 3. **Multi-tenant testing** — verify data isolation between 2 schools
 4. **Parent portal E2E** — test full flow: generate link → share → parent views → voice reply

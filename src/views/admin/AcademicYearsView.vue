@@ -35,6 +35,8 @@ const rollupSummary = ref(null)
 const rollingUp = ref(false)
 const cloningClasses = ref(false)
 const targetClassesCount = ref(0)
+const rollupStudentCount = ref(0)
+const rollupProgress = ref(0)
 
 const schoolInfo = ref({ name_khmer: 'សាលាបឋមសិក្សា ចំការមន', logo_url: null })
 
@@ -138,12 +140,13 @@ async function openRollup(y) {
 }
 
 async function checkTargetClasses() {
-  if (!targetYearId.value) return
-  const { count } = await supabase
-    .from('classes')
-    .select('*', { count: 'exact', head: true })
-    .eq('academic_year_id', targetYearId.value)
-  targetClassesCount.value = count || 0
+  if (!targetYearId.value || !rollupSource.value) return
+  const [clsRes, stuRes] = await Promise.all([
+    supabase.from('classes').select('*', { count: 'exact', head: true }).eq('academic_year_id', targetYearId.value),
+    supabase.from('students').select('*', { count: 'exact', head: true }).eq('academic_year_id', rollupSource.value.id).eq('is_graduated', false)
+  ])
+  targetClassesCount.value = clsRes.count || 0
+  rollupStudentCount.value = stuRes.count || 0
 }
 
 async function handleCloneClasses() {
@@ -167,16 +170,30 @@ async function executeRollup() {
   if (!targetYearId.value) return
   
   rollingUp.value = true
+  rollupProgress.value = 0
+  const total = rollupStudentCount.value
+
+  const progressInterval = setInterval(() => {
+    if (rollupProgress.value < 90) {
+      rollupProgress.value += Math.floor(Math.random() * 8) + 2
+      if (rollupProgress.value > 90) rollupProgress.value = 90
+    }
+  }, 300)
+
   try {
     const { data, error } = await supabase.rpc('perform_student_rollup', {
       p_old_year_id: rollupSource.value.id,
       p_new_year_id: targetYearId.value
     })
 
+    clearInterval(progressInterval)
+    rollupProgress.value = 100
+
     if (error) throw error
     rollupSummary.value = data
     showToast('បញ្ជូនសិស្សទៅឆ្នាំថ្មីបានសម្រេច!', 'success')
   } catch (err) {
+    clearInterval(progressInterval)
     console.error('Rollup error:', err)
     showToast(err.message || 'Error during rollup', 'error')
   } finally {
@@ -333,116 +350,138 @@ async function executeRollup() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
-        
-        <div class="modal-body">
-          <div v-if="!rollupSummary">
-            <div class="alert alert-info mb-4">
-              <ExclamationTriangleIcon class="w-5 h-5" />
-              <p>មុខងារនេះនឹងរុញសិស្សពី <strong>{{ rollupSource.year_name }}</strong> ទៅកាន់ថ្នាក់ខ្ពស់ជាងនេះក្នុងឆ្នាំសិក្សាថ្មី។</p>
-            </div>
 
-            <div class="form-group">
-              <label class="form-label">ជ្រើសរើសឆ្នាំសិក្សាគោលដៅ (Target Year)</label>
-              <select class="form-select" v-model="targetYearId" @change="checkTargetClasses">
-                <option value="">-- សូមជ្រើសរើស --</option>
-                <option 
-                  v-for="y in years.filter(y => y.id !== rollupSource.id)" 
-                  :key="y.id" 
-                  :value="y.id"
-                >
-                  {{ y.year_name }}
-                </option>
-              </select>
-            </div>
-
-            <div v-if="targetYearId && targetClassesCount === 0" class="alert alert-warning mb-4 mt-2">
-              <ExclamationTriangleIcon class="w-5 h-5" />
-              <div style="flex:1;">
-                <p class="font-bold">មិនទាន់មានថ្នាក់រៀន!</p>
-                <p>ឆ្នាំសិក្សាគោលដៅមិនទាន់មានថ្នាក់រៀននៅឡើយទេ។ អ្នកត្រូវបង្កើតថ្នាក់មុននឹងបញ្ជូនសិស្ស។</p>
-                <button 
-                  class="btn btn-sm btn-primary mt-2" 
-                  @click="handleCloneClasses"
-                  :disabled="cloningClasses"
-                >
-                  {{ cloningClasses ? 'កំពុងចម្លង...' : 'ចម្លងរចនាសម្ព័ន្ធថ្នាក់ពីឆ្នាំចាស់' }}
-                </button>
-              </div>
-            </div>
-
-            <p v-if="targetYearId && targetClassesCount > 0" class="form-hint mt-2 text-green-600 font-bold">
-              ✅ បានរកឃើញថ្នាក់ចំនួន {{ targetClassesCount }} ក្នុងឆ្នាំសិក្សាថ្មី។ រួចរាល់សម្រាប់ការបញ្ជូនសិស្ស។
-            </p>
-            <p v-else-if="targetYearId" class="form-hint mt-2">សិស្សថ្នាក់ទី១ នឹងទៅថ្នាក់ទី២, ថ្នាក់ទី៥ ទៅថ្នាក់ទី៦ និងថ្នាក់ទី៦ នឹងត្រូវបញ្ចប់ការសិក្សា។</p>
-          </div>
-
-          <!-- Rollup Results Summary -->
-          <div v-else class="rollup-results">
-            <div class="result-header">
-              <CheckCircleIcon class="w-12 h-12 text-green-500" />
-              <h3>ការបញ្ជូនសិស្សបានសម្រេច!</h3>
-            </div>
-            
-            <div class="stats-grid mt-4">
-              <div class="stat-box">
-                <span class="stat-label">សិស្សឡើងថ្នាក់</span>
-                <span class="stat-value text-primary-600">{{ rollupSummary.total_promoted }}</span>
-              </div>
-              <div class="stat-box">
-                <span class="stat-label">សិស្សបញ្ចប់ការសិក្សា</span>
-                <span class="stat-value text-green-600">{{ rollupSummary.total_graduated }}</span>
-              </div>
-            </div>
-
-            <div class="details-list mt-6">
-              <h4 class="details-title">សេចក្តីលម្អិតតាមកម្រិតថ្នាក់៖</h4>
-              <div class="table-mini-wrapper">
-                <table class="table-mini">
-                  <thead>
-                    <tr>
-                      <th>ថ្នាក់ទី</th>
-                      <th>សកម្មភាព</th>
-                      <th>ចំនួនសិស្ស</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="item in rollupSummary.details" :key="item.grade">
-                      <td>ថ្នាក់ទី {{ item.grade }}</td>
-                      <td>
-                        <span class="badge" :class="item.action === 'skipped' ? 'badge-red' : 'badge-gray'">
-                          {{ 
-                            item.action === 'paired' ? 'ឡើងថ្នាក់ (ស្មើគ្នា)' : 
-                            item.action === 'merged' ? 'ឡើងថ្នាក់ (បញ្ចូលគ្នា)' :
-                            item.action === 'merged_mismatch' ? 'ឡើងថ្នាក់ (បញ្ចូលគ្នា - ចំនួនមិនស្មើ)' :
-                            item.action === 'graduated' ? 'បញ្ចប់ការសិក្សា' :
-                            'មិនមានថ្នាក់គោលដៅ'
-                          }}
-                        </span>
-                      </td>
-                      <td class="text-right font-bold">
-                        {{ item.students_moved || item.students_graduated || 0 }} នាក់
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+        <div v-if="rollingUp" class="modal-body" style="text-align:center;padding:48px 32px;">
+          <h3 style="margin-bottom:12px;font-size:18px;font-weight:700;">កំពុងបញ្ជូនសិស្ស...</h3>
+          <div style="background:#e2e8f0;border-radius:8px;height:28px;overflow:hidden;margin:0 auto 12px;max-width:400px;">
+            <div style="height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);border-radius:8px;transition:width 0.3s;display:flex;align-items:center;justify-content:center;min-width:40px;"
+                 :style="{ width: rollupProgress + '%' }">
+              <span v-if="rollupProgress > 5" style="font-size:12px;font-weight:700;color:white;">{{ rollupProgress }}%</span>
             </div>
           </div>
+          <p style="color:var(--text-secondary);font-size:14px;">
+            កំពុងដំណើរការសិស្សចំនួន <strong>{{ rollupStudentCount }}</strong> នាក់។ សូមរង់ចាំមួយភ្លែត...
+          </p>
         </div>
 
-        <div class="modal-footer">
-          <button v-if="!rollupSummary" class="btn btn-ghost" @click="showRollupModal = false" :disabled="rollingUp">បោះបង់</button>
-          <button 
-            v-if="!rollupSummary" 
-            class="btn btn-primary" 
-            @click="executeRollup" 
-            :disabled="!targetYearId || rollingUp || targetClassesCount === 0"
-          >
-            <ArrowPathRoundedSquareIcon v-if="!rollingUp" class="w-4 h-4 mr-2" />
-            {{ rollingUp ? 'កំពុងបញ្ជូន...' : 'បញ្ជូនសិស្សឥឡូវនេះ' }}
-          </button>
-          <button v-else class="btn btn-primary" @click="showRollupModal = false">យល់ព្រម</button>
-        </div>
+        <template v-else>
+          <div class="modal-body">
+            <div v-if="!rollupSummary">
+              <div class="alert alert-info mb-4">
+                <ExclamationTriangleIcon class="w-5 h-5" />
+                <p>មុខងារនេះនឹងរុញសិស្សពី <strong>{{ rollupSource.year_name }}</strong> ទៅកាន់ថ្នាក់ខ្ពស់ជាងនេះក្នុងឆ្នាំសិក្សាថ្មី។</p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">ជ្រើសរើសឆ្នាំសិក្សាគោលដៅ (Target Year)</label>
+                <select class="form-select" v-model="targetYearId" @change="checkTargetClasses">
+                  <option value="">-- សូមជ្រើសរើស --</option>
+                  <option 
+                    v-for="y in years.filter(y => y.id !== rollupSource.id)" 
+                    :key="y.id" 
+                    :value="y.id"
+                  >
+                    {{ y.year_name }}
+                  </option>
+                </select>
+              </div>
+
+              <div v-if="targetYearId && rollupStudentCount > 0" class="alert" style="background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;margin-top:12px;">
+                <ArrowPathRoundedSquareIcon class="w-5 h-5" />
+                <div>
+                  <p class="font-bold">សិស្សសរុបចំនួន <strong>{{ rollupStudentCount }}</strong> នាក់ នឹងត្រូវបានបញ្ជូនបន្ត</p>
+                  <p style="font-size:12px;margin-top:4px;">ថ្នាក់ទី១ → ទី២, ទី២ → ទី៣, ... , ទី៦ → បញ្ចប់ការសិក្សា</p>
+                </div>
+              </div>
+
+              <div v-if="targetYearId && targetClassesCount === 0" class="alert alert-warning mb-4 mt-2">
+                <ExclamationTriangleIcon class="w-5 h-5" />
+                <div style="flex:1;">
+                  <p class="font-bold">មិនទាន់មានថ្នាក់រៀន!</p>
+                  <p>ឆ្នាំសិក្សាគោលដៅមិនទាន់មានថ្នាក់រៀននៅឡើយទេ។ អ្នកត្រូវបង្កើតថ្នាក់មុននឹងបញ្ជូនសិស្ស។</p>
+                  <button 
+                    class="btn btn-sm btn-primary mt-2" 
+                    @click="handleCloneClasses"
+                    :disabled="cloningClasses"
+                  >
+                    {{ cloningClasses ? 'កំពុងចម្លង...' : 'ចម្លងរចនាសម្ព័ន្ធថ្នាក់ពីឆ្នាំចាស់' }}
+                  </button>
+                </div>
+              </div>
+
+              <p v-if="targetYearId && targetClassesCount > 0 && rollupStudentCount === 0" class="form-hint mt-2">
+                សិស្សថ្នាក់ទី១ នឹងទៅថ្នាក់ទី២, ថ្នាក់ទី៥ ទៅថ្នាក់ទី៦ និងថ្នាក់ទី៦ នឹងត្រូវបញ្ចប់ការសិក្សា។
+              </p>
+            </div>
+
+            <!-- Rollup Results Summary -->
+            <div v-else class="rollup-results">
+              <div class="result-header">
+                <CheckCircleIcon class="w-12 h-12 text-green-500" />
+                <h3>ការបញ្ជូនសិស្សបានសម្រេច!</h3>
+              </div>
+              
+              <div class="stats-grid mt-4">
+                <div class="stat-box">
+                  <span class="stat-label">សិស្សឡើងថ្នាក់</span>
+                  <span class="stat-value text-primary-600">{{ rollupSummary.total_promoted }}</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label">សិស្សបញ្ចប់ការសិក្សា</span>
+                  <span class="stat-value text-green-600">{{ rollupSummary.total_graduated }}</span>
+                </div>
+              </div>
+
+              <div class="details-list mt-6">
+                <h4 class="details-title">សេចក្តីលម្អិតតាមកម្រិតថ្នាក់៖</h4>
+                <div class="table-mini-wrapper">
+                  <table class="table-mini">
+                    <thead>
+                      <tr>
+                        <th>ថ្នាក់ទី</th>
+                        <th>សកម្មភាព</th>
+                        <th>ចំនួនសិស្ស</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="item in rollupSummary.details" :key="item.grade">
+                        <td>ថ្នាក់ទី {{ item.grade }}</td>
+                        <td>
+                          <span class="badge" :class="item.action === 'skipped' ? 'badge-red' : 'badge-gray'">
+                            {{ 
+                              item.action === 'paired' ? 'ឡើងថ្នាក់ (ស្មើគ្នា)' : 
+                              item.action === 'merged' ? 'ឡើងថ្នាក់ (បញ្ចូលគ្នា)' :
+                              item.action === 'merged_mismatch' ? 'ឡើងថ្នាក់ (បញ្ចូលគ្នា - ចំនួនមិនស្មើ)' :
+                              item.action === 'graduated' ? 'បញ្ចប់ការសិក្សា' :
+                              'មិនមានថ្នាក់គោលដៅ'
+                            }}
+                          </span>
+                        </td>
+                        <td class="text-right font-bold">
+                          {{ item.students_moved || item.students_graduated || 0 }} នាក់
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button v-if="!rollupSummary" class="btn btn-ghost" @click="showRollupModal = false" :disabled="rollingUp">បោះបង់</button>
+            <button 
+              v-if="!rollupSummary" 
+              class="btn btn-primary" 
+              @click="executeRollup" 
+              :disabled="!targetYearId || rollingUp || targetClassesCount === 0"
+            >
+              <ArrowPathRoundedSquareIcon v-if="!rollingUp" class="w-4 h-4 mr-2" />
+              {{ rollingUp ? 'កំពុងបញ្ជូន...' : 'បញ្ជូនសិស្សឥឡូវនេះ' }}
+            </button>
+            <button v-else class="btn btn-primary" @click="showRollupModal = false">យល់ព្រម</button>
+          </div>
+        </template>
       </div>
     </div>
   </div>
