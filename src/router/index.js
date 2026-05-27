@@ -78,6 +78,8 @@ const router = createRouter({
         { path: 'library',         name: 'admin-library',         component: () => import('@/views/admin/LibraryView.vue') },
         { path: 'users',           name: 'admin-users',           component: () => import('@/views/admin/UsersView.vue') },
         { path: 'reports',         name: 'admin-reports',         component: () => import('@/views/admin/ReportsView.vue') },
+        // {path: 'honor-board', name: 'admin-honor-board', component: () => import('@/views/admin/Honorboard.vue')},
+        {path: 'honor-board-editor', name: 'admin-honor-board-editor', component: () => import('@/views/admin/Honorboardeditor.vue')},
       ],
     },
 

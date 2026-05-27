@@ -5,7 +5,9 @@ import { useAcademicYearStore } from '@/stores/academicYear'
 import { computeMonthlyAverage, computeSemesterAverage, computeRank } from '@/utils/scoreCalculator'
 import { generateMonthlyScorePDF, generateSemesterScorePDF } from '@/utils/exportPdf'
 import { BuildingOfficeIcon, DocumentIcon } from '@heroicons/vue/24/outline'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const yearStore = useAcademicYearStore()
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -288,6 +290,10 @@ async function handleExport() {
   }
 }
 
+function handleNavigateToHonorBoard() {
+  router.push({ name: 'admin-honor-board-editor' })
+}
+
 // ─── Watchers ─────────────────────────────────────────────────────────────────
 watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
 </script>
@@ -301,6 +307,17 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
         <h1 class="page-title">របាយការណ៍ពិន្ទុ</h1>
         <p class="page-subtitle">មើល និងទាញយកទិន្នន័យលទ្ធផលសិស្ស</p>
       </div>
+      <button
+        class="btn btn-secondary"
+        @click="handleNavigateToHonorBoard"
+        :disabled="loading || exporting || rankedList.length === 0"
+      >
+        
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        ទាញយកតារាងកិត្តិយស
+      </button>
       <button
         class="btn btn-secondary"
         @click="handleExport"
