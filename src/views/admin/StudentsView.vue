@@ -27,6 +27,75 @@ const isEdit = ref(false);
 const deleteTarget = ref(null);
 const toast = ref(null);
 
+const selectedStudents = ref([]);
+const bulkClassId = ref("");
+const savingBulk = ref(false);
+const showBulkDeleteModal = ref(false);
+const deletingBulk = ref(false);
+
+const isPartiallySelected = computed(() => {
+  if (selectedStudents.value.length === 0) return false;
+  return selectedStudents.value.length < filtered.value.length && !isAllSelected.value;
+});
+
+const isAllSelected = computed(() => {
+  if (filtered.value.length === 0) return false;
+  return filtered.value.every((s) => selectedStudents.value.includes(s.id));
+});
+
+function toggleSelectAll(e) {
+  if (e.target.checked) {
+    selectedStudents.value = filtered.value.map((s) => s.id);
+  } else {
+    selectedStudents.value = [];
+  }
+}
+
+function confirmBulkDelete() {
+  showBulkDeleteModal.value = true;
+}
+
+async function doBulkDelete() {
+  if (selectedStudents.value.length === 0) return;
+  deletingBulk.value = true;
+  const { error } = await supabase
+    .from("students")
+    .delete()
+    .in("id", selectedStudents.value);
+  deletingBulk.value = false;
+  showBulkDeleteModal.value = false;
+  if (error) {
+    showToast(error.message, "error");
+    return;
+  }
+  showToast(`បានលុបសិស្សចំនួន ${selectedStudents.value.length} នាក់!`, "success");
+  selectedStudents.value = [];
+  loadStudents();
+}
+
+async function applyBulkClass() {
+  if (selectedStudents.value.length === 0 || !bulkClassId.value) return;
+  savingBulk.value = true;
+  
+  const targetClassId = bulkClassId.value === "none" ? null : bulkClassId.value;
+  
+  const { error } = await supabase
+    .from("students")
+    .update({ class_id: targetClassId })
+    .in("id", selectedStudents.value);
+    
+  savingBulk.value = false;
+  if (error) {
+    showToast(error.message, "error");
+    return;
+  }
+  
+  showToast(`បានផ្លាស់ប្តូរថ្នាក់សិស្សចំនួន ${selectedStudents.value.length} នាក់!`, "success");
+  selectedStudents.value = [];
+  bulkClassId.value = "";
+  loadStudents();
+}
+
 // ── Import state ──────────────────────────────────────────────────────────────
 const showImportModal = ref(false);
 const importClass = ref("");
@@ -80,6 +149,7 @@ onMounted(async () => {
 
 async function loadStudents() {
   loading.value = true;
+  selectedStudents.value = []; // Reset bulk selection
   const { data } = await supabase
     .from("students")
     .select("*, classes(class_name)")
@@ -452,6 +522,38 @@ async function doImport() {
       </select>
     </div>
 
+    <!-- Bulk Actions Bar -->
+    <div v-if="selectedStudents.length > 0" class="bulk-actions-bar animate-fade-in">
+      <div class="bulk-info">
+        <input
+          type="checkbox"
+          :checked="isAllSelected"
+          :indeterminate="isPartiallySelected"
+          @change="toggleSelectAll"
+          style="width: 16px; height: 16px; margin-right: 8px; cursor: pointer;"
+        />
+        បានជ្រើសរើស <strong>{{ selectedStudents.length }}</strong> នាក់
+      </div>
+      <div class="bulk-buttons">
+        <select class="form-select bulk-select" v-model="bulkClassId">
+          <option value="">— ផ្លាស់ប្តូរថ្នាក់រៀនជាក្រុម —</option>
+          <option v-for="c in classes" :key="c.id" :value="c.id">
+            {{ c.class_name }}
+          </option>
+          <option value="none">— ដកចេញពីថ្នាក់ —</option>
+        </select>
+        <button class="btn btn-primary btn-sm" :disabled="!bulkClassId || savingBulk" @click="applyBulkClass">
+          {{ savingBulk ? "កំពុងប្តូរ..." : "យល់ព្រមប្តូរថ្នាក់" }}
+        </button>
+        <button class="btn btn-danger btn-sm" @click="confirmBulkDelete">
+          លុបចោលជាក្រុម
+        </button>
+        <button class="btn btn-ghost btn-sm" @click="selectedStudents = []">
+          បោះបង់
+        </button>
+      </div>
+    </div>
+
     <!-- Student table -->
     <div class="card">
       <div v-if="loading" class="card-body">
@@ -472,6 +574,15 @@ async function doImport() {
         <table>
           <thead>
             <tr>
+              <th style="width: 40px; text-align: center;">
+                <input
+                  type="checkbox"
+                  :checked="isAllSelected"
+                  :indeterminate="isPartiallySelected"
+                  @change="toggleSelectAll"
+                  style="width: 16px; height: 16px; cursor: pointer; vertical-align: middle;"
+                />
+              </th>
               <th>សិស្ស</th>
               <th>អត្តលេខ</th>
               <th>ភេទ</th>
@@ -486,8 +597,17 @@ async function doImport() {
               v-for="s in filtered"
               :key="s.id"
               style="cursor: pointer"
+              :class="{ 'row-selected': selectedStudents.includes(s.id) }"
               @click="router.push('/admin/students/' + s.id)"
             >
+              <td @click.stop style="text-align: center; width: 40px;">
+                <input
+                  type="checkbox"
+                  v-model="selectedStudents"
+                  :value="s.id"
+                  style="width: 16px; height: 16px; cursor: pointer; vertical-align: middle;"
+                />
+              </td>
               <td @click.stop>
                 <div style="display: flex; align-items: center; gap: 10px">
                   <div class="avatar">{{ initials(s.full_name) }}</div>
@@ -784,6 +904,35 @@ async function doImport() {
             បោះបង់
           </button>
           <button class="btn btn-danger" @click="doDelete">យល់ព្រមលុប</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Bulk Delete confirm modal ───────────────────────────────────────────── -->
+    <div
+      v-if="showBulkDeleteModal"
+      class="modal-overlay"
+      @click.self="showBulkDeleteModal = false"
+    >
+      <div class="modal" style="max-width: 380px">
+        <div class="modal-body" style="text-align: center; padding: 32px 24px">
+          <TrashIcon
+            class="w-10 h-10 text-red-500"
+            style="margin: 0 auto 12px"
+          />
+          <h3 style="margin-bottom: 8px">លុបសិស្សជាក្រុម?</h3>
+          <p style="color: var(--text-secondary); font-size: 13px">
+            អ្នកពិតជាចង់លុបសិស្សដែលបានជ្រើសរើសទាំង <strong>{{ selectedStudents.length }}</strong> នាក់នេះមែនទេ?
+            រាល់ទិន្នន័យពាក់ព័ន្ធទាំងអស់នឹងត្រូវលុបចេញពីប្រព័ន្ធជាអចិន្ត្រៃយ៍។
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" @click="showBulkDeleteModal = false">
+            បោះបង់
+          </button>
+          <button class="btn btn-danger" @click="doBulkDelete" :disabled="deletingBulk">
+            {{ deletingBulk ? "កំពុងលុប..." : "យល់ព្រមលុបទាំងអស់" }}
+          </button>
         </div>
       </div>
     </div>
@@ -1141,5 +1290,43 @@ async function doImport() {
   background: #f0fdf4;
   border: 1px solid #86efac;
   color: #166534;
+}
+
+/* ── Bulk actions bar ─────────────────────────────────────────────────────── */
+.bulk-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-info);
+  border: 1px solid var(--border-info);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.bulk-info {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--color-info);
+}
+.bulk-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.bulk-select {
+  width: auto;
+  min-width: 180px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.row-selected td {
+  background: var(--bg-info) !important;
+}
+.row-selected:hover td {
+  background: color-mix(in srgb, var(--primary-50) 80%, white) !important;
 }
 </style>
