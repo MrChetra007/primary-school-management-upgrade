@@ -207,7 +207,7 @@ watch(selectedLinkId, onLinkSelected)
               <td style="text-align:center;">{{ idx + 1 }}</td>
               <td>
                 <div style="display:flex; align-items:center; gap:10px;">
-                  <div class="mini-avatar" :style="{ background: item.gender === 'female' ? '#ec4899' : 'var(--primary-color)' }">
+                  <div class="mini-avatar" :style="{ background: item.gender === 'female' ? '#ec4899' : '#3b82f6' }">
                     {{ (item.full_name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??' }}
                   </div>
                   <span style="font-weight:600;">{{ item.full_name }}</span>
