@@ -267,8 +267,8 @@ async function handleExport() {
   exporting.value = true
 
   const metadata = {
-    schoolName:   'សាលារបប់សិក្សា ស្ពាយជាតិ',
-    districtName: 'ស្ពាយជាតិ',
+    schoolName:   '.........................',
+    districtName: '.........................',
     className:    classes.value.find(c => c.id === selectedClassId.value)?.class_name || '',
     year:         yearStore.selectedYearName
   }

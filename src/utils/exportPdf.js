@@ -29,7 +29,7 @@ function fmtAvg(val) {
 
 function buildRankingHtml({ rankedList, metadata, mode, filename }) {
   const {
-    schoolName   = 'សាលារបប់សិក្សា',
+    schoolName   = 'សាលាបឋមសិក្សា',
     districtName = '',
     className    = '',
     year         = '',
@@ -188,10 +188,10 @@ function buildRankingHtml({ rankedList, metadata, mode, filename }) {
 
     /* ── Signature block ── */
     .sig-block      { display: table; width: 100%; margin-top: 14px; }
-    .sig-col        { display: table-cell; width: 50%; vertical-align: top; font-size: 13px; line-height: 1.9; }
-    .sig-head       { font-weight: 700; text-align: center; font-size: 11px; margin-bottom: 2px; }
+    .sig-col        { display: table-cell; width: 50%; vertical-align: top; font-size: 14px; line-height: 1.9; }
+    .sig-head       { font-weight: 700; text-align: center; font-size: 12px; margin-bottom: 2px; }
     .sig-sub        { color: #222; }
-    .teacher-label  { text-align: center; font-weight: 700; font-size: 11.5px; margin-top: 6px; }
+    .teacher-label  { text-align: center; font-weight: 700; font-size: 13px; margin-top: 6px; }
 
     /* ── Print ── */
     @media print {
@@ -219,7 +219,7 @@ function buildRankingHtml({ rankedList, metadata, mode, filename }) {
 
   <!-- School Info -->
   <div class="meta">
-    <div><span class="label">កម្រងសាលារបប់សិក្សា</span> ${districtName}</div>
+    <div><span class="label">កម្រងសាលារបប់សិក្សា</span>...................</div>
     <div><span class="label">សាលារបប់សិក្សា</span> ${schoolName}</div>
     <div><span class="label">${className}</span></div>
   </div>
