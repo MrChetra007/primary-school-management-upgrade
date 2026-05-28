@@ -27,10 +27,10 @@ const maxTemplates = computed(() =>
 )
 
 function templateSrc(index) {
-  const base = scoreMode.value === 'monthly'
-    ? `/src/assets/honorboard-templates/template${index}.jpg`
-    : `/src/assets/honorboard-templates/template_semester${index}.jpg`
-  return base
+  const name = scoreMode.value === 'monthly'
+    ? `template${index}`
+    : `template_semester${index}`
+  return new URL(`../../assets/honorboard-templates/${name}.jpg`, import.meta.url).href
 }
 
 const activeTemplateSrc = computed(() => templateSrc(selectedTemplateIndex.value))
