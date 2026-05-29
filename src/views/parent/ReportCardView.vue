@@ -199,8 +199,14 @@ function showToast(msg, type = 'success') {
   setTimeout(() => { toast.value = null }, 3000)
 }
 
+const assetImages = import.meta.glob('../../assets/*.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
+
 function getImageUrl(name) {
-  return new URL(`../../assets/${name}.png`, import.meta.url).href
+  return assetImages[`../../assets/${name}.png`] || ''
 }
 
 function toKhmerNum(num) {
@@ -236,7 +242,7 @@ async function downloadCertificate() {
   }
 
   try {
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true })
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true, allowTaint: true })
     const imgData = canvas.toDataURL('image/png')
     const pdf = new jsPDF('l', 'mm', 'a4')
     const pageWidth = pdf.internal.pageSize.getWidth()
@@ -544,7 +550,7 @@ async function submitParentReply() {
                   :class="{ active: selectedBorder === b.id }"
                   @click="selectedBorder = b.id"
                 >
-                  <img :src="getImageUrl(b.id)" class="border-thumb" />
+                  <img :src="getImageUrl(b.id)" class="border-thumb" crossorigin="anonymous" />
                   <span>{{ b.name }}</span>
                 </div>
               </div>
@@ -563,15 +569,15 @@ async function submitParentReply() {
             <!-- Preview -->
             <div class="cert-preview-wrap">
               <div ref="certificateRef" class="certificate-preview">
-                <img :src="getImageUrl(selectedBorder)" class="cert-border" />
+                <img :src="getImageUrl(selectedBorder)" class="cert-border" crossorigin="anonymous" />
                 <div class="cert-watermark">
-                  <img :src="getImageUrl('watermark')" />
+                  <img :src="getImageUrl('watermark')" crossorigin="anonymous" />
                 </div>
                 <div class="cert-content">
                   <div class="cert-header">
                     <div class="cert-header-left">
                       <div class="cert-logo">
-                        <img :src="getImageUrl('logo')" />
+                        <img :src="getImageUrl('logo')" crossorigin="anonymous" />
                       </div>
                       <div class="cert-header-text">
                         <p class="font-muol">ក្រសួងអប់រំ យុវជន និងកីឡា</p>

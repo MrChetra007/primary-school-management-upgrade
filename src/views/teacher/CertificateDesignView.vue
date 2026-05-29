@@ -32,8 +32,14 @@ const borders = [
   { id: 'border4', name: 'ម៉ូតទី ៤' }
 ]
 
+const assetImages = import.meta.glob('../../assets/*.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
+
 function getImageUrl(name) {
-  return new URL(`../../assets/${name}.png`, import.meta.url).href
+  return assetImages[`../../assets/${name}.png`] || ''
 }
 
 const mode = route.query.mode || 'monthly'
@@ -134,7 +140,7 @@ async function downloadCertificates() {
     const element = certificateRefs.value[i]
     if (!element) continue
 
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true })
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true, allowTaint: true })
     const imgData = canvas.toDataURL('image/png')
     
     if (i > 0) pdf.addPage('l', 'mm', 'a4')
@@ -211,7 +217,7 @@ const contextName = computed(() => {
                 :class="{ active: selectedBorder === b.id }"
                 @click="selectedBorder = b.id"
               >
-                <img :src="getImageUrl(b.id)" class="border-preview-img" />
+                <img :src="getImageUrl(b.id)" class="border-preview-img" crossorigin="anonymous" />
                 <span>{{ b.name }}</span>
               </div>
             </div>
@@ -242,11 +248,11 @@ const contextName = computed(() => {
             :ref="el => certificateRefs[idx] = el"
           >
             <!-- Border Background -->
-            <img :src="getImageUrl(selectedBorder)" class="cert-border" alt="border" />
+            <img :src="getImageUrl(selectedBorder)" class="cert-border" alt="border" crossorigin="anonymous" />
             
             <!-- Watermark -->
             <div class="cert-watermark">
-              <img :src="getImageUrl('watermark')" alt="watermark" />
+              <img :src="getImageUrl('watermark')" alt="watermark" crossorigin="anonymous" />
             </div>
 
             <!-- Content -->
@@ -255,7 +261,7 @@ const contextName = computed(() => {
               <div class="cert-header">
                 <div class="header-left">
                   <div class="moey-logo-small">
-                    <img :src="getImageUrl('logo')" alt="logo" />
+                    <img :src="getImageUrl('logo')" alt="logo" crossorigin="anonymous" />
                   </div>
                   <div class="header-text-left">
                     <p class="font-muol">ក្រសួងអប់រំ យុវជន និងកីឡា</p>
