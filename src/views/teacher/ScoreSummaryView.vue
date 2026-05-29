@@ -76,7 +76,7 @@ async function loadData() {
     .from('scores')
     .select('*')
     .eq('student_id', studentId)
-    .eq('academic_year_id', academicYearStore.academicYearId)
+    .eq('academic_year_id', academicYearStore.selectedYearId)
 
   if (mode.value === 'monthly') {
     query = query.eq('month', month.value).eq('score_type', 'monthly')
