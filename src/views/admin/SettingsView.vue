@@ -227,14 +227,13 @@ async function loadSemesterConfig() {
     .select('*')
     .eq('academic_year_id', yearStore.selectedYearId)
     .order('semester')
-  if (data && data.length === 0) {
-    semesterList.value = [
-      { semester: 1, months: [12, 1, 2], exam_month: 3 },
-      { semester: 2, months: [5, 6, 7], exam_month: 8 }
-    ]
-  } else {
-    semesterList.value = data.map(s => ({ ...s, months: s.months || [] }))
+  const defaults = {
+    1: { semester: 1, months: [12, 1, 2], exam_month: 3 },
+    2: { semester: 2, months: [5, 6, 7], exam_month: 8 }
   }
+  const fromDb = {}
+  ;(data || []).forEach(s => { fromDb[s.semester] = { ...s, months: s.months || [] } })
+  semesterList.value = [1, 2].map(sem => fromDb[sem] || { ...defaults[sem] })
   loading.value = false
 }
 

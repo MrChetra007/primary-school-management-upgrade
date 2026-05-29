@@ -62,20 +62,21 @@ async function fetchSemesterConfig() {
     .select('*')
     .eq('academic_year_id', yearStore.selectedYearId)
     .order('semester')
-  semesterConfigs.value = data || []
+  const defaults = {
+    1: { semester: 1, months: [1, 2, 3], exam_month: 3 },
+    2: { semester: 2, months: [4, 5, 6], exam_month: 8 }
+  }
+  const fromDb = {}
+  ;(data || []).forEach(s => { fromDb[s.semester] = { ...s, months: s.months || [] } })
+  semesterConfigs.value = [1, 2].map(sem => fromDb[sem] || { ...defaults[sem] })
 }
 
 const semesterMonths = computed(() => {
   const cfg = semesterConfigs.value.find(s => s.semester === selectedSemester.value)
-  return cfg?.months || []
+  return cfg?.months || (selectedSemester.value === 1 ? [1, 2, 3] : [4, 5, 6])
 })
 
-const semesterOptions = computed(() =>
-  semesterConfigs.value.map(cfg => ({
-    semester: cfg.semester,
-    label: `ឆមាសទី${cfg.semester} (ខែ ${cfg.months.join(', ')})`
-  }))
-)
+
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(async () => {
@@ -139,12 +140,6 @@ async function fetchData() {
     rawScores.value = data || []
     buildMonthlyMatrix()
   } else {
-    if (semesterMonths.value.length === 0) {
-      scoreMatrix.value = []
-      rankedList.value  = []
-      loading.value     = false
-      return
-    }
     const [examRes, monthRes] = await Promise.all([
       supabase.from('scores').select('*')
         .in('student_id', studentIds)
@@ -407,8 +402,9 @@ watch(() => yearStore.selectedYearId, async () => {
         <div v-else class="form-group">
           <label class="form-label">ឆមាស</label>
           <select class="form-select" v-model="selectedSemester">
-            <option value="" disabled>ជ្រើសរើសឆមាស</option>
-            <option v-for="opt in semesterOptions" :key="opt.semester" :value="opt.semester">{{ opt.label }}</option>
+            <option v-for="cfg in semesterConfigs" :key="cfg.semester" :value="cfg.semester">
+              ឆមាសទី{{ cfg.semester }} ({{ cfg.months.map(m => months.find(mm => mm.id === m)?.name).join(', ') }})
+            </option>
           </select>
         </div>
       </div>
