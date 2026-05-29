@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useAcademicYearStore } from '@/stores/academicYear'
@@ -26,8 +26,8 @@ const subjects = ref([])
 const scores = ref([])
 const loading = ref(true)
 const mode = ref(route.query.mode || 'monthly')
-const month = ref(Number(route.query.month))
-const semester = ref(Number(route.query.semester))
+const month = ref(Number(route.query.month) || new Date().getMonth() + 1)
+const semester = ref(Number(route.query.semester) || 1)
 
 const chartData = ref(null)
 const chartOptions = ref(null)
@@ -41,6 +41,10 @@ const months = [
 
 onMounted(async () => {
   await loadData()
+})
+
+watch([mode, month, semester], () => {
+  loadData()
 })
 
 async function loadData() {
@@ -159,9 +163,18 @@ function initials(name) {
           <p class="page-subtitle" v-if="student">
             <strong>{{ student.full_name }}</strong>
             — ថ្នាក់ {{ student.classes?.class_name }}
-            — {{ mode === 'monthly' ? months.find(m => m.id === month.value)?.name : 'ឆមាសទី' + semester.value }}
           </p>
         </div>
+      </div>
+      <div class="page-filters" v-if="student">
+        <span class="filter-label">{{ mode === 'monthly' ? 'ខែ៖' : 'ឆមាស៖' }}</span>
+        <select v-if="mode === 'monthly'" class="form-select" v-model="month" style="width:140px;">
+          <option v-for="m in months" :key="m.id" :value="m.id">{{ m.name }}</option>
+        </select>
+        <select v-else class="form-select" v-model="semester" style="width:140px;">
+          <option :value="1">ឆមាសទី១</option>
+          <option :value="2">ឆមាសទី២</option>
+        </select>
       </div>
     </div>
 
@@ -186,7 +199,7 @@ function initials(name) {
         </div>
         <div class="context-badge">
           {{ mode === 'monthly' ? 'ប្រចាំខែ' : 'ឆមាស' }} —
-          {{ mode === 'monthly' ? months.find(m => m.id === month.value)?.name : 'ទី១' }}
+          {{ mode === 'monthly' ? months.find(m => m.id === month.value)?.name : 'ទី' + semester.value }}
         </div>
       </div>
 
@@ -343,5 +356,18 @@ function initials(name) {
 .score-fail {
   background: #fef2f2;
   color: #dc2626;
+}
+
+.page-filters {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.filter-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  white-space: nowrap;
 }
 </style>

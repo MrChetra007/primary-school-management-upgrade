@@ -118,8 +118,7 @@ function calculateAll() {
     row.average = computeMonthlyAverage(scoresArray)
   })
 
-  const ranked = computeRank(scoreMatrix.value)
-  scoreMatrix.value = ranked.sort((a, b) => a.full_name.localeCompare(b.full_name))
+  computeRank(scoreMatrix.value)
 }
 
 async function saveAll() {

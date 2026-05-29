@@ -156,8 +156,6 @@ function calculateAll() {
     const match = ranked.find(r => r.student_id === row.student_id)
     row.rank = match?.rank ?? 0
   })
-
-  scoreMatrix.value.sort((a, b) => a.full_name.localeCompare(b.full_name))
 }
 
 async function saveAll() {
