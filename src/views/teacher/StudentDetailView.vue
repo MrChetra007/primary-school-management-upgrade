@@ -282,21 +282,26 @@ function initials(name) {
         </div>
 
         <!-- Scores Tab -->
-        <div v-if="activeTab === 'scores'" class="table-wrapper">
-          <table>
-            <thead><tr><th>មុខវិជ្ជា</th><th>ខែ</th><th>ប្រភេទ</th><th>ពិន្ទុ</th></tr></thead>
-            <tbody>
-              <tr v-for="s in scores" :key="s.id">
-                <td style="font-weight:600;">{{ s.subjects?.subject_name }}</td>
-                <td>{{ s.month ? new Date(0, s.month-1).toLocaleString('default', { month: 'long' }) : '—' }}</td>
-                <td><span class="badge badge-gray">{{ s.score_type === 'monthly' ? 'ប្រចាំខែ' : 'ឆមាស' }}</span></td>
-                <td><span class="badge" :class="s.score >= 50 ? 'badge-green' : 'badge-red'">{{ s.score }}</span></td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-if="activeTab === 'scores'">
+          <div class="scores-tab-header">
+            <h3>បញ្ជីពិន្ទុ</h3>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-secondary btn-sm" @click="router.push(`/teacher/scores/summary/${studentId}?mode=monthly`)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                ប្រចាំខែ
+              </button>
+              <button class="btn btn-secondary btn-sm" @click="router.push(`/teacher/scores/summary/${studentId}?mode=semester`)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.2 2 6 2s6-.9 6-2v-5"/>
+                </svg>
+                ឆមាស
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
     <!-- Modals -->
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
@@ -353,6 +358,7 @@ function initials(name) {
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>
@@ -375,4 +381,18 @@ function initials(name) {
 .text-danger { color: #ef4444 !important; }
 .btn-xs { padding: 4px 8px; font-size: 11px; }
 .badge-xs { padding: 2px 6px; font-size: 10px; }
+
+.scores-tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.scores-tab-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
+}
 </style>

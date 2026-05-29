@@ -11,7 +11,6 @@ import {
   CalendarIcon, 
   StarIcon,
   ChevronLeftIcon,
-  EyeIcon,
   AcademicCapIcon,
   CheckIcon,
   XCircleIcon
@@ -584,7 +583,6 @@ function toKhmerNum(num) {
                 <th style="text-align:center; width:150px;">មធ្យមភាគ</th>
                 <th style="text-align:center; width:80px;">កម្រិត</th>
                 <th style="text-align:center; width:100px; color:var(--danger-color);">ចំណាត់ថ្នាក់</th>
-                <th style="text-align:center; width:100px;" class="no-print">សកម្មភាព</th>
               </tr>
             </thead>
             <tbody>
@@ -618,11 +616,6 @@ function toKhmerNum(num) {
                 </td>
                 <td style="text-align:center;">
                   <div class="rank-circle" :class="'rank-' + student.rank">{{ toKhmerNum(student.rank) }}</div>
-                </td>
-                <td style="text-align:center;" class="no-print">
-                  <button class="btn btn-ghost btn-sm" @click="router.push(`/teacher/scores/summary/${student.id}?mode=${mode}&month=${selectedMonth}&semester=${selectedSemester}`)">
-                    <EyeIcon class="w-4 h-4" />
-                  </button>
                 </td>
               </tr>
             </tbody>
