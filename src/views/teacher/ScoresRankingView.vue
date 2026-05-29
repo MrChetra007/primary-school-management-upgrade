@@ -377,12 +377,12 @@ function toKhmerNum(num) {
         <div>
           <h1 class="page-title">ចំណាត់ថ្នាក់សិស្ស</h1>
           <p class="page-subtitle" v-if="classInfo">
-            ថ្នាក់ <strong>{{ classInfo.class_name }}</strong> — {{ classInfo.academic_years?.year_name }}
+           <strong>{{ classInfo.class_name }}</strong> {{ classInfo.academic_years?.year_name }}
           </p>
         </div>
       </div>
       
-      <div style="display:flex; gap:12px; align-items:center;">
+      <div class="page-actions">
         <div v-if="!route.query.mode" class="mode-toggle">
           <button 
             class="toggle-btn" 
@@ -399,54 +399,45 @@ function toKhmerNum(num) {
             ឆមាស
           </button>
         </div>
-        <div v-else style="background:var(--primary-700); color:white; padding:6px 16px; border-radius:20px; font-size:12px; font-weight:700;">
+        <div v-else style="background:var(--primary-700); color:white; padding:6px 16px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">
           {{ mode === 'monthly' ? 'របាយការណ៍ប្រចាំខែ' : 'របាយការណ៍ឆមាស' }}
         </div>
         <button 
           v-if="classInfo"
-          class="btn btn-secondary" 
+          class="btn btn-secondary btn-action" 
           @click="generateReportLink"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
           </svg>
-          បង្កើតតំណភ្ជាប់របាយការណ៍
+          <span class="btn-label">បង្កើតតំណភ្ជាប់</span>
         </button>
-        <button 
-          v-if="classInfo"
-          class="btn btn-secondary" 
-          @click="router.push('/teacher/scores/report-replies')"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          មើលការឆ្លើយតប
-        </button>
+
         <button 
           v-if="rankedList.length > 0"
-          class="btn btn-secondary" 
+          class="btn btn-secondary btn-action" 
           @click="router.push(`/teacher/scores/certificates?mode=${mode}&month=${selectedMonth}&semester=${selectedSemester}`)"
         >
-          <AcademicCapIcon class="w-4 h-4 mr-2" />
-          បង្កើតលិខិតសរសើរ (Top 5)
+          <AcademicCapIcon class="w-4 h-4" />
+          <span class="btn-label">លិខិតសរសើរ</span>
         </button>
         <button
-          class="btn btn-secondary"
+          class="btn btn-secondary btn-action"
           @click="handleNavigateToHonorBoard"
           :disabled="loading || exporting || rankedList.length === 0"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
           </svg>
-          ទាញយកតារាងកិត្តិយស
+          <span class="btn-label">តារាងកិត្តិយស</span>
         </button>
-        <button class="btn btn-primary" @click="handleExport" :disabled="loading || exporting || rankedList.length === 0">
+        <button class="btn btn-primary btn-action" @click="handleExport" :disabled="loading || exporting || rankedList.length === 0">
           <span v-if="exporting" class="spinner" />
           <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
           </svg>
-          {{ exporting ? 'កំពុងបង្កើត...' : 'ទាញយក PDF' }}
+          <span class="btn-label">{{ exporting ? 'កំពុងបង្កើត...' : 'ទាញយក PDF' }}</span>
         </button>
       </div>
     </div>
@@ -888,5 +879,29 @@ function toKhmerNum(num) {
 @media (max-width: 768px) {
   .grade-grid { grid-template-columns: repeat(3, 1fr); }
   .tiles-row { grid-template-columns: 1fr; }
+}
+
+.page-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-action .btn-label {
+  display: inline;
+}
+
+@media (max-width: 900px) {
+  .page-actions {
+    gap: 6px;
+  }
+  .btn-action {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .btn-action .btn-label {
+    display: none;
+  }
 }
 </style>

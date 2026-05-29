@@ -27,6 +27,7 @@ const navItems = [
   { to: '/teacher/scores',       icon: 'M18 20V10M12 20V4M6 20v-6',                                        label: 'ពិន្ទុ' }, // Scores
   { to: '/teacher/holidays',     icon: 'M3 9h18M16 2v4M8 2v4M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', label: 'ថ្ងៃឈប់សម្រាក' }, // Holidays
   { to: '/teacher/reports',      icon: 'M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z', label: 'របាយការណ៍' }, // Reports
+  { to: '/teacher/scores/report-replies', icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z', label: 'ការឆ្លើយតប' }, // Report Replies
   { to: '/teacher/attendance/my', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', label: 'វត្តមានរបស់ខ្ញុំ' }, // My Attendance
 ]
 
