@@ -43,9 +43,29 @@ const months = [
   { id: 10, name: 'តុលា' }, { id: 11, name: 'វិច្ឆិកា' }, { id: 12, name: 'ធ្នូ' }
 ]
 
+const semesterConfigs = ref([])
+
+async function fetchSemesterConfig() {
+  if (!classInfo.value) { semesterConfigs.value = []; return }
+  const { data } = await supabase
+    .from('semester_config')
+    .select('*')
+    .eq('academic_year_id', classInfo.value.academic_year_id)
+    .order('semester')
+  semesterConfigs.value = data || []
+}
+
 const semesterMonths = computed(() => {
-  return selectedSemester.value === 1 ? [1, 2, 3] : [4, 5, 6]
+  const cfg = semesterConfigs.value.find(s => s.semester === selectedSemester.value)
+  return cfg?.months || []
 })
+
+const semesterOptions = computed(() =>
+  semesterConfigs.value.map(cfg => ({
+    semester: cfg.semester,
+    label: `ឆមាសទី${cfg.semester} (ខែ ${cfg.months.join(', ')})`
+  }))
+)
 
 onMounted(async () => {
   if (auth.teacherProfile) {
@@ -78,6 +98,8 @@ async function loadData() {
       .select('subjects(*)')
       .eq('class_id', classData.id)
     subjects.value = subData?.map(s => s.subjects) || []
+
+    await fetchSemesterConfig()
 
     // 2. Get Students
     const { data: stuData } = await supabase
@@ -132,6 +154,11 @@ async function fetchData() {
     rawScores.value = data || []
     calculateMonthlyRanking()
   } else {
+    if (semesterMonths.value.length === 0) {
+      rankedList.value = []
+      loading.value = false
+      return
+    }
     const [examRes, monthRes] = await Promise.all([
       supabase.from('scores').select('*').in('student_id', studentIds).eq('semester', selectedSemester.value).eq('score_type', 'semester'),
       supabase.from('scores').select('*').in('student_id', studentIds).in('month', semesterMonths.value).eq('score_type', 'monthly')
@@ -453,8 +480,8 @@ function toKhmerNum(num) {
         <div v-else class="form-group" style="width:240px;">
           <label class="form-label">ជ្រើសរើសឆមាស</label>
           <select class="form-select" v-model="selectedSemester">
-            <option :value="1">ឆមាសទី១ (ខែ ១-៣)</option>
-            <option :value="2">ឆមាសទី២ (ខែ ៤-៦)</option>
+            <option value="" disabled>ជ្រើសរើសឆមាស</option>
+            <option v-for="opt in semesterOptions" :key="opt.semester" :value="opt.semester">{{ opt.label }}</option>
           </select>
         </div>
         <div class="stat-info">

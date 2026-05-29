@@ -16,14 +16,40 @@ const loading = ref(true)
 const saving = ref(false)
 const toast = ref(null)
 
+const months = [
+  { id: 1, name: 'មករា' }, { id: 2, name: 'កុម្ភៈ' }, { id: 3, name: 'មីនា' },
+  { id: 4, name: 'មេសា' }, { id: 5, name: 'ឧសភា' }, { id: 6, name: 'មិថុនា' },
+  { id: 7, name: 'កក្កដា' }, { id: 8, name: 'សីហា' }, { id: 9, name: 'កញ្ញា' },
+  { id: 10, name: 'តុលា' }, { id: 11, name: 'វិច្ឆិកា' }, { id: 12, name: 'ធ្នូ' }
+]
+
 const selectedSemester = ref(1)
-const examScores = ref([]) // Raw semester exam scores from DB
-const monthlyScores = ref([]) // Monthly scores for the semester months
-const scoreMatrix = ref([]) // Transformed data
+const examScores = ref([])
+const monthlyScores = ref([])
+const scoreMatrix = ref([])
+const semesterConfigs = ref([])
+
+async function fetchSemesterConfig() {
+  if (!classInfo.value) { semesterConfigs.value = []; return }
+  const { data } = await supabase
+    .from('semester_config')
+    .select('*')
+    .eq('academic_year_id', classInfo.value.academic_year_id)
+    .order('semester')
+  semesterConfigs.value = data || []
+}
 
 const semesterMonths = computed(() => {
-  return selectedSemester.value === 1 ? [1, 2, 3] : [4, 5, 6]
+  const cfg = semesterConfigs.value.find(s => s.semester === selectedSemester.value)
+  return cfg?.months || []
 })
+
+const semesterOptions = computed(() =>
+  semesterConfigs.value.map(cfg => ({
+    semester: cfg.semester,
+    label: `ឆមាសទី${cfg.semester} (ខែ ${cfg.months.join(', ')})`
+  }))
+)
 
 onMounted(async () => {
   if (auth.teacherProfile) {
@@ -57,6 +83,8 @@ async function loadData() {
       .eq('class_id', classData.id)
     subjects.value = subData?.map(s => s.subjects) || []
 
+    await fetchSemesterConfig()
+
     // 2. Get Students
     const { data: stuData } = await supabase
       .from('students')
@@ -72,6 +100,12 @@ async function loadData() {
 
 async function fetchAllScores() {
   if (!classInfo.value || students.value.length === 0) return
+  if (semesterMonths.value.length === 0) {
+    examScores.value = []
+    monthlyScores.value = []
+    scoreMatrix.value = []
+    return
+  }
   const studentIds = students.value.map(s => s.id)
   const academicYearId = classInfo.value.academic_year_id
 
@@ -247,8 +281,8 @@ watch(selectedSemester, fetchAllScores)
           <div class="form-group" style="width:280px;">
             <label class="form-label">ជ្រើសរើសឆមាស</label>
             <select class="form-select" v-model="selectedSemester">
-              <option :value="1">ឆមាសទី១ (ខែ ១-៣)</option>
-              <option :value="2">ឆមាសទី២ (ខែ ៤-៦)</option>
+              <option value="" disabled>ជ្រើសរើសឆមាស</option>
+              <option v-for="opt in semesterOptions" :key="opt.semester" :value="opt.semester">{{ opt.label }}</option>
             </select>
           </div>
         </div>
@@ -273,7 +307,7 @@ watch(selectedSemester, fetchAllScores)
                 <th rowspan="2" style="min-width:160px; text-align:left;">ឈ្មោះសិស្ស</th>
                 <th :colspan="subjects.length" class="text-center">ពិន្ទុប្រឡងឆមាស</th>
                 <th rowspan="2" class="summary-col">មធ្យមភាគ<br/>ប្រឡង</th>
-                <th colspan="3" class="text-center">មធ្យមភាគប្រចាំខែ</th>
+                <th :colspan="semesterMonths.length || 1" class="text-center">មធ្យមភាគប្រចាំខែ</th>
                 <th rowspan="2" class="summary-col">មធ្យមភាគ<br/>ខែ</th>
                 <th rowspan="2" class="summary-col highlight">មធ្យមភាគ<br/>ឆមាស</th>
                 <th rowspan="2" class="summary-col highlight">លំដាប់</th>
@@ -282,7 +316,7 @@ watch(selectedSemester, fetchAllScores)
                 <th v-for="sub in subjects" :key="sub.id" class="sub-col small">
                   <div class="vertical-text small">{{ sub.subject_name }}</div>
                 </th>
-                <th v-for="m in semesterMonths" :key="m" class="month-col">ខែ {{ m }}</th>
+                <th v-for="m in semesterMonths" :key="m" class="month-col">{{ months.find(mm => mm.id === m)?.name }}</th>
               </tr>
             </thead>
             <tbody>

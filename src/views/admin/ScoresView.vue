@@ -53,14 +53,34 @@ const months = [
   { id: 10, name: 'តុលា' },   { id: 11, name: 'វិច្ឆិកា' }, { id: 12, name: 'ធ្នូ' }
 ]
 
-const semesterMonths = computed(() =>
-  selectedSemester.value === 1 ? [1, 2, 3] : [4, 5, 6]
+const semesterConfigs = ref([])
+
+async function fetchSemesterConfig() {
+  if (!yearStore.selectedYearId) { semesterConfigs.value = []; return }
+  const { data } = await supabase
+    .from('semester_config')
+    .select('*')
+    .eq('academic_year_id', yearStore.selectedYearId)
+    .order('semester')
+  semesterConfigs.value = data || []
+}
+
+const semesterMonths = computed(() => {
+  const cfg = semesterConfigs.value.find(s => s.semester === selectedSemester.value)
+  return cfg?.months || []
+})
+
+const semesterOptions = computed(() =>
+  semesterConfigs.value.map(cfg => ({
+    semester: cfg.semester,
+    label: `ឆមាសទី${cfg.semester} (ខែ ${cfg.months.join(', ')})`
+  }))
 )
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(async () => {
   loading.value = true
-  await Promise.all([fetchClasses(), fetchSubjects()])
+  await Promise.all([fetchClasses(), fetchSubjects(), fetchSemesterConfig()])
   if (classes.value.length > 0) {
     selectedClassId.value = classes.value[0].id
   }
@@ -119,6 +139,12 @@ async function fetchData() {
     rawScores.value = data || []
     buildMonthlyMatrix()
   } else {
+    if (semesterMonths.value.length === 0) {
+      scoreMatrix.value = []
+      rankedList.value  = []
+      loading.value     = false
+      return
+    }
     const [examRes, monthRes] = await Promise.all([
       supabase.from('scores').select('*')
         .in('student_id', studentIds)
@@ -316,6 +342,11 @@ function handleNavigateToHonorBoard() {
 
 // ─── Watchers ─────────────────────────────────────────────────────────────────
 watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
+
+watch(() => yearStore.selectedYearId, async () => {
+  await fetchSemesterConfig()
+  fetchData()
+})
 </script>
 
 <template>
@@ -376,8 +407,8 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
         <div v-else class="form-group">
           <label class="form-label">ឆមាស</label>
           <select class="form-select" v-model="selectedSemester">
-            <option :value="1">ឆមាសទី១ (ខែ ១-៣)</option>
-            <option :value="2">ឆមាសទី២ (ខែ ៤-៦)</option>
+            <option value="" disabled>ជ្រើសរើសឆមាស</option>
+            <option v-for="opt in semesterOptions" :key="opt.semester" :value="opt.semester">{{ opt.label }}</option>
           </select>
         </div>
       </div>
@@ -534,7 +565,7 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
                   <th rowspan="2" style="min-width:150px; text-align:left;">ឈ្មោះសិស្ស</th>
                   <th :colspan="subjects.length">ពិន្ទុប្រឡងឆមាស</th>
                   <th rowspan="2" class="summary-col">មធ្យមភាគ<br/>ប្រឡង</th>
-                  <th colspan="3">មធ្យមភាគប្រចាំខែ</th>
+                  <th :colspan="semesterMonths.length || 1">មធ្យមភាគប្រចាំខែ</th>
                   <th rowspan="2" class="summary-col highlight">មធ្យមភាគ<br/>ឆមាស</th>
                   <th rowspan="2" class="summary-col highlight">លំដាប់</th>
                 </tr>
@@ -542,7 +573,7 @@ watch([selectedClassId, scoreMode, selectedMonth, selectedSemester], fetchData)
                   <th v-for="sub in subjects" :key="sub.id" class="sub-col small">
                     <div class="vertical-text small">{{ sub.subject_name }}</div>
                   </th>
-                  <th v-for="m in semesterMonths" :key="m" class="month-col">ខែ {{ m }}</th>
+                  <th v-for="m in semesterMonths" :key="m" class="month-col">{{ months.find(mm => mm.id === m)?.name || 'ខែ ' + m }}</th>
                 </tr>
               </template>
 

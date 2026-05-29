@@ -22,6 +22,7 @@ const loading = ref(true)
 const classInfo = ref(null)
 const topStudents = ref([])
 const toast = ref(null)
+const semesterConfigs = ref([])
 
 // Certificate Customization
 const selectedBorder = ref('border1')
@@ -98,7 +99,13 @@ async function loadTopStudents() {
           }
         })
       } else {
-        const months = semester === 1 ? [1, 2, 3] : [4, 5, 6]
+        const { data: configs } = await supabase
+          .from('semester_config')
+          .select('*')
+          .eq('academic_year_id', classData.academic_year_id)
+          .eq('semester', semester)
+          .maybeSingle()
+        const months = configs?.months || (semester === 1 ? [12, 1, 2] : [5, 6, 7])
         const [examRes, monthRes] = await Promise.all([
           supabase.from('scores').select('*').in('student_id', studentIds).eq('semester', semester).eq('score_type', 'semester'),
           supabase.from('scores').select('*').in('student_id', studentIds).in('month', months).eq('score_type', 'monthly')
