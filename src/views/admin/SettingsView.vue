@@ -13,12 +13,15 @@ const loading = ref(false)
 const saving = ref(false)
 const toast = ref(null)
 
+const monthNames = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ']
+
 const tabs = [
-  { id: 'school', label: 'ព័ត៌មានសាលា' }, // School Info
-  { id: 'years', label: 'ឆ្នាំសិក្សា' }, // Academic Years
-  { id: 'subjects', label: 'មុខវិជ្ជា' }, // Subjects
-  { id: 'holidays', label: 'ថ្ងៃឈប់សម្រាក' }, // Holidays
-  { id: 'attendance', label: 'ការកំណត់វត្តមាន' }, // Attendance Config
+  { id: 'school', label: 'ព័ត៌មានសាលា' },
+  { id: 'years', label: 'ឆ្នាំសិក្សា' },
+  { id: 'subjects', label: 'មុខវិជ្ជា' },
+  { id: 'holidays', label: 'ថ្ងៃឈប់សម្រាក' },
+  { id: 'attendance', label: 'ការកំណត់វត្តមាន' },
+  { id: 'semester', label: 'ការកំណត់ឆមាស' },
 ]
 
 function showToast(msg, type = 'success') {
@@ -210,6 +213,47 @@ async function saveAttConfig() {
   else showToast('បានរក្សាទុកការកំណត់វត្តមានដោយជោគជ័យ!')
 }
 
+// ── SEMESTER CONFIG ────────────────────────────────────────
+const semesterList = ref([])
+
+async function loadSemesterConfig() {
+  if (!yearStore.selectedYearId) {
+    semesterList.value = []
+    return
+  }
+  loading.value = true
+  const { data } = await supabase
+    .from('semester_config')
+    .select('*')
+    .eq('academic_year_id', yearStore.selectedYearId)
+    .order('semester')
+  if (data && data.length === 0) {
+    semesterList.value = [
+      { semester: 1, months: [12, 1, 2], exam_month: 3 },
+      { semester: 2, months: [5, 6, 7], exam_month: 8 }
+    ]
+  } else {
+    semesterList.value = data.map(s => ({ ...s, months: s.months || [] }))
+  }
+  loading.value = false
+}
+
+async function saveSemesterConfig(sem) {
+  saving.value = true
+  const { id, school_id, created_at, updated_at, ...payload } = sem
+  payload.months = payload.months.map(Number).sort((a, b) => a - b)
+  const { error } = id
+    ? await supabase.from('semester_config').update(payload).eq('id', id)
+    : await supabase.from('semester_config').insert({
+        ...payload,
+        school_id: auth.schoolId,
+        academic_year_id: yearStore.selectedYearId
+      })
+  saving.value = false
+  if (error) showToast(error.message, 'error')
+  else { showToast('បានរក្សាទុកការកំណត់ឆមាស!'); loadSemesterConfig() }
+}
+
 // Lifecycle
 onMounted(() => {
   loadSchool()
@@ -222,6 +266,7 @@ function switchTab(id) {
   if (id === 'subjects') loadSubjects()
   if (id === 'holidays') loadHolidays()
   if (id === 'attendance') loadAttConfig()
+  if (id === 'semester') loadSemesterConfig()
 }
 
 </script>
@@ -359,6 +404,44 @@ function switchTab(id) {
         </div>
       </div>
 
+      <div v-if="currentTab === 'semester'" class="tab-pane">
+        <div v-if="!yearStore.selectedYearId" class="card">
+          <div class="card-body" style="text-align:center;padding:40px;color:var(--text-secondary);">
+            <InformationCircleIcon class="w-10 h-10 mx-auto mb-3" />
+            <p>សូមជ្រើសរើសឆ្នាំសិក្សាជាមុនសិន</p>
+            <p style="font-size:13px;">ចូលទៅកាន់ផ្ទាំង "ឆ្នាំសិក្សា" ហើយចុច "មើល" លើឆ្នាំសិក្សាដែលអ្នកចង់កំណត់</p>
+          </div>
+        </div>
+        <div v-else style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+          <div class="card" v-for="sem in semesterList" :key="sem.semester">
+            <div class="card-header">
+              <span class="card-title"><CalendarIcon class="w-4 h-4 inline-block align-middle" /> ឆមាសទី {{ sem.semester }}</span>
+              <button class="btn btn-primary btn-sm" @click="saveSemesterConfig(sem)" :disabled="saving">
+                <ArrowDownTrayIcon class="w-4 h-4" /> {{ saving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុក' }}
+              </button>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+              <div>
+                <label class="form-label">ខែក្នុងឆមាស</label>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;">
+                  <label v-for="m in 12" :key="m" class="month-chk"
+                    :class="{ selected: sem.months.includes(m) }">
+                    <input type="checkbox" :value="m" v-model="sem.months" class="month-chk-input" />
+                    <span>{{ monthNames[m - 1] }}</span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ខែប្រឡង</label>
+                <select class="form-select" v-model="sem.exam_month">
+                  <option v-for="m in 12" :key="m" :value="m">{{ monthNames[m - 1] }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <div v-if="yearModal" class="modal-overlay" @click.self="yearModal = false">
@@ -437,4 +520,15 @@ function switchTab(id) {
 }
 .logo-box img { width: 100%; height: 100%; object-fit: contain; }
 .text-danger { color: #dc2626; }
+.month-chk {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 8px;
+  border: 1px solid var(--border-default);
+  cursor: pointer; font-size: 13px;
+  transition: all 0.15s;
+  user-select: none;
+}
+.month-chk:hover { border-color: var(--primary-color); background: var(--primary-50); }
+.month-chk.selected { border-color: var(--primary-color); background: var(--primary-50); color: var(--primary-color); font-weight: 600; }
+.month-chk-input { display: none; }
 </style>
