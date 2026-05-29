@@ -391,10 +391,11 @@ watch(selectedMonth, fetchScores)
 .score-input {
   width: 44px;
   padding: 4px;
-  border: 1px solid transparent;
+  border: 1px solid #e2e8f0;
   text-align: center;
   font-weight: 600;
   border-radius: 4px;
+  background: #f8fafc;
   transition: all 0.2s;
 }
 
