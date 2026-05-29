@@ -1657,6 +1657,71 @@ create policy "report-voices: public read"
   on storage.objects for select to public
   using (bucket_id = 'report-voices');
 
+-- ============================================================
+-- SEMESTER CONFIG
+-- Defines which months belong to each semester per school per year.
+-- Defaults match Cambodian school calendar:
+--   Semester 1: months [12, 1, 2], exam in March (3)
+--   Semester 2: months [5, 6, 7],  exam in August (8)
+-- Admin can override per academic year if calendar shifts.
+-- ============================================================
+
+create table semester_config (
+  id               uuid primary key default uuid_generate_v4(),
+  school_id        uuid not null references schools(id) on delete cascade,
+  academic_year_id uuid not null references academic_years(id) on delete cascade,
+  semester         int2 not null check (semester in (1, 2)),
+  months           int2[] not null,   -- e.g. {12,1,2} or {5,6,7}
+  exam_month       int2 not null,     -- 3 = March, 8 = August
+  created_at       timestamptz default now(),
+  updated_at       timestamptz default now(),
+  unique(school_id, academic_year_id, semester)
+);
+
+-- Index
+create index idx_semester_config_school_year 
+  on semester_config(school_id, academic_year_id);
+
+-- RLS
+alter table semester_config enable row level security;
+
+create policy "semester_config: admin manage own school"
+  on semester_config for all to authenticated
+  using (get_user_role() = 'admin' and school_id = get_user_school_id())
+  with check (get_user_role() = 'admin' and school_id = get_user_school_id());
+
+create policy "semester_config: staff read own school"
+  on semester_config for select to authenticated
+  using (
+    get_user_role() in ('teacher', 'librarian') 
+    and school_id = get_user_school_id()
+  );
+
+  -- Auto-insert default semester config when a new academic year is created
+create or replace function create_default_semester_config()
+returns trigger as $$
+begin
+  -- Semester 1: Dec, Jan, Feb → exam in March
+  insert into semester_config 
+    (school_id, academic_year_id, semester, months, exam_month)
+  values
+    (new.school_id, new.id, 1, array[12, 1, 2]::int2[], 3);
+
+  -- Semester 2: May, Jun, Jul → exam in August
+  insert into semester_config 
+    (school_id, academic_year_id, semester, months, exam_month)
+  values
+    (new.school_id, new.id, 2, array[5, 6, 7]::int2[], 8);
+
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_academic_year_created
+  after insert on academic_years
+  for each row execute procedure create_default_semester_config();
+
+
 
 -- ============================================================
 -- SUPABASE EDGE FUNCTION: manage-user
