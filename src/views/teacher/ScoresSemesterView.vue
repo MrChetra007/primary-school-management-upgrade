@@ -310,26 +310,17 @@ watch(selectedSemester, fetchAllScores)
             </tbody>
           </table>
         </div>
-
-        <div class="print-footer only-print" style="margin-top:40px; display:flex; justify-content:flex-end; padding:20px;">
-          <div style="text-align:center;">
-            <p>ថ្ងៃទី ........ ខែ ........ ឆ្នាំ២០........</p>
-            <p style="margin-top:10px; font-weight:700;">ហត្ថលេខាគ្រូបន្ទុកថ្នាក់</p>
-            <div style="height:60px;"></div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.scores-monthly-view {
-  max-width: 1200px;
+.scores-semester-view {
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Make the wrapper scrollable and set up the sticky context */
 .table-wrapper {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -338,9 +329,10 @@ watch(selectedSemester, fetchAllScores)
 
 .matrix-table {
   width: 100%;
-  border-collapse: separate; /* Changed from collapse — required for sticky to work */
+  border-collapse: separate;
   border-spacing: 0;
   background: white;
+  white-space: nowrap; /* ← prevents column wrapping that causes width jumps */
 }
 
 .matrix-table th,
@@ -351,13 +343,13 @@ watch(selectedSemester, fetchAllScores)
   text-align: center;
 }
 
-/* Restore the top and left borders that border-separate removes */
-.matrix-table thead tr th:first-child,
-.matrix-table tbody tr td:first-child {
-  border-left: 1px solid var(--border-default);
-}
 .matrix-table thead tr:first-child th {
   border-top: 1px solid var(--border-default);
+}
+
+.matrix-table th:first-child,
+.matrix-table td:first-child {
+  border-left: 1px solid var(--border-default);
 }
 
 .matrix-table th {
@@ -367,21 +359,23 @@ watch(selectedSemester, fetchAllScores)
   color: #64748b;
 }
 
-/* Freeze column 1 (ល.រ) */
+/* ── Sticky col 1 (ល.រ) ── */
 .matrix-table th:nth-child(1),
 .matrix-table td:nth-child(1) {
   position: sticky;
   left: 0;
   z-index: 2;
-  width: 50px;
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px; /* ← locks width so col 2 left offset is predictable */
   background: #f8fafc;
 }
 
-/* Freeze column 2 (student name) */
+/* ── Sticky col 2 (student name) ── */
 .matrix-table th:nth-child(2),
 .matrix-table td:nth-child(2) {
   position: sticky;
-  left: 50px; /* must match the width of column 1 above */
+  left: 40px; /* must match max-width of col 1 above */
   z-index: 2;
   min-width: 180px;
   text-align: left;
@@ -389,21 +383,22 @@ watch(selectedSemester, fetchAllScores)
   box-shadow: 2px 0 6px -2px rgba(0, 0, 0, 0.08);
 }
 
-/* Header cells need higher z-index so they sit above body cells when scrolling */
 .matrix-table thead th:nth-child(1),
 .matrix-table thead th:nth-child(2) {
   z-index: 3;
   background: #f8fafc;
 }
 
-/* Data rows: alternate the frozen cell background for readability */
 .matrix-table tbody tr:hover td:nth-child(1),
 .matrix-table tbody tr:hover td:nth-child(2) {
   background: #f1f5f9;
 }
 
+/* ── Subject columns (vertical text headers) ── */
 .sub-col {
-  width: 50px;
+  width: 48px;
+  min-width: 48px;
+  max-width: 48px; /* ← explicit max prevents the ចំនួន gap */
   height: 100px;
   vertical-align: bottom;
   padding-bottom: 12px !important;
@@ -414,10 +409,25 @@ watch(selectedSemester, fetchAllScores)
   transform: rotate(180deg);
   white-space: nowrap;
   display: inline-block;
+  font-size: 11px;
+}
+
+/* ── Month average columns ── */
+.month-col {
+  width: 52px;
+  min-width: 52px;
+}
+
+/* ── Summary columns ── */
+.summary-col {
+  width: 68px;
+  min-width: 68px;
+  font-size: 11px;
+  line-height: 1.3;
 }
 
 .score-input {
-  width: 44px;
+  width: 40px;
   padding: 4px;
   border: 1px solid #e2e8f0;
   text-align: center;
@@ -451,6 +461,11 @@ watch(selectedSemester, fetchAllScores)
   background: #eff6ff;
 }
 
+.highlight {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
 .text-danger { color: #ef4444; }
 
 .only-print { display: none; }
@@ -464,7 +479,6 @@ watch(selectedSemester, fetchAllScores)
   .print-header { text-align: center; margin-bottom: 20px; }
   .print-header h2 { font-size: 18px; margin-bottom: 5px; }
 
-  /* Reset sticky for print so columns render normally */
   .matrix-table th,
   .matrix-table td {
     position: static !important;
