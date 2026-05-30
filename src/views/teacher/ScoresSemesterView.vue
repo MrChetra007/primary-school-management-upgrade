@@ -16,9 +16,13 @@ const loading = ref(true)
 const saving = ref(false)
 const toast = ref(null)
 const pinnedRow = ref(null)
+const pinnedCol = ref(null)
 
 function togglePin(id) {
   pinnedRow.value = pinnedRow.value === id ? null : id
+}
+function togglePinCol(id) {
+  pinnedCol.value = pinnedCol.value === id ? null : id
 }
 
 const months = [
@@ -318,7 +322,9 @@ watch(selectedSemester, fetchAllScores)
                 <th rowspan="2" class="summary-col highlight">លំដាប់</th>
               </tr>
               <tr>
-                <th v-for="sub in subjects" :key="sub.id" class="sub-col small">
+                <th v-for="sub in subjects" :key="sub.id" class="sub-col small"
+                  @click="togglePinCol(sub.id)"
+                  :class="{ 'pinned-col': pinnedCol === sub.id }">
                   <div class="vertical-text small">{{ sub.subject_name }}</div>
                 </th>
                 <th v-for="m in semesterMonths" :key="m" class="month-col">{{ months.find(mm => mm.id === m)?.name }}</th>
@@ -330,7 +336,8 @@ watch(selectedSemester, fetchAllScores)
                 :class="{ pinned: pinnedRow === row.student_id }">
                 <td class="hide-mobile" style="text-align:center;">{{ idx + 1 }}</td>
                 <td style="font-weight:700; text-align:left;">{{ row.full_name }}</td>
-                <td v-for="sub in subjects" :key="sub.id">
+                <td v-for="sub in subjects" :key="sub.id"
+                  :class="{ 'pinned-col': pinnedCol === sub.id }">
                   <input 
                     type="number" 
                     class="score-input"
@@ -518,6 +525,15 @@ tr.pinned td.rank-cell {
 }
 tr.pinned td:nth-child(2) {
   background: #dbeafe !important;
+}
+
+/* ── Pinned column ── */
+th.pinned-col,
+td.pinned-col {
+  background: #fef3c7 !important;
+}
+th.pinned-col .vertical-text {
+  color: #b45309;
 }
 
 /* ── Mobile responsive ── */
