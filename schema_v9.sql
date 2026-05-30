@@ -1721,8 +1721,10 @@ create trigger on_academic_year_created
   after insert on academic_years
   for each row execute procedure create_default_semester_config();
 
+alter table scores add column if not exists semester int2;
 
-
+update semester_config set months = array[12,1,2,3]::int2[] where semester = 1;
+update semester_config set months = array[5,6,7,8]::int2[]  where semester = 2;
 -- ============================================================
 -- SUPABASE EDGE FUNCTION: manage-user
 -- Required for: create user, reset password, delete user.

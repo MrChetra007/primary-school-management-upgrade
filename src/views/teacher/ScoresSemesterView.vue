@@ -116,7 +116,7 @@ async function fetchAllScores() {
     .in('student_id', studentIds)
     .eq('academic_year_id', academicYearId)
     .eq('score_type', 'semester')
-    .eq('month', selectedSemester.value)  // ← month stores semester number
+    .eq('semester', selectedSemester.value)
 
   if (examError) { console.error('Exam scores error:', examError); return }
   examScores.value = examData || []
