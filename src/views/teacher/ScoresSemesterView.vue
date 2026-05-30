@@ -15,6 +15,11 @@ const classInfo = ref(null)
 const loading = ref(true)
 const saving = ref(false)
 const toast = ref(null)
+const pinnedRow = ref(null)
+
+function togglePin(id) {
+  pinnedRow.value = pinnedRow.value === id ? null : id
+}
 
 const months = [
   { id: 1, name: 'មករា' }, { id: 2, name: 'កុម្ភៈ' }, { id: 3, name: 'មីនា' },
@@ -303,7 +308,7 @@ watch(selectedSemester, fetchAllScores)
           <table class="matrix-table">
             <thead>
               <tr>
-                <th rowspan="2" style="width:40px;">ល.រ</th>
+                <th rowspan="2" class="hide-mobile" style="width:40px;">ល.រ</th>
                 <th rowspan="2" style="min-width:160px; text-align:left;">ឈ្មោះសិស្ស</th>
                 <th :colspan="subjects.length" class="text-center">ពិន្ទុប្រឡងឆមាស</th>
                 <th rowspan="2" class="summary-col">មធ្យមភាគ<br/>ប្រឡង</th>
@@ -320,8 +325,10 @@ watch(selectedSemester, fetchAllScores)
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, idx) in scoreMatrix" :key="row.student_id">
-                <td style="text-align:center;">{{ idx + 1 }}</td>
+              <tr v-for="(row, idx) in scoreMatrix" :key="row.student_id"
+                @click="togglePin(row.student_id)"
+                :class="{ pinned: pinnedRow === row.student_id }">
+                <td class="hide-mobile" style="text-align:center;">{{ idx + 1 }}</td>
                 <td style="font-weight:700; text-align:left;">{{ row.full_name }}</td>
                 <td v-for="sub in subjects" :key="sub.id">
                   <input 
@@ -331,6 +338,7 @@ watch(selectedSemester, fetchAllScores)
                     min="0" 
                     max="100"
                     @input="calculateAll"
+                    @click.stop
                   />
                 </td>
                 <td class="avg-cell">{{ row.examAverage }}</td>
@@ -501,6 +509,69 @@ watch(selectedSemester, fetchAllScores)
 }
 
 .text-danger { color: #ef4444; }
+
+/* ── Pinned row ── */
+tr.pinned td,
+tr.pinned td.avg-cell,
+tr.pinned td.rank-cell {
+  background: #dbeafe !important;
+}
+tr.pinned td:nth-child(2) {
+  background: #dbeafe !important;
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  .hide-mobile { display: none; }
+
+  .matrix-table th:nth-child(2),
+  .matrix-table td:nth-child(2) {
+    left: 0;
+  }
+
+  .matrix-table th,
+  .matrix-table td {
+    padding: 6px 3px;
+    font-size: 11px;
+  }
+
+  .score-input {
+    width: 30px;
+    padding: 2px;
+    font-size: 11px;
+  }
+
+  .sub-col {
+    width: 32px;
+    min-width: 32px;
+    max-width: 32px;
+    height: 80px;
+    padding-bottom: 8px !important;
+  }
+
+  .vertical-text {
+    font-size: 9px;
+  }
+
+  .summary-col {
+    width: 44px;
+    min-width: 44px;
+    font-size: 10px;
+  }
+
+  .month-col {
+    width: 36px;
+    min-width: 36px;
+    font-size: 10px;
+  }
+
+  .matrix-table th:nth-child(1),
+  .matrix-table td:nth-child(1) {
+    width: 0;
+    min-width: 0;
+    padding: 0;
+  }
+}
 
 .only-print { display: none; }
 

@@ -15,6 +15,11 @@ const classInfo = ref(null)
 const loading = ref(true)
 const saving = ref(false)
 const toast = ref(null)
+const pinnedRow = ref(null)
+
+function togglePin(id) {
+  pinnedRow.value = pinnedRow.value === id ? null : id
+}
 
 const selectedMonth = ref(new Date().getMonth() + 1)
 const scores = ref([]) // Raw scores from DB
@@ -246,8 +251,8 @@ watch(selectedMonth, fetchScores)
           <table class="matrix-table">
             <thead>
               <tr>
-                <th style="width:50px;">ល.រ</th>
-                <th style="min-width:180px; text-align:left;">ឈ្មោះសិស្ស</th>
+                <th class="hide-mobile" style="width:50px;">ល.រ</th>
+                <th style="min-width:160px; text-align:left;">ឈ្មោះសិស្ស</th>
                 <th v-for="sub in subjects" :key="sub.id" class="sub-col">
                   <div class="vertical-text">{{ sub.subject_name }}</div>
                 </th>
@@ -256,8 +261,10 @@ watch(selectedMonth, fetchScores)
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, idx) in scoreMatrix" :key="row.student_id">
-                <td style="text-align:center;">{{ idx + 1 }}</td>
+              <tr v-for="(row, idx) in scoreMatrix" :key="row.student_id"
+                @click="togglePin(row.student_id)"
+                :class="{ pinned: pinnedRow === row.student_id }">
+                <td class="hide-mobile" style="text-align:center;">{{ idx + 1 }}</td>
                 <td style="font-weight:700; text-align:left;">{{ row.full_name }}</td>
                 <td v-for="sub in subjects" :key="sub.id">
                   <input 
@@ -267,6 +274,7 @@ watch(selectedMonth, fetchScores)
                     min="0" 
                     max="100"
                     @input="calculateAll"
+                    @click.stop
                   />
                 </td>
                 <td class="avg-cell" :class="{ 'text-danger': row.average < 50 }">{{ row.average }}</td>
@@ -424,6 +432,63 @@ watch(selectedMonth, fetchScores)
 }
 
 .text-danger { color: #ef4444; }
+
+/* ── Pinned row ── */
+tr.pinned td,
+tr.pinned td.avg-cell,
+tr.pinned td.rank-cell {
+  background: #dbeafe !important;
+}
+tr.pinned td:nth-child(2) {
+  background: #dbeafe !important;
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  .hide-mobile { display: none; }
+
+  .matrix-table th:nth-child(2),
+  .matrix-table td:nth-child(2) {
+    left: 0;
+  }
+
+  .matrix-table th,
+  .matrix-table td {
+    padding: 6px 3px;
+    font-size: 11px;
+  }
+
+  .score-input {
+    width: 30px;
+    padding: 2px;
+    font-size: 11px;
+  }
+
+  .sub-col {
+    width: 32px;
+    min-width: 32px;
+    max-width: 32px;
+    height: 80px;
+    padding-bottom: 8px !important;
+  }
+
+  .vertical-text {
+    font-size: 9px;
+  }
+
+  .summary-col {
+    width: 44px;
+    min-width: 44px;
+    font-size: 10px;
+  }
+
+  .matrix-table th:nth-child(1),
+  .matrix-table td:nth-child(1) {
+    width: 0;
+    min-width: 0;
+    padding: 0;
+  }
+}
 
 .only-print { display: none; }
 
