@@ -138,7 +138,7 @@ function calculateAll() {
 
 function onScoreInput(studentId, subId, event) {
   const val = event.target.value
-  const cleaned = val.replace(/[^0-9]/g, '').slice(0, 3)
+  const cleaned = val.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1').slice(0, 4)
   if (cleaned !== val) {
     event.target.value = cleaned
   }
