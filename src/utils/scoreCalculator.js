@@ -37,10 +37,11 @@ export function computeRank(students) {
 
   const sorted = [...students].sort((a, b) => (b.average || 0) - (a.average || 0));
 
-  const result = sorted.map((student, i) => ({
-    ...student,
-    rank: i > 0 && student.average === sorted[i - 1].average ? sorted[i - 1].rank : i + 1
-  }))
-
-  return result;
+  let rank = 1
+  return sorted.map((student, i) => {
+    if (i > 0 && sorted[i].average !== sorted[i - 1].average) {
+      rank = i + 1
+    }
+    return { ...student, rank }
+  })
 }
