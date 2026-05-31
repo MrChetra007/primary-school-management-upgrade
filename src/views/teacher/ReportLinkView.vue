@@ -591,17 +591,19 @@ async function handleCopyLink() {
 
                 <!-- Teacher Note -->
                 <div class="teacher-note-section">
-                  <h4 class="sc-section-title" style="margin-top:12px;">សារទៅកាន់មាតាបិតា</h4>
+                  <div class="teacher-note-header">
+                    <PencilSquareIcon class="w-3.5 h-3.5" />
+                    <span>សារទៅកាន់មាតាបិតា</span>
+                  </div>
                   <div v-if="editingStudentId === student.id" class="teacher-note-edit">
                     <textarea
                       v-model="draftMessages[student.id]"
-                      class="form-control"
-                      rows="2"
+                      class="form-control note-textarea"
+                      rows="3"
                       placeholder="សរសេរសារទៅកាន់មាតាបិតាសិស្ស..."
-                      style="font-size:12px; resize:vertical; margin-bottom:6px;"
                     ></textarea>
                     <PhrasePicker @pick="handlePhrasePick" />
-                    <div style="display:flex; gap:6px; margin-top:6px;">
+                    <div class="note-actions">
                       <button
                         class="btn btn-sm btn-primary"
                         :disabled="!(draftMessages[student.id] || '').trim() || savingStudentId === student.id"
@@ -618,8 +620,8 @@ async function handleCopyLink() {
                   <div v-else class="teacher-note-display">
                     <p v-if="getTeacherMsg(student.id)" class="note-text">{{ getTeacherMsg(student.id) }}</p>
                     <p v-else class="note-empty">—</p>
-                    <button class="btn btn-xs btn-ghost" style="margin-top:4px;" @click="startEdit(student.id)">
-                      <PencilSquareIcon class="w-3.5 h-3.5" />
+                    <button class="btn btn-xs note-edit-btn" @click="startEdit(student.id)">
+                      <PencilSquareIcon class="w-3 h-3" />
                       {{ getTeacherMsg(student.id) ? 'កែសម្រួល' : 'សរសេរសារ' }}
                     </button>
                   </div>
@@ -911,7 +913,19 @@ async function handleCopyLink() {
 .att-bad { color: #dc2626; }
 
 .teacher-note-section {
-  margin-top: 4px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 2px dashed #e2e8f0;
+}
+
+.teacher-note-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary-600, #1d4ed8);
+  margin-bottom: 10px;
 }
 
 .teacher-note-display {
@@ -920,21 +934,64 @@ async function handleCopyLink() {
   align-items: flex-start;
 }
 
+.note-textarea {
+  font-size: 13px !important;
+  resize: vertical;
+  min-height: 70px;
+  border: 2px solid #c7d2fe !important;
+  background: #eef2ff !important;
+  transition: border-color 0.2s;
+}
+
+.note-textarea:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.note-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .note-text {
   font-size: 13px;
   color: var(--text-primary);
   white-space: pre-wrap;
   line-height: 1.5;
-  background: #f8fafc;
-  padding: 8px 10px;
-  border-radius: 6px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 10px 12px;
+  border-radius: 8px;
   width: 100%;
+  margin: 0 0 6px;
 }
 
 .note-empty {
   font-size: 13px;
   color: var(--text-muted);
-  margin: 0;
+  margin: 0 0 6px;
+  font-style: italic;
+}
+
+.note-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-600, #1d4ed8);
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.note-edit-btn:hover {
+  background: #dde3fc;
+  border-color: #a5b4fc;
 }
 
 .btn-success {
