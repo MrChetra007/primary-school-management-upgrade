@@ -3,7 +3,7 @@
 > **Stack:** Vue 3 + Vite + Tailwind CSS + Supabase
 > **Roles:** Super Admin · Admin/Director · Teacher · Librarian · Parent (anon, link-only)
 > **Schema:** v10 (fresh install or migrated from v9)
-> **Date:** June 2026
+> **Date:** June 2026 (Phase 11 complete, PWA added)
 
 ---
 
@@ -87,7 +87,8 @@ src/
 │   └── shared/              # NEW v10 — shared UI components
 │       └── NotificationsDropdown.vue  # Bell icon + notification list (all layouts)
 ├── composables/
-│   └── useVoiceRecorder.js  # MediaRecorder wrapper (start/stop/upload/playback)
+│   ├── useVoiceRecorder.js  # MediaRecorder wrapper (start/stop/upload/playback)
+│   └── usePwa.js            # PWA install/update state management
 ├── layouts/
 │   ├── AdminLayout.vue       # Sidebar + Topbar — bell icon added (v10)
 │   ├── TeacherLayout.vue     # Bell icon added (v10)
@@ -122,7 +123,7 @@ src/
 └── main.js
 ```
 
-**Total source files: ~73** (51 views, 7 components, 1 composable, 5 stores, 3 utils, 5 layouts, 1 router)
+**Total source files: ~75** (51 views, 8 components, 2 composables, 5 stores, 3 utils, 5 layouts, 1 router)
 
 ---
 
@@ -350,6 +351,7 @@ src/
 - [ ] Confirm dialogs (partial)
 - [ ] Form validation (vee-validate + yup installed, usage inconsistent)
 - [ ] Mobile/tablet responsive polish
+- [x] PWA support — service worker, install prompt, iOS hint, update toast
 - [ ] Deploy to Vercel + monitor via Supabase dashboard
 
 ### ✅ Phase 9 — Multi-Tenant Architecture (v8) ← DONE
@@ -365,7 +367,7 @@ src/
 - [ ] Update Edge Function `manage-user` with `school_id` payload
 - [ ] Multi-tenant testing (2 schools, verify isolation)
 
-### ✅ Phase 10 — Link-Based Parent Portal (v9) ← DONE (frontend built)
+### ✅ Phase 10 — Link-Based Parent Portal (v9) ← DONE
 - [x] Migration SQL (`migration_v8_v9.sql`) ready
 - [x] `report-voices` storage bucket + policies in schema
 - [x] Generate Report Link button on `/teacher/scores/ranking`
@@ -380,30 +382,30 @@ src/
 - [x] Missing anon policies added (`classes`, `subjects` for `!inner` joins)
 - [ ] End-to-end testing: link sharing, voice recording, cross-school isolation
 
-### 🔧 Phase 11 — Approval Flow + Notifications + Phrase Library (v10) ← CURRENT
+### ✅ Phase 11 — Approval Flow + Notifications + Phrase Library (v10) ← DONE
 #### Schema / Backend
-- [ ] `migration_v9_v10.sql` applied to production
-- [ ] `report_links` — add `status`, `rejection_note`, `approved_at`, `approved_by`
-- [ ] `notifications` table — `recipient_user_id`, `type`, `payload` (jsonb), `is_read`
-- [ ] `teacher_phrases` table — `teacher_id`, `phrase_text`, `sort_order`
-- [ ] `school_information` — add `signature_url`, `stamp_url`
-- [ ] `school-assets` storage bucket + RLS policies
-- [ ] `notify_teacher_on_approval()` trigger — fires after `report_links.status` update
-- [ ] `notify_admin_on_request()` trigger — fires after `report_links` insert with `status = pending`
-- [ ] RLS: notifications (self-read, admin write for teacher notifs)
-- [ ] RLS: teacher_phrases (teacher owns their own rows only)
-- [ ] RLS: report_links updated — anon blocked from `pending` links
+- [x] `migration_v9_v10.sql` applied to production
+- [x] `report_links` — add `status`, `rejection_note`, `approved_at`, `approved_by`
+- [x] `notifications` table — `recipient_user_id`, `type`, `payload` (jsonb), `is_read`
+- [x] `teacher_phrases` table — `teacher_id`, `phrase_text`, `sort_order`
+- [x] `school_information` — add `signature_url`, `stamp_url`
+- [x] `school-assets` storage bucket + RLS policies
+- [x] `notify_teacher_on_approval()` trigger — fires after `report_links.status` update
+- [x] `notify_admin_on_request()` trigger — fires after `report_links` insert with `status = pending`
+- [x] RLS: notifications (self-read, admin write for teacher notifs)
+- [x] RLS: teacher_phrases (teacher owns their own rows only)
+- [x] RLS: report_links updated — anon blocked from `pending` links
 
 #### Frontend
-- [ ] `notifications.js` Pinia store — fetch unread, mark read, realtime subscription
-- [ ] `NotificationsDropdown.vue` — bell icon + badge + dropdown list (AdminLayout + TeacherLayout)
-- [ ] `PhrasePicker.vue` — chip list + append-on-click + add/delete phrase inline
-- [ ] `/admin/approvals` — ApprovalView: pending requests list + approve/reject modal with note
-- [ ] `/admin/settings` — School Information tab: add signature upload + stamp upload fields
-- [ ] `/teacher/scores/ranking` — button states: `Request Approval` → `⏳ Pending…` → `✅ Share` / `❌ Rejected (reason)`
-- [ ] `/parent/report/:report_link_id/:student_id` — footer: signature + stamp display (approved links only)
-- [ ] `report-replies` view — integrate `PhrasePicker.vue` below teacher message textarea
-- [ ] `school-assets` bucket wired to signature/stamp upload inputs
+- [x] `notifications.js` Pinia store — fetch unread, mark read, realtime subscription
+- [x] `NotificationsDropdown.vue` — bell icon + badge + dropdown list (AdminLayout + TeacherLayout)
+- [x] `PhrasePicker.vue` — chip list + append-on-click + add/delete phrase inline
+- [x] `/admin/approvals` — ApprovalView: pending requests list + approve/reject modal with note
+- [x] `/admin/settings` — School Information tab: add signature upload + stamp upload fields
+- [x] `/teacher/scores/ranking` — button states: `Request Approval` → `⏳ Pending…` → `✅ Share` / `❌ Rejected (reason)`
+- [x] `/parent/report/:report_link_id/:student_id` — footer: signature + stamp display (approved links only)
+- [x] `report-replies` view — integrate `PhrasePicker.vue` below teacher message textarea
+- [x] `school-assets` bucket wired to signature/stamp upload inputs
 
 ---
 
@@ -430,6 +432,7 @@ src/
 - **In-App Notifications** — bell icon in Admin + Teacher topbars, unread count badge, notification list dropdown, Supabase Realtime subscription
 - **Teacher Phrase Library** (`teacher_phrases`) — personal reusable feedback chips that append to the student message box in report-replies; add/delete inline
 - **school-assets bucket** — stores principal digital signature and school stamp images uploaded from Admin Settings
+- **PWA Support** — service worker via vite-plugin-pwa, install button on landing page, iOS "Add to Home Screen" hint banner, update toast notification
 
 ---
 
@@ -455,16 +458,14 @@ src/
 
 ## 🚀 Known Gaps / Next Actions
 
-1. **Phase 11 frontend** — build `NotificationsDropdown.vue`, `PhrasePicker.vue`, `ApprovalView.vue`, update ranking + report-replies views
-2. **school-assets bucket** — wire signature/stamp upload to Admin Settings → School Information tab
-3. **Parent report card footer** — render signature + stamp only on approved links
-4. **Edge Function `manage-user`** — needs `school_id` payload verification
-5. **Multi-tenant testing** — verify data isolation between 2 schools
-6. **Parent portal E2E** — test full flow: generate link → request approval → admin approves → share → parent views → voice reply
-7. **Validation** — vee-validate + yup installed but not consistently used across forms
-8. **Responsive polish** — tablet/mobile layouts need attention
-9. **Empty/loading states** — skeleton loaders exist in some views, missing in others
-10. **Toast consistency** — global toast styles exist, but usage pattern varies across views
+1. **Phase 11 migration SQL** — `migration_v9_v10.sql` ready, needs to be executed on production Supabase
+2. **Edge Function `manage-user`** — needs `school_id` payload verification (must pass school_id when creating users)
+3. **Multi-tenant testing** — verify data isolation between 2 schools
+4. **Parent portal E2E** — test full flow: generate link → request approval → admin approves → share → parent views → voice reply
+5. **Validation** — vee-validate + yup installed but not consistently used across forms
+6. **Responsive polish** — tablet/mobile layouts need attention
+7. **Empty/loading states** — skeleton loaders exist in some views, missing in others
+8. **Toast consistency** — global toast styles exist, but usage pattern varies across views
 
 ---
 
