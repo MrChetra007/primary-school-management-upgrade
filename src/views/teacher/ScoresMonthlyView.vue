@@ -88,6 +88,7 @@ async function fetchScores() {
     .from('scores')
     .select('*')
     .in('student_id', students.value.map(s => s.id))
+    .eq('academic_year_id', classInfo.value.academic_year_id)
     .eq('month', selectedMonth.value)
     .eq('score_type', 'monthly')
   
@@ -119,15 +120,25 @@ function buildMatrix() {
   calculateAll()
 }
 
-function calculateAll() {
-  scoreMatrix.value.forEach(row => {
-    const scoresArray = Object.values(row.subjects)
-      .filter(s => s.score !== '')
-      .map(s => ({ score: s.score }))
-    row.average = computeMonthlyAverage(scoresArray)
-  })
+function calculateRowAverage(row) {
+  const scoresArray = Object.values(row.subjects)
+    .filter(s => s.score !== '')
+    .map(s => ({ score: s.score }))
+  row.average = computeMonthlyAverage(scoresArray)
+}
 
-  computeRank(scoreMatrix.value)
+function calculateAll() {
+  scoreMatrix.value.forEach(calculateRowAverage)
+  const ranked = computeRank(scoreMatrix.value)
+  scoreMatrix.value.forEach(row => {
+    const match = ranked.find(r => r.student_id === row.student_id)
+    row.rank = match?.rank ?? 0
+  })
+}
+
+function onScoreInput(studentId) {
+  const row = scoreMatrix.value.find(r => r.student_id === studentId)
+  if (row) calculateRowAverage(row)
 }
 
 async function saveAll() {
@@ -153,13 +164,24 @@ async function saveAll() {
   })
 
   if (toUpsert.length > 0) {
-    const { error } = await supabase.from('scores').upsert(toUpsert)
-    if (error) showToast(error.message, 'error')
-    else showToast('រក្សាទុកពិន្ទុទាំងអស់បានជោគជ័យ!', 'success')
+    const { data: saved, error } = await supabase
+      .from('scores')
+      .upsert(toUpsert)
+      .select()
+    if (error) {
+      showToast(error.message, 'error')
+    } else {
+      saved?.forEach(s => {
+        const existing = scores.value.find(x => x.id === s.id)
+        if (existing) Object.assign(existing, s)
+        else scores.value.push(s)
+      })
+      buildMatrix()
+      showToast('រក្សាទុកពិន្ទុទាំងអស់បានជោគជ័យ!', 'success')
+    }
   }
 
   saving.value = false
-  await fetchScores()
 }
 
 const printArea = ref(null)
@@ -280,7 +302,7 @@ watch(selectedMonth, fetchScores)
                     v-model="row.subjects[sub.id].score"
                     min="0" 
                     max="100"
-                    @input="calculateAll"
+                    @input="onScoreInput(row.student_id)"
                     @click.stop
                   />
                 </td>

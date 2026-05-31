@@ -5,7 +5,7 @@
  */
 export function computeMonthlyAverage(scores) {
   if (!scores || scores.length === 0) return 0;
-  const validScores = scores.filter(s => s.score !== null && s.score !== undefined);
+  const validScores = scores.filter(s => s.score !== null && s.score !== undefined && s.score !== '');
   if (validScores.length === 0) return 0;
   
   const sum = validScores.reduce((acc, curr) => acc + Number(curr.score), 0);
@@ -35,17 +35,12 @@ export function computeSemesterAverage(monthlyAverages, examAverage) {
 export function computeRank(students) {
   if (!students || students.length === 0) return [];
 
-  // Sort students by average DESC
   const sorted = [...students].sort((a, b) => (b.average || 0) - (a.average || 0));
 
-  let currentRank = 1;
-  for (let i = 0; i < sorted.length; i++) {
-    if (i > 0 && sorted[i].average === sorted[i - 1].average) {
-      sorted[i].rank = sorted[i - 1].rank;
-    } else {
-      sorted[i].rank = i + 1;
-    }
-  }
+  const result = sorted.map((student, i) => ({
+    ...student,
+    rank: i > 0 && student.average === sorted[i - 1].average ? sorted[i - 1].rank : i + 1
+  }))
 
-  return sorted;
+  return result;
 }

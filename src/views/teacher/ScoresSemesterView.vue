@@ -178,20 +178,22 @@ function buildMatrix() {
   calculateAll()
 }
 
+function calculateRowAverages(row) {
+  const examArray = Object.values(row.examSubjects)
+    .filter(s => s.score !== '')
+    .map(s => ({ score: s.score }))
+  row.examAverage = computeMonthlyAverage(examArray)
+
+  const validMonths = row.monthlyAverages.filter(m => m > 0)
+  row.monthlyTotalAverage = validMonths.length > 0 
+    ? Number((validMonths.reduce((a, b) => a + b, 0) / validMonths.length).toFixed(2))
+    : 0
+
+  row.finalAverage = computeSemesterAverage(row.monthlyAverages, row.examAverage)
+}
+
 function calculateAll() {
-  scoreMatrix.value.forEach(row => {
-    const examArray = Object.values(row.examSubjects)
-      .filter(s => s.score !== '')
-      .map(s => ({ score: s.score }))
-    row.examAverage = computeMonthlyAverage(examArray)
-
-    const validMonths = row.monthlyAverages.filter(m => m > 0)
-    row.monthlyTotalAverage = validMonths.length > 0 
-      ? Number((validMonths.reduce((a, b) => a + b, 0) / validMonths.length).toFixed(2))
-      : 0
-
-    row.finalAverage = computeSemesterAverage(row.monthlyAverages, row.examAverage)
-  })
+  scoreMatrix.value.forEach(calculateRowAverages)
 
   const ranked = computeRank(scoreMatrix.value.map(r => ({ ...r, average: r.finalAverage })))
   
@@ -199,6 +201,11 @@ function calculateAll() {
     const match = ranked.find(r => r.student_id === row.student_id)
     row.rank = match?.rank ?? 0
   })
+}
+
+function onScoreInput(studentId) {
+  const row = scoreMatrix.value.find(r => r.student_id === studentId)
+  if (row) calculateRowAverages(row)
 }
 
 async function saveAll() {
@@ -224,13 +231,24 @@ async function saveAll() {
   })
 
   if (toUpsert.length > 0) {
-    const { error } = await supabase.from('scores').upsert(toUpsert)
-    if (error) showToast(error.message, 'error')
-    else showToast('រក្សាទុកពិន្ទុឆមាសបានជោគជ័យ!', 'success')
+    const { data: saved, error } = await supabase
+      .from('scores')
+      .upsert(toUpsert)
+      .select()
+    if (error) {
+      showToast(error.message, 'error')
+    } else {
+      saved?.forEach(s => {
+        const existing = examScores.value.find(x => x.id === s.id)
+        if (existing) Object.assign(existing, s)
+        else examScores.value.push(s)
+      })
+      buildMatrix()
+      showToast('រក្សាទុកពិន្ទុឆមាសបានជោគជ័យ!', 'success')
+    }
   }
 
   saving.value = false
-  await fetchAllScores()
 }
 
 
@@ -344,7 +362,7 @@ watch(selectedSemester, fetchAllScores)
                     v-model="row.examSubjects[sub.id].score"
                     min="0" 
                     max="100"
-                    @input="calculateAll"
+                    @input="onScoreInput(row.student_id)"
                     @click.stop
                   />
                 </td>
