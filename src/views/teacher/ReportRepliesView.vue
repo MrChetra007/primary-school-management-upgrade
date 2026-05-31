@@ -2,7 +2,8 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
-import { ChevronLeftIcon, CheckCircleIcon, XCircleIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline'
+import { ChevronLeftIcon, CheckCircleIcon, XCircleIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon } from '@heroicons/vue/24/outline'
+import PhrasePicker from '@/components/report/PhrasePicker.vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -16,6 +17,23 @@ const currentLink = ref(null)
 const messages = ref([])
 const allStudents = ref([])
 const toast = ref(null)
+const teacherMessage = ref('')
+const sendingMsg = ref(false)
+
+function handlePhrasePick(phrase) {
+  const ta = teacherMessage.value
+  teacherMessage.value = ta ? `${ta} ${phrase}` : phrase
+}
+
+async function sendTeacherMessage() {
+  const text = teacherMessage.value.trim()
+  if (!text || !currentLink.value) return
+  sendingMsg.value = true
+  // TODO: future integration — save to a teacher_messages table or broadcast
+  toast.value = { type: 'success', msg: 'សារត្រូវបានរក្សាទុក' }
+  setTimeout(() => { toast.value = null }, 3000)
+  sendingMsg.value = false
+}
 
 const months = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
 
@@ -194,6 +212,30 @@ watch(selectedLinkId, onLinkSelected)
       </div>
     </div>
 
+    <!-- Teacher Message -->
+    <div v-if="currentLink" class="card" style="margin-bottom:24px;">
+      <div class="card-body">
+        <div class="msg-section-header">
+          <h3 class="msg-section-title">សារទៅកាន់មាតាបិតា</h3>
+          <button
+            class="btn btn-sm btn-primary"
+            :disabled="!teacherMessage.trim() || sendingMsg"
+            @click="sendTeacherMessage"
+          >
+            <PaperAirplaneIcon class="w-4 h-4" />
+            ផ្ញើ
+          </button>
+        </div>
+        <textarea
+          v-model="teacherMessage"
+          class="form-control msg-textarea"
+          rows="3"
+          placeholder="សរសេរសារទៅកាន់មាតាបិតានៅទីនេះ..."
+        ></textarea>
+        <PhrasePicker @pick="handlePhrasePick" />
+      </div>
+    </div>
+
     <!-- Student List -->
     <div v-if="currentLink" class="card">
       <div class="table-wrapper">
@@ -325,5 +367,23 @@ watch(selectedLinkId, onLinkSelected)
 .reply-empty {
   color: var(--text-muted);
   font-size: 13px;
+}
+
+.msg-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.msg-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.msg-textarea {
+  resize: vertical;
+  margin-bottom: 12px;
 }
 </style>
