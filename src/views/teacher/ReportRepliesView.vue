@@ -2,8 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
-import { ChevronLeftIcon, CheckCircleIcon, XCircleIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
-import PhrasePicker from '@/components/report/PhrasePicker.vue'
+import { ChevronLeftIcon, CheckCircleIcon, XCircleIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -17,56 +16,6 @@ const currentLink = ref(null)
 const messages = ref([])
 const allStudents = ref([])
 const toast = ref(null)
-const draftMessages = ref({})
-const savingStudentId = ref(null)
-const editingStudentId = ref(null)
-
-function handlePhrasePick(phrase) {
-  if (!editingStudentId.value) return
-  const current = draftMessages.value[editingStudentId.value] || ''
-  draftMessages.value[editingStudentId.value] = current ? `${current} ${phrase}` : phrase
-}
-
-async function saveTeacherMessage(studentId) {
-  const text = (draftMessages.value[studentId] || '').trim()
-  if (!text || !currentLink.value) return
-  savingStudentId.value = studentId
-  try {
-    const { error } = await supabase
-      .from('report_messages')
-      .upsert({
-        school_id: auth.schoolId,
-        report_link_id: currentLink.value.id,
-        student_id: studentId,
-        teacher_text: text
-      }, { onConflict: 'report_link_id,student_id' })
-
-    if (error) throw error
-
-    toast.value = { type: 'success', msg: 'សារត្រូវបានរក្សាទុក' }
-    setTimeout(() => { toast.value = null }, 3000)
-    editingStudentId.value = null
-    await onLinkSelected()
-  } catch (err) {
-    toast.value = { type: 'error', msg: err.message }
-    setTimeout(() => { toast.value = null }, 3000)
-  } finally {
-    savingStudentId.value = null
-  }
-}
-
-function startEdit(studentId, existingText) {
-  editingStudentId.value = studentId
-  draftMessages.value[studentId] = existingText || ''
-}
-
-function cancelEdit(studentId) {
-  if (editingStudentId.value === studentId) {
-    editingStudentId.value = null
-    delete draftMessages.value[studentId]
-  }
-}
-
 const months = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
 
 onMounted(async () => {
@@ -256,7 +205,6 @@ watch(selectedLinkId, onLinkSelected)
               <th style="width:120px; text-align:center;">ស្ថានភាព</th>
               <th>សារពីមាតាបិតា</th>
               <th style="width:160px;">សំឡេង</th>
-              <th style="width:260px;">សារពីគ្រូ</th>
             </tr>
           </thead>
           <tbody>
@@ -297,39 +245,6 @@ watch(selectedLinkId, onLinkSelected)
                   style="width:100%; height:32px;"
                 ></audio>
                 <span v-else class="reply-empty">—</span>
-              </td>
-              <td>
-                <div v-if="editingStudentId === item.id" class="teacher-msg-edit">
-                  <textarea
-                    v-model="draftMessages[item.id]"
-                    class="form-control"
-                    rows="2"
-                    placeholder="សរសេរសារទៅកាន់មាតាបិតា..."
-                    style="font-size:12px; resize:vertical; margin-bottom:6px;"
-                  ></textarea>
-                  <PhrasePicker @pick="handlePhrasePick" />
-                  <div style="display:flex; gap:6px; margin-top:6px;">
-                    <button
-                      class="btn btn-sm btn-primary"
-                      :disabled="!(draftMessages[item.id] || '').trim() || savingStudentId === item.id"
-                      @click="saveTeacherMessage(item.id)"
-                    >
-                      <PaperAirplaneIcon class="w-3.5 h-3.5" />
-                      រក្សាទុក
-                    </button>
-                    <button class="btn btn-sm btn-ghost" @click="cancelEdit(item.id)">
-                      បោះបង់
-                    </button>
-                  </div>
-                </div>
-                <div v-else class="teacher-msg-display">
-                  <p v-if="item.message?.teacher_text" class="reply-text">{{ item.message.teacher_text }}</p>
-                  <p v-else class="reply-empty">—</p>
-                  <button class="btn btn-xs btn-ghost" style="margin-top:4px;" @click="startEdit(item.id, item.message?.teacher_text)">
-                    <PencilSquareIcon class="w-3.5 h-3.5" />
-                    {{ item.message?.teacher_text ? 'កែសម្រួល' : 'សរសេរសារ' }}
-                  </button>
-                </div>
               </td>
             </tr>
           </tbody>
@@ -411,21 +326,4 @@ watch(selectedLinkId, onLinkSelected)
   font-size: 13px;
 }
 
-.msg-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.msg-section-title {
-  font-size: 15px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.msg-textarea {
-  resize: vertical;
-  margin-bottom: 12px;
-}
 </style>
