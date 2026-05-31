@@ -38,7 +38,7 @@ A comprehensive school management platform for Cambodian primary schools, built 
 | Public | `/`, `/login`, `/register`, `/unauthorized` |
 | Super Admin | `/super/dashboard`, `/super/schools`, `/super/schools/new` |
 | Admin | `/admin/academic-years`, `/admin/dashboard`, `/admin/classes`, `/admin/students`, `/admin/scores`, `/admin/attendance/*`, `/admin/budget`, `/admin/inventory`, `/admin/library`, `/admin/users`, `/admin/reports`, `/admin/approvals`, `/admin/honor-board-editor`, etc. |
-| Teacher | `/teacher/dashboard`, `/teacher/scores/monthly`, `/teacher/scores/semester`, `/teacher/scores/ranking`, `/teacher/scores/summary/:id`, `/teacher/scores/report-replies`, `/teacher/scores/certificates`, `/teacher/honor-board-editor`, `/teacher/attendance`, `/teacher/growth`, etc. |
+| Teacher | `/teacher/dashboard`, `/teacher/scores/monthly`, `/teacher/scores/semester`, `/teacher/scores/ranking`, `/teacher/scores/report-link`, `/teacher/scores/summary/:id`, `/teacher/scores/report-replies`, `/teacher/scores/certificates`, `/teacher/honor-board-editor`, `/teacher/attendance`, `/teacher/growth`, etc. |
 | Librarian | `/librarian/dashboard`, `/librarian/books`, `/librarian/borrows`, `/librarian/overdue` |
 | Parent | `/parent/report/:report_link_id`, `/parent/report/:report_link_id/:student_id` |
 

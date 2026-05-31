@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
-import { ChevronLeftIcon, CheckCircleIcon, XCircleIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon } from '@heroicons/vue/24/outline'
+import { ChevronLeftIcon, CheckCircleIcon, XCircleIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
 import PhrasePicker from '@/components/report/PhrasePicker.vue'
 import { useRouter } from 'vue-router'
 
@@ -17,22 +17,54 @@ const currentLink = ref(null)
 const messages = ref([])
 const allStudents = ref([])
 const toast = ref(null)
-const teacherMessage = ref('')
-const sendingMsg = ref(false)
+const draftMessages = ref({})
+const savingStudentId = ref(null)
+const editingStudentId = ref(null)
 
 function handlePhrasePick(phrase) {
-  const ta = teacherMessage.value
-  teacherMessage.value = ta ? `${ta} ${phrase}` : phrase
+  if (!editingStudentId.value) return
+  const current = draftMessages.value[editingStudentId.value] || ''
+  draftMessages.value[editingStudentId.value] = current ? `${current} ${phrase}` : phrase
 }
 
-async function sendTeacherMessage() {
-  const text = teacherMessage.value.trim()
+async function saveTeacherMessage(studentId) {
+  const text = (draftMessages.value[studentId] || '').trim()
   if (!text || !currentLink.value) return
-  sendingMsg.value = true
-  // TODO: future integration — save to a teacher_messages table or broadcast
-  toast.value = { type: 'success', msg: 'សារត្រូវបានរក្សាទុក' }
-  setTimeout(() => { toast.value = null }, 3000)
-  sendingMsg.value = false
+  savingStudentId.value = studentId
+  try {
+    const { error } = await supabase
+      .from('report_messages')
+      .upsert({
+        school_id: auth.schoolId,
+        report_link_id: currentLink.value.id,
+        student_id: studentId,
+        teacher_text: text
+      }, { onConflict: 'report_link_id,student_id' })
+
+    if (error) throw error
+
+    toast.value = { type: 'success', msg: 'សារត្រូវបានរក្សាទុក' }
+    setTimeout(() => { toast.value = null }, 3000)
+    editingStudentId.value = null
+    await onLinkSelected()
+  } catch (err) {
+    toast.value = { type: 'error', msg: err.message }
+    setTimeout(() => { toast.value = null }, 3000)
+  } finally {
+    savingStudentId.value = null
+  }
+}
+
+function startEdit(studentId, existingText) {
+  editingStudentId.value = studentId
+  draftMessages.value[studentId] = existingText || ''
+}
+
+function cancelEdit(studentId) {
+  if (editingStudentId.value === studentId) {
+    editingStudentId.value = null
+    delete draftMessages.value[studentId]
+  }
 }
 
 const months = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
@@ -212,30 +244,6 @@ watch(selectedLinkId, onLinkSelected)
       </div>
     </div>
 
-    <!-- Teacher Message -->
-    <div v-if="currentLink" class="card" style="margin-bottom:24px;">
-      <div class="card-body">
-        <div class="msg-section-header">
-          <h3 class="msg-section-title">សារទៅកាន់មាតាបិតា</h3>
-          <button
-            class="btn btn-sm btn-primary"
-            :disabled="!teacherMessage.trim() || sendingMsg"
-            @click="sendTeacherMessage"
-          >
-            <PaperAirplaneIcon class="w-4 h-4" />
-            ផ្ញើ
-          </button>
-        </div>
-        <textarea
-          v-model="teacherMessage"
-          class="form-control msg-textarea"
-          rows="3"
-          placeholder="សរសេរសារទៅកាន់មាតាបិតានៅទីនេះ..."
-        ></textarea>
-        <PhrasePicker @pick="handlePhrasePick" />
-      </div>
-    </div>
-
     <!-- Student List -->
     <div v-if="currentLink" class="card">
       <div class="table-wrapper">
@@ -248,6 +256,7 @@ watch(selectedLinkId, onLinkSelected)
               <th style="width:120px; text-align:center;">ស្ថានភាព</th>
               <th>សារពីមាតាបិតា</th>
               <th style="width:160px;">សំឡេង</th>
+              <th style="width:260px;">សារពីគ្រូ</th>
             </tr>
           </thead>
           <tbody>
@@ -288,6 +297,39 @@ watch(selectedLinkId, onLinkSelected)
                   style="width:100%; height:32px;"
                 ></audio>
                 <span v-else class="reply-empty">—</span>
+              </td>
+              <td>
+                <div v-if="editingStudentId === item.id" class="teacher-msg-edit">
+                  <textarea
+                    v-model="draftMessages[item.id]"
+                    class="form-control"
+                    rows="2"
+                    placeholder="សរសេរសារទៅកាន់មាតាបិតា..."
+                    style="font-size:12px; resize:vertical; margin-bottom:6px;"
+                  ></textarea>
+                  <PhrasePicker @pick="handlePhrasePick" />
+                  <div style="display:flex; gap:6px; margin-top:6px;">
+                    <button
+                      class="btn btn-sm btn-primary"
+                      :disabled="!(draftMessages[item.id] || '').trim() || savingStudentId === item.id"
+                      @click="saveTeacherMessage(item.id)"
+                    >
+                      <PaperAirplaneIcon class="w-3.5 h-3.5" />
+                      រក្សាទុក
+                    </button>
+                    <button class="btn btn-sm btn-ghost" @click="cancelEdit(item.id)">
+                      បោះបង់
+                    </button>
+                  </div>
+                </div>
+                <div v-else class="teacher-msg-display">
+                  <p v-if="item.message?.teacher_text" class="reply-text">{{ item.message.teacher_text }}</p>
+                  <p v-else class="reply-empty">—</p>
+                  <button class="btn btn-xs btn-ghost" style="margin-top:4px;" @click="startEdit(item.id, item.message?.teacher_text)">
+                    <PencilSquareIcon class="w-3.5 h-3.5" />
+                    {{ item.message?.teacher_text ? 'កែសម្រួល' : 'សរសេរសារ' }}
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>

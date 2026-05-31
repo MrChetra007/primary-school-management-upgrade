@@ -202,6 +202,7 @@ src/
 | `/teacher/scores/ranking`            | Ranked list + stats summary tiles + grade distribution + **Request Approval / Share Link button (v10)** |
 | `/teacher/scores/summary/:id`        | Individual student score summary with radar chart (Chart.js)                             |
 | `/teacher/scores/certificates`       | Certificate design for Top 5 — template selection + download as image/PDF                |
+| `/teacher/scores/report-link`        | **NEW v16** Report link management — student cards with scores + attendance, per-student notes, send for approval, copy link when approved |
 | `/teacher/scores/report-replies`     | Parent replies inbox — filter by month/semester, read-only text + voice playback + **PhrasePicker chips (v10)** |
 | `/teacher/scores/honor-board-editor` | Honor board editor with drag-drop text layers on templates                               |
 | `/teacher/sick-days`                 | Add & manage student sick days                                                           |
@@ -433,6 +434,7 @@ src/
 - **Teacher Phrase Library** (`teacher_phrases`) — personal reusable feedback chips that append to the student message box in report-replies; add/delete inline
 - **school-assets bucket** — stores principal digital signature and school stamp images uploaded from Admin Settings
 - **PWA Support** — service worker via vite-plugin-pwa, install button on landing page, iOS "Add to Home Screen" hint banner, update toast notification
+- **Report Link Management Page** (`/teacher/scores/report-link`) — dedicated page with student cards, per-student teacher notes with PhrasePicker, score/attendance preview, send-for-approval button, copy-link button (enabled only when approved)
 
 ---
 
@@ -493,7 +495,12 @@ src/
 
 ## 📝 Session Notes (June 2026)
 
-### Session 1 — Phase 11 Cleanup + PWA + Icon Fix
+### Session 1 — Phase 11 Cleanup + PWA + Report Link Page
+- **Phase 11** — All 20 schema + frontend checkboxes marked done; Phase Tracker moved from CURRENT to DONE
+- **manage-user Edge Function** — Verified `school_id` is already accepted, validated, and stored in `user_metadata` + `teachers` row; all 3 frontend callers pass it correctly
+- **PWA build fix** — Increased `maximumFileSizeToCacheInBytes` to 10 MiB; excluded large border PNGs (`border*.png`) from precaching
+- **PWA icon** — `public/icon.png` still uses default Vite Vue green logo → needs a custom app icon (192x192 + 512x512) to display on home screen
+- **Report Link Management Page** — Created new `ReportLinkView.vue` at `/teacher/scores/report-link` with student cards (scores + attendance), per-student teacher notes with PhrasePicker, send-for-approval button, and copy-link button (enabled only when approved). Added sidebar link in TeacherLayout. Fixed `sendTeacherMessage()` stub in ReportRepliesView — now actually upserts into `report_messages` table per student
 - **Phase 11** — All 20 schema + frontend checkboxes marked done; Phase Tracker moved from CURRENT to DONE
 - **manage-user Edge Function** — Verified `school_id` is already accepted, validated, and stored in `user_metadata` + `teachers` row; all 3 frontend callers pass it correctly
 - **PWA build fix** — Increased `maximumFileSizeToCacheInBytes` to 10 MiB; excluded large border PNGs (`border*.png`) from precaching
