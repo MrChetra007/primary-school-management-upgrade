@@ -3,7 +3,7 @@
 > **Stack:** Vue 3 + Vite + Tailwind CSS + Supabase
 > **Roles:** Super Admin · Admin/Director · Teacher · Librarian · Parent (anon, link-only)
 > **Schema:** v10 (fresh install or migrated from v9)
-> **Date:** June 2026 (Phase 11 complete, PWA added)
+> **Date:** June 2026 (Phase 11 complete, PWA added, build fixed)
 
 ---
 
@@ -364,7 +364,7 @@ src/
 - [x] Pinia stores updated (`auth.js`, `school.js`, `academicYear.js`)
 - [x] Login auto-detects school from user record
 - [x] ClassSubjects store with memoization
-- [ ] Update Edge Function `manage-user` with `school_id` payload
+- [x] Update Edge Function `manage-user` with `school_id` payload
 - [ ] Multi-tenant testing (2 schools, verify isolation)
 
 ### ✅ Phase 10 — Link-Based Parent Portal (v9) ← DONE
@@ -453,6 +453,7 @@ src/
 | @vueuse/core         | ^14.2   | Composition utilities      |
 | tailwindcss          | ^4.2    | CSS utility framework      |
 | vite                 | ^8.0    | Build tool                 |
+| vite-plugin-pwa      | ^1.3    | PWA / service worker       |
 
 ---
 
@@ -487,3 +488,13 @@ src/
 - Notifications use Supabase Realtime channel — subscribe on login, unsubscribe on logout
 - Teacher phrases are soft-ordered by `sort_order` (integer) — allows manual reordering in future
 - Potential partnerships: MoEYS, UNICEF Cambodia, World Bank, Room to Read, Aide et Action
+
+---
+
+## 📝 Session Notes (June 2026)
+
+### Session 1 — Phase 11 Cleanup + PWA + Icon Fix
+- **Phase 11** — All 20 schema + frontend checkboxes marked done; Phase Tracker moved from CURRENT to DONE
+- **manage-user Edge Function** — Verified `school_id` is already accepted, validated, and stored in `user_metadata` + `teachers` row; all 3 frontend callers pass it correctly
+- **PWA build fix** — Increased `maximumFileSizeToCacheInBytes` to 10 MiB; excluded large border PNGs (`border*.png`) from precaching
+- **PWA icon** — `public/icon.png` still uses default Vite Vue green logo → needs a custom app icon (192x192 + 512x512) to display on home screen

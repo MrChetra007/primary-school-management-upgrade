@@ -2,7 +2,7 @@
 
 A comprehensive school management platform for Cambodian primary schools, built for multi-tenant use across multiple schools.
 
-**Stack:** Vue 3 + Vite + Tailwind CSS + Supabase (PostgreSQL)
+**Stack:** Vue 3 + Vite + Tailwind CSS + Supabase (PostgreSQL) — schema v10
 
 ## Roles
 
@@ -22,9 +22,13 @@ A comprehensive school management platform for Cambodian primary schools, built 
 - **Attendance:** Daily bulk marking, monthly calendar, teacher check-in
 - **Student rollup:** End-of-year grade promotion (Grade 6 → graduated)
 - **Parent portal:** UUID-based report links with voice messaging
+- **Report link approval flow:** Teacher requests approval → admin approves/rejects → link unlocks → parent report card shows principal signature + school stamp
+- **In-app notifications:** Bell icon with unread badge, realtime updates via Supabase Realtime
+- **Teacher phrase library:** Personal reusable feedback chips that append to student messages
 - **Honor board / certificates:** Drag-drop editor with template gallery
 - **Student score radar chart:** Visual score summary per student
 - **Excel import:** Bulk student import with class detection
+- **PWA support:** Offline-capable, installable on desktop & mobile
 - **Khmer language UI** throughout
 
 ## Routes
@@ -33,16 +37,16 @@ A comprehensive school management platform for Cambodian primary schools, built 
 |-------|--------|
 | Public | `/`, `/login`, `/register`, `/unauthorized` |
 | Super Admin | `/super/dashboard`, `/super/schools`, `/super/schools/new` |
-| Admin | `/admin/academic-years`, `/admin/dashboard`, `/admin/classes`, `/admin/students`, `/admin/scores`, `/admin/attendance/*`, `/admin/budget`, `/admin/inventory`, `/admin/library`, `/admin/users`, `/admin/reports`, `/admin/honor-board-editor`, etc. |
+| Admin | `/admin/academic-years`, `/admin/dashboard`, `/admin/classes`, `/admin/students`, `/admin/scores`, `/admin/attendance/*`, `/admin/budget`, `/admin/inventory`, `/admin/library`, `/admin/users`, `/admin/reports`, `/admin/approvals`, `/admin/honor-board-editor`, etc. |
 | Teacher | `/teacher/dashboard`, `/teacher/scores/monthly`, `/teacher/scores/semester`, `/teacher/scores/ranking`, `/teacher/scores/summary/:id`, `/teacher/scores/report-replies`, `/teacher/scores/certificates`, `/teacher/honor-board-editor`, `/teacher/attendance`, `/teacher/growth`, etc. |
 | Librarian | `/librarian/dashboard`, `/librarian/books`, `/librarian/borrows`, `/librarian/overdue` |
 | Parent | `/parent/report/:report_link_id`, `/parent/report/:report_link_id/:student_id` |
 
 ## Database
 
-Full schema in `schema_v9.sql` (fresh install) — covers 24 tables, 25+ indexes, RLS policies, storage buckets, and DB functions (student rollup, teacher check-in, Khmer digit parsing).
+Full schema in `schema_v10.sql` (fresh install) — covers 27 tables (incl. `notifications`, `teacher_phrases`), 30+ indexes, RLS policies, storage buckets, DB functions (student rollup, teacher check-in, approval triggers), and Edge Function (`manage-user`).
 
-Migration files: `migration_v2_to_v3.sql` through `migration_v8_v9.sql`.
+Migration files: `migration_v2_to_v3.sql` through `migration_v9_v10.sql`.
 
 ## Develop
 
@@ -54,7 +58,7 @@ npm run dev
 ## Build
 
 ```bash
-npm run build
+npm run build        # Generates PWA service worker in dist/
 ```
 
 ## Key Dependencies
@@ -65,6 +69,7 @@ npm run build
 - `jspdf` + `jspdf-autotable` — PDF reports
 - `html2canvas` — certificate capture
 - `xlsx` — Excel import/export
-- `@heroicons/vue` + `lucide-vue-next` — icons
+- `@heroicons/vue` — icons
 - `vee-validate` + `yup` — form validation
 - `tailwindcss 4` — styling
+- `vite-plugin-pwa` — PWA / service worker
