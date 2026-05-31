@@ -98,17 +98,27 @@ async function fetchCurrentLink() {
   const month = mode.value === 'monthly' ? selectedMonth.value : null
   const semester = mode.value === 'semester' ? selectedSemester.value : null
 
-  const { data } = await supabase
+  let query = supabase
     .from('report_links')
     .select('*')
     .eq('class_id', classInfo.value.id)
     .eq('academic_year_id', classInfo.value.academic_year_id)
     .eq('score_type', mode.value)
-    .eq('month', month)
-    .eq('semester', semester)
     .eq('created_by', auth.teacherProfile.id)
-    .maybeSingle()
 
+  if (month !== null) {
+    query = query.eq('month', month)
+  } else {
+    query = query.is('month', null)
+  }
+
+  if (semester !== null) {
+    query = query.eq('semester', semester)
+  } else {
+    query = query.is('semester', null)
+  }
+
+  const { data } = await query.maybeSingle()
   currentLink.value = data || null
 }
 
@@ -299,6 +309,13 @@ async function handleSendForApproval() {
   try {
     const month = mode.value === 'monthly' ? selectedMonth.value : null
     const semester = mode.value === 'semester' ? selectedSemester.value : null
+
+    await fetchCurrentLink()
+
+    if (currentLink.value && currentLink.value.status !== 'rejected') {
+      showToast('តំណភ្ជាប់សម្រាប់ខែនេះមានរួចហើយ', 'info')
+      return
+    }
 
     if (currentLink.value && currentLink.value.status === 'rejected') {
       const { error } = await supabase
