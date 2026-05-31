@@ -319,14 +319,6 @@ watch(selectedMonth, fetchScores)
             </tbody>
           </table>
         </div>
-
-        <div class="print-footer only-print" style="margin-top:40px; display:flex; justify-content:flex-end; padding:20px;">
-          <div style="text-align:center;">
-            <p>ថ្ងៃទី ........ ខែ ........ ឆ្នាំ២០........</p>
-            <p style="margin-top:10px; font-weight:700;">ហត្ថលេខាគ្រូបន្ទុកថ្នាក់</p>
-            <div style="height:60px;"></div>
-          </div>
-        </div>
       </div>
     </div>
   </div>

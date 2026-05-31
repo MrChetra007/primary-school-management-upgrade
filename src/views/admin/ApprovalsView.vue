@@ -1,10 +1,12 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
 import { formatDate } from '@/utils/formatDate'
 
+const router = useRouter()
 const auth = useAuthStore()
 const notificationsStore = useNotificationsStore()
 const loading = ref(true)
@@ -187,34 +189,39 @@ async function handleReject() {
                 {{ link.rejection_note || '-' }}
               </td>
               <td style="text-align:center;">
-                <div v-if="link.status === 'pending'" class="action-btns">
+                <div class="action-btns">
                   <button
-                    class="btn btn-sm btn-success"
-                    :disabled="processingId === link.id"
-                    @click="handleApprove(link)"
+                    class="btn btn-sm btn-ghost"
+                    @click="router.push(`/admin/approvals/${link.id}`)"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                      <path d="M5 13l4 4L19 7"/>
+                      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
                     </svg>
-                    អនុម័ត
+                    មើល
                   </button>
-                  <button
-                    class="btn btn-sm btn-danger"
-                    :disabled="processingId === link.id"
-                    @click="openRejection(link)"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                      <path d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    បដិសេធ
-                  </button>
+                  <template v-if="link.status === 'pending'">
+                    <button
+                      class="btn btn-sm btn-success"
+                      :disabled="processingId === link.id"
+                      @click="handleApprove(link)"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <path d="M5 13l4 4L19 7"/>
+                      </svg>
+                      អនុម័ត
+                    </button>
+                    <button
+                      class="btn btn-sm btn-danger"
+                      :disabled="processingId === link.id"
+                      @click="openRejection(link)"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <path d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                      បដិសេធ
+                    </button>
+                  </template>
                 </div>
-                <span v-else-if="link.status === 'approved'" style="font-size:12px;color:#16a34a;font-weight:600;">
-                  {{ link.approved_at ? formatDate(link.approved_at) : '' }}
-                </span>
-                <span v-else style="font-size:12px;color:#dc2626;font-weight:600;">
-                  {{ link.approved_at ? formatDate(link.approved_at) : '' }}
-                </span>
               </td>
             </tr>
           </tbody>
