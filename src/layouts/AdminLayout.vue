@@ -81,6 +81,7 @@ const navGroups = [
       { to: "/admin/scores", icon: "bar-chart-2", label: "ពិន្ទុ" }, // Scores
       { to: "/admin/health", icon: "heart", label: "សុខភាព" }, // Health Records
       { to: "/admin/sick-days", icon: "thermometer", label: "ថ្ងៃឈឺ" }, // Sick Days
+      { to: "/admin/approvals", icon: "check-circle", label: "ការអនុញ្ញាត" }, // Approvals
     ],
   },
   {
@@ -130,6 +131,7 @@ const icons = {
   heart:
     "M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z",
   thermometer: "M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z",
+  "check-circle": "M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4L12 14.01l-3-3",
   "dollar-sign": "M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
   package:
     "M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z",
