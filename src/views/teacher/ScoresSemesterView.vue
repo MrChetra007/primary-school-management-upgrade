@@ -203,9 +203,17 @@ function calculateAll() {
   })
 }
 
-function onScoreInput(studentId) {
+function onScoreInput(studentId, subId, event) {
+  const val = event.target.value
+  const cleaned = val.replace(/[^0-9]/g, '').slice(0, 3)
+  if (cleaned !== val) {
+    event.target.value = cleaned
+  }
   const row = scoreMatrix.value.find(r => r.student_id === studentId)
-  if (row) calculateRowAverages(row)
+  if (row && row.examSubjects[subId]) {
+    row.examSubjects[subId].score = cleaned
+    calculateRowAverages(row)
+  }
 }
 
 async function saveAll() {
@@ -217,6 +225,7 @@ async function saveAll() {
       if (data.score === '') return
       
       const payload = {
+        id: data.id || crypto.randomUUID(),
         student_id: row.student_id,
         subject_id: subId,
         academic_year_id: classInfo.value.academic_year_id,
@@ -225,7 +234,6 @@ async function saveAll() {
         score: Number(data.score),
         school_id: auth.schoolId
       }
-      if (data.id) payload.id = data.id
       toUpsert.push(payload)
     })
   })
@@ -357,12 +365,11 @@ watch(selectedSemester, fetchAllScores)
                 <td v-for="sub in subjects" :key="sub.id"
                   :class="{ 'pinned-col': pinnedCol === sub.id }">
                   <input 
-                    type="number" 
+                    type="text" 
+                    inputmode="numeric"
                     class="score-input"
-                    v-model="row.examSubjects[sub.id].score"
-                    min="0" 
-                    max="100"
-                    @input="onScoreInput(row.student_id)"
+                    :value="row.examSubjects[sub.id].score"
+                    @input="onScoreInput(row.student_id, sub.id, $event)"
                     @click.stop
                   />
                 </td>
@@ -508,12 +515,6 @@ watch(selectedSemester, fetchAllScores)
   outline: none;
   border-color: var(--primary-color);
   background: #f1f5f9;
-}
-
-.score-input::-webkit-inner-spin-button,
-.score-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
 }
 
 .avg-cell {
