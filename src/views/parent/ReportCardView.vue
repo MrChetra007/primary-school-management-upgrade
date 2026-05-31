@@ -23,6 +23,7 @@ const saved = ref(false)
 const toast = ref(null)
 const rankedList = ref([])
 const generating = ref(false)
+const schoolInfo = ref(null)
 const showCertModal = ref(false)
 const selectedBorder = ref('border1')
 const certificateRef = ref(null)
@@ -51,6 +52,13 @@ onMounted(async () => {
   }
 
   link.value = linkData
+
+  const { data: schoolData } = await supabase
+    .from('school_information')
+    .select('signature_url, stamp_url, director_name')
+    .limit(1)
+    .maybeSingle()
+  schoolInfo.value = schoolData || null
 
   const { data: stuData } = await supabase
     .from('students')
@@ -451,6 +459,25 @@ async function submitParentReply() {
         <div class="card-body">
           <p v-if="message.teacher_text" style="white-space: pre-wrap; line-height: 1.6;">{{ message.teacher_text }}</p>
           <audio v-if="message.teacher_voice_url" :src="message.teacher_voice_url" controls style="width: 100%; margin-top: 8px;"></audio>
+        </div>
+      </div>
+
+      <!-- Signature & Stamp (approved links only) -->
+      <div v-if="link?.status === 'approved' && schoolInfo?.signature_url" class="card signature-section">
+        <div class="card-header">
+          <h3 class="card-title">ហត្ថលេខា និងត្រា</h3>
+        </div>
+        <div class="card-body" style="display:flex;align-items:flex-end;gap:32px;padding:16px 24px;">
+          <div style="text-align:center;flex:1;">
+            <img v-if="schoolInfo.signature_url" :src="schoolInfo.signature_url" style="max-height:80px;margin-bottom:8px;" />
+            <div style="border-top:1px solid #cbd5e1;padding-top:6px;">
+              <p style="font-size:13px;font-weight:700;margin:0;">{{ schoolInfo.director_name || 'នាយកសាលា' }}</p>
+              <p style="font-size:11px;color:var(--text-secondary);margin:0;">ហត្ថលេខានាយក</p>
+            </div>
+          </div>
+          <div v-if="schoolInfo.stamp_url" style="text-align:center;">
+            <img :src="schoolInfo.stamp_url" style="max-height:100px;max-width:100px;" />
+          </div>
         </div>
       </div>
 
@@ -1060,6 +1087,8 @@ async function submitParentReply() {
 }
 
 .text-blue { color: #1a3b8e; }
+.signature-section { border: 1px solid #e2e8f0; }
+.signature-section .card-body { background: #fafafa; }
 
 @media (max-width: 480px) {
   .att-stats {

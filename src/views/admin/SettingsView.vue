@@ -22,6 +22,7 @@ const tabs = [
   { id: 'holidays', label: 'ថ្ងៃឈប់សម្រាក' },
   { id: 'attendance', label: 'ការកំណត់វត្តមាន' },
   { id: 'semester', label: 'ការកំណត់ឆមាស' },
+  { id: 'signature', label: 'ហត្ថលេខា និងត្រា' },
 ]
 
 function showToast(msg, type = 'success') {
@@ -68,6 +69,36 @@ async function uploadLogo(e) {
   if (!error) {
     const { data } = supabase.storage.from('teacher-profiles').getPublicUrl(path)
     schoolForm.value.logo_url = data.publicUrl
+  } else {
+    showToast(error.message, 'error')
+  }
+  uploadingLogo.value = false
+}
+
+async function uploadSignature(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  uploadingLogo.value = true
+  const path = `${auth.schoolId}/signature.${file.name.split('.').pop()}`
+  const { error } = await supabase.storage.from('school-assets').upload(path, file, { upsert: true })
+  if (!error) {
+    const { data } = supabase.storage.from('school-assets').getPublicUrl(path)
+    schoolForm.value.signature_url = data.publicUrl
+  } else {
+    showToast(error.message, 'error')
+  }
+  uploadingLogo.value = false
+}
+
+async function uploadStamp(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  uploadingLogo.value = true
+  const path = `${auth.schoolId}/stamp.${file.name.split('.').pop()}`
+  const { error } = await supabase.storage.from('school-assets').upload(path, file, { upsert: true })
+  if (!error) {
+    const { data } = supabase.storage.from('school-assets').getPublicUrl(path)
+    schoolForm.value.stamp_url = data.publicUrl
   } else {
     showToast(error.message, 'error')
   }
@@ -266,6 +297,7 @@ function switchTab(id) {
   if (id === 'holidays') loadHolidays()
   if (id === 'attendance') loadAttConfig()
   if (id === 'semester') loadSemesterConfig()
+  if (id === 'signature') loadSchool()
 }
 
 </script>
@@ -403,6 +435,44 @@ function switchTab(id) {
         </div>
       </div>
 
+      <div v-if="currentTab === 'signature'" class="tab-pane">
+        <div class="card">
+          <div class="card-header"><span class="card-title">ហត្ថលេខា និងត្រាសាលា</span><button class="btn btn-primary btn-sm" @click="saveSchool" :disabled="saving"><ArrowDownTrayIcon class="w-4 h-4" /> {{ saving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុក' }}</button></div>
+          <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+              <label class="form-label" style="align-self:flex-start;">ហត្ថលេខានាយក</label>
+              <div class="asset-box">
+                <img v-if="schoolForm.signature_url" :src="schoolForm.signature_url" class="asset-preview" />
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" width="40" height="40">
+                  <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                  <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </div>
+              <label class="btn btn-ghost btn-sm">
+                {{ uploadingLogo ? 'កំពុងផ្ទុក...' : 'បញ្ចូលរូបហត្ថលេខា' }}
+                <input type="file" @change="uploadSignature" hidden accept="image/*" />
+              </label>
+              <p style="font-size:11px;color:var(--text-secondary);text-align:center;">រូបភាពហត្ថលេខារបស់នាយកសាលា នឹងបង្ហាញនៅលើរបាយការណ៍របស់សិស្ស</p>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+              <label class="form-label" style="align-self:flex-start;">ត្រាសាលា</label>
+              <div class="asset-box">
+                <img v-if="schoolForm.stamp_url" :src="schoolForm.stamp_url" class="asset-preview" />
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" width="40" height="40">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </div>
+              <label class="btn btn-ghost btn-sm">
+                {{ uploadingLogo ? 'កំពុងផ្ទុក...' : 'បញ្ចូលរូបត្រា' }}
+                <input type="file" @change="uploadStamp" hidden accept="image/*" />
+              </label>
+              <p style="font-size:11px;color:var(--text-secondary);text-align:center;">ត្រាផ្លូវការរបស់សាលា នឹងបង្ហាញនៅលើរបាយការណ៍របស់សិស្ស</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div v-if="currentTab === 'semester'" class="tab-pane">
         <div v-if="!yearStore.selectedYearId" class="card">
           <div class="card-body" style="text-align:center;padding:40px;color:var(--text-secondary);">
@@ -519,6 +589,22 @@ function switchTab(id) {
 }
 .logo-box img { width: 100%; height: 100%; object-fit: contain; }
 .text-danger { color: #dc2626; }
+.asset-box {
+  width: 180px;
+  height: 180px;
+  background: #f1f5f9;
+  border: 2px dashed var(--border-default);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.asset-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 .month-chk {
   display: flex; align-items: center; gap: 6px;
   padding: 6px 10px; border-radius: 8px;

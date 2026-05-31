@@ -59,6 +59,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  function handleAuthEvent(event, newSession) {
+    // Called from main.js listener (registered ONCE)
+    if (event === 'INITIAL_SESSION') {
+      // Supabase fires this synchronously on registration.
+      // Profile is already loaded by init() — skip to avoid
+      // a duplicate fetchProfile() that races the first one.
+      return
+    }
+    session.value = newSession
+    if (newSession) {
+      fetchProfile(newSession.user.id)
+    } else {
+      profile.value = null
+      teacherProfile.value = null
+    }
+  }
+
   async function init() {
     console.log('AuthStore: Initializing...')
     const { data } = await supabase.auth.getSession()
@@ -69,17 +86,6 @@ export const useAuthStore = defineStore('auth', () => {
     } else {
       console.log('AuthStore: No session found')
     }
-
-    supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log('AuthStore: Auth state change:', event)
-      session.value = newSession
-      if (newSession) {
-        await fetchProfile(newSession.user.id)
-      } else {
-        profile.value = null
-        teacherProfile.value = null
-      }
-    })
   }
 
   async function login(email, password) {
@@ -115,6 +121,7 @@ export const useAuthStore = defineStore('auth', () => {
     isParent,
     schoolId,
     init, 
+    handleAuthEvent,
     login, 
     logout 
   }

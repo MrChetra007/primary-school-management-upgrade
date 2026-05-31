@@ -31,6 +31,8 @@ const rawScores = ref([])
 const rankedList = ref([])
 const exporting = ref(false)
 const toast = ref(null)
+const currentLink = ref(null)
+const requestingApproval = ref(false)
 
 const mode = ref(route.query.mode || 'monthly') 
 const selectedMonth = ref(Number(route.query.month) || new Date().getMonth() + 1)
@@ -110,6 +112,7 @@ async function loadData() {
       .order('full_name')
     students.value = stuData || []
     
+    await fetchCurrentLink()
     await fetchData()
   }
   loading.value = false
@@ -138,6 +141,23 @@ const stats = ref({
   gradeCounts: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 },
   gradePercents: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 }
 })
+
+async function fetchCurrentLink() {
+  if (!classInfo.value) { currentLink.value = null; return }
+  let q = supabase
+    .from('report_links')
+    .select('id, status, rejection_note, created_at')
+    .eq('class_id', classInfo.value.id)
+    .eq('academic_year_id', classInfo.value.academic_year_id)
+    .eq('score_type', mode.value)
+  if (mode.value === 'monthly') {
+    q = q.eq('month', selectedMonth.value).is('semester', null)
+  } else {
+    q = q.is('month', null).eq('semester', selectedSemester.value)
+  }
+  const { data } = await q.maybeSingle()
+  currentLink.value = data || null
+}
 
 async function fetchData() {
   if (!classInfo.value || students.value.length === 0) return
@@ -314,29 +334,33 @@ async function generateReportLink() {
   const month = mode.value === 'monthly' ? selectedMonth.value : null
   const semester = mode.value === 'semester' ? selectedSemester.value : null
 
-  let linkQuery = supabase
-    .from('report_links')
-    .select('id')
-    .eq('class_id', classInfo.value.id)
-    .eq('academic_year_id', classInfo.value.academic_year_id)
-    .eq('score_type', mode.value)
-  if (month !== null) {
-    linkQuery = linkQuery.eq('month', month)
-  } else {
-    linkQuery = linkQuery.is('month', null)
-  }
-  if (semester !== null) {
-    linkQuery = linkQuery.eq('semester', semester)
-  } else {
-    linkQuery = linkQuery.is('semester', null)
-  }
-  const { data: existing } = await linkQuery.maybeSingle()
-
-  if (existing) {
-    const link = `${window.location.origin}/parent/report/${existing.id}`
-    await navigator.clipboard.writeText(link)
-    showToast('តំណភ្ជាប់មានរួចហើយ! បានចម្លងឡើងវិញ', 'success')
-    return
+  if (currentLink.value) {
+    if (currentLink.value.status === 'approved') {
+      const link = `${window.location.origin}/parent/report/${currentLink.value.id}`
+      await navigator.clipboard.writeText(link)
+      showToast('តំណភ្ជាប់ត្រូវបានអនុម័តរួចហើយ! បានចម្លង', 'success')
+      return
+    }
+    if (currentLink.value.status === 'pending') {
+      const link = `${window.location.origin}/parent/report/${currentLink.value.id}`
+      await navigator.clipboard.writeText(link)
+      showToast('កំពុងរង់ចាំការអនុម័ត។ បានចម្លងតំណ', 'info')
+      return
+    }
+    if (currentLink.value.status === 'rejected') {
+      const { error } = await supabase
+        .from('report_links')
+        .update({ status: 'pending', rejection_note: null, approved_at: null, approved_by: null })
+        .eq('id', currentLink.value.id)
+      if (error) {
+        showToast(error.message, 'error')
+        return
+      }
+      currentLink.value.status = 'pending'
+      currentLink.value.rejection_note = null
+      showToast('បានស្នើសុំអនុម័តឡើងវិញដោយជោគជ័យ!', 'success')
+      return
+    }
   }
 
   const { data: inserted, error } = await supabase
@@ -350,7 +374,7 @@ async function generateReportLink() {
       month,
       semester
     })
-    .select('id')
+    .select('id, status')
     .single()
 
   if (error || !inserted) {
@@ -358,6 +382,7 @@ async function generateReportLink() {
     return
   }
 
+  currentLink.value = inserted
   const link = `${window.location.origin}/parent/report/${inserted.id}`
   await navigator.clipboard.writeText(link)
   showToast('បានបង្កើត និងចម្លងតំណភ្ជាប់ថ្មី!', 'success')
@@ -368,7 +393,10 @@ function showToast(msg, type = 'success') {
   setTimeout(() => { toast.value = null }, 3000)
 }
 
-watch([mode, selectedMonth, selectedSemester], fetchData)
+watch([mode, selectedMonth, selectedSemester], () => {
+  fetchCurrentLink()
+  fetchData()
+})
 
 function initials(name) {
   return (name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??'
@@ -424,17 +452,23 @@ function toKhmerNum(num) {
         <div v-else style="background:var(--primary-700); color:white; padding:6px 16px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">
           {{ mode === 'monthly' ? 'របាយការណ៍ប្រចាំខែ' : 'របាយការណ៍ឆមាស' }}
         </div>
-        <button 
-          v-if="classInfo"
-          class="btn btn-secondary btn-action" 
-          @click="generateReportLink"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-          </svg>
-          <span class="btn-label">បង្កើតតំណភ្ជាប់</span>
-        </button>
+        <div v-if="classInfo" class="link-status-group">
+          <span v-if="currentLink" class="link-status-badge" :class="'ls-' + currentLink.status">
+            <span v-if="currentLink.status === 'approved'" class="ls-dot" style="background:#16a34a;"></span>
+            <span v-else-if="currentLink.status === 'pending'" class="ls-dot" style="background:#f59e0b;"></span>
+            <span v-else class="ls-dot" style="background:#dc2626;"></span>
+            {{ currentLink.status === 'approved' ? 'បានអនុម័ត' : currentLink.status === 'pending' ? 'កំពុងរង់ចាំ' : 'ត្រូវបានបដិសេធ' }}
+          </span>
+          <button class="btn btn-secondary btn-action" @click="generateReportLink">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            <span class="btn-label">
+              {{ currentLink?.status === 'rejected' ? 'ស្នើសុំឡើងវិញ' : currentLink ? 'ចម្លងតំណ' : 'បង្កើតតំណភ្ជាប់' }}
+            </span>
+          </button>
+        </div>
 
         <button 
           v-if="rankedList.length > 0"
@@ -484,6 +518,13 @@ function toKhmerNum(num) {
         <div class="stat-info">
           <UserGroupIcon class="w-5 h-5 text-gray-400" />
           <span>សិស្សសរុប៖ {{ students.length }} នាក់</span>
+        </div>
+      </div>
+
+      <div v-if="currentLink?.status === 'rejected' && currentLink?.rejection_note" class="card" style="margin-bottom:16px;border-left:4px solid #dc2626;background:#fef2f2;">
+        <div class="card-body" style="padding:12px 16px;">
+          <p style="font-size:13px;color:#dc2626;font-weight:600;margin-bottom:4px;">មូលហេតុនៃការបដិសេធ៖</p>
+          <p style="font-size:13px;color:#991b1b;">{{ currentLink.rejection_note }}</p>
         </div>
       </div>
     </div>
@@ -907,6 +948,33 @@ function toKhmerNum(num) {
 
 .btn-action .btn-label {
   display: inline;
+}
+
+.link-status-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.link-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.ls-approved { background: #f0fdf4; color: #15803d; }
+.ls-pending { background: #fefce8; color: #a16207; }
+.ls-rejected { background: #fef2f2; color: #991b1b; }
+
+.ls-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 }
 
 @media (max-width: 900px) {

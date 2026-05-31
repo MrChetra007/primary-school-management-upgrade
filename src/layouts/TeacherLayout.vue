@@ -1,12 +1,24 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { RouterView, useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationsStore } from '@/stores/notifications'
+import NotificationsDropdown from '@/components/shared/NotificationsDropdown.vue'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
+const notificationsStore = useNotificationsStore()
 const sidebarOpen = ref(false)
+
+onMounted(() => {
+  notificationsStore.fetchNotifications()
+  notificationsStore.subscribe()
+})
+
+onUnmounted(() => {
+  notificationsStore.unsubscribe()
+})
 
 watch(() => route.path, () => { sidebarOpen.value = false })
 
@@ -97,6 +109,7 @@ function isActive(path) {
           <h2 style="font-size:16px;font-weight:600;color:var(--text-primary);">{{ route.meta.title || 'ផ្ទាំងព័ត៌មានគ្រូបង្រៀន' }}</h2>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
+          <NotificationsDropdown />
           <span class="badge badge-green">គ្រូបង្រៀន</span>
           <div class="avatar">{{ userInitials }}</div>
         </div>

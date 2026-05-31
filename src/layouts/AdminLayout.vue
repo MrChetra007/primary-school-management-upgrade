@@ -1,15 +1,27 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { RouterView, useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useAcademicYearStore } from "@/stores/academicYear";
 import { useSchoolStore } from "@/stores/school";
+import { useNotificationsStore } from "@/stores/notifications";
+import NotificationsDropdown from "@/components/shared/NotificationsDropdown.vue";
 
 const router = useRouter();
 const route = useRoute();
 const auth = useAuthStore();
 const yearStore = useAcademicYearStore();
 const schoolStore = useSchoolStore();
+const notificationsStore = useNotificationsStore();
+
+onMounted(() => {
+  notificationsStore.fetchNotifications()
+  notificationsStore.subscribe()
+})
+
+onUnmounted(() => {
+  notificationsStore.unsubscribe()
+})
 const sidebarOpen = ref(false);
 
 // Close sidebar on route change (mobile)
@@ -291,6 +303,7 @@ function isActive(path) {
           </div>
         </div>
         <div class="top-bar-right">
+          <NotificationsDropdown />
           <span class="role-tag">អ្នកគ្រប់គ្រង</span>
           <div class="avatar">{{ userInitials }}</div>
         </div>
