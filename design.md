@@ -1,615 +1,425 @@
-# 🎨 Design System — Primary School Management System
+# School Management System — Design Reference
 
-> **Stack:** Vue 3 + Tailwind CSS  
-> **Style:** Friendly & Soft · Neutral/Minimal · Khmer First  
-> **Font:** Hanuman (Khmer) + Inter (Latin fallback)
+## Overview
 
----
-
-## 🔤 Typography
-
-### Font Setup
-```css
-/* index.css or tailwind base */
-@import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&family=Inter:wght@400;500;600&display=swap');
-
-body {
-  font-family: 'Hanuman', 'Inter', sans-serif;
-}
-```
-
-### Font Scale
-| Role | Size | Weight | Usage |
-|---|---|---|---|
-| Page Title | 20px | 700 | Main page headings |
-| Section Title | 16px | 700 | Card titles, section headers |
-| Body | 14px | 400 | Regular content, labels |
-| Small | 12px | 400 | Meta info, table rows |
-| Tiny | 11px | 400 | Badges, timestamps, captions |
-
-### Tailwind Config
-```js
-// tailwind.config.js
-fontFamily: {
-  sans: ['Hanuman', 'Inter', 'sans-serif'],
-}
-```
+- **Framework**: Vue 3 (Composition API, `<script setup>`) + Vite
+- **CSS**: Tailwind CSS 4 + design-token CSS variables (`style.css`)
+- **Backend**: Supabase (Postgres, Auth, Realtime)
+- **Icons**: Heroicons v24/outline (`@heroicons/vue/24/outline`) + Lucide-vue-next (super admin only)
+- **Language**: Khmer (Cambodian) — primary UI language for authenticated pages
+- **Fonts**: Inter (Latin) + Hanuman (Khmer) from Google Fonts
+- **Role-based routing**: 5 roles (super_admin, admin, teacher, librarian) + public parent portal
+- **Shared patterns**: page-header, page-title, page-subtitle, card, table-wrapper, empty-state, btn, form-*, badge-*, modal-*, toast-container, skeleton, filters-bar, tabs
 
 ---
 
-## 🎨 Color Palette
+## Layouts
 
-### Primary — Slate Blue (Brand)
-Used for active nav, primary buttons, links, accents.
+### 1. App.vue
+Root component — just renders `<RouterView />`. No shell/header at top level.
 
-| Token | Hex | Usage |
-|---|---|---|
-| `primary-50` | `#F0F4F8` | Active nav background |
-| `primary-100` | `#D9E8F5` | Button hover bg |
-| `primary-500` | `#4A7FA5` | Primary button, links |
-| `primary-700` | `#2C5282` | Active nav text, icon fill |
-| `primary-900` | `#1A3557` | Dark text on light bg |
+### 2. SuperLayout (`/super/*`)
+- Dark sidebar (slate-900) with indigo-600 accent
+- Collapsible sidebar (hamburger toggle on mobile, expands by default on desktop)
+- Topbar with breadcrumb + "Platform Online" status indicator
+- Lucide-vue-next icons (LayoutDashboard, School, Users, Settings, ShieldCheck, LogOut)
+- Page content: max-w-7xl mx-auto with fade + translateY page transitions
+- Desktop: sidebar always visible; collapsed state shows icons only
+- Mobile: slide-out sidebar with backdrop blur overlay
 
-### Neutral — Gray (Base)
-Used for all backgrounds, borders, text.
+### 3. AdminLayout (`/admin/*`)
+- White sidebar (var(--bg-sidebar): white) with primary-500 brand icon
+- Sidebar groups with section labels (grouped as: Overview, People, Attendance, Academics, Finance & Resources, Reports, School Setup)
+- Topbar with: back-to-academic-years button, page title (from route meta), school badge, year badge
+- Topbar right: NotificationsDropdown, role tag ("អ្នកគ្រប់គ្រង"), user avatar
+- Inline SVG icon paths (no icon library import)
+- Sidebar nav items with `.nav-item`, `.active` styling (primary-50 bg)
+- Mobile: overlay sidebar with backdrop blur
 
-| Token | Hex | Usage |
-|---|---|---|
-| `gray-50` | `#F9FAFB` | Page background |
-| `gray-100` | `#F3F4F6` | Secondary background, hover |
-| `gray-200` | `#E5E7EB` | Borders, dividers |
-| `gray-400` | `#9CA3AF` | Placeholder, disabled |
-| `gray-600` | `#4B5563` | Secondary text |
-| `gray-800` | `#1F2937` | Primary text |
-| `gray-900` | `#111827` | Headings |
+### 4. TeacherLayout (`/teacher/*`)
+- White sidebar same pattern as AdminLayout but simpler (no grouped sections)
+- Topbar: page title, NotificationsDropdown, badge "គ្រូបង្រៀន", user avatar
+- Inline SVG icon paths
+- Same sidebar/nav-item CSS classes as AdminLayout
 
-### Semantic Colors
-| Purpose | Color | Bg Token | Text Token | Border Token |
-|---|---|---|---|---|
-| Success / Present | Green | `#F0FFF4` | `#276749` | `#9AE6B4` |
-| Danger / Absent | Red | `#FFF5F5` | `#9B2C2C` | `#FEB2B2` |
-| Warning / Late | Amber | `#FFFBEB` | `#92400E` | `#FCD34D` |
-| Info / Permission | Blue | `#EBF4FF` | `#2B6CB0` | `#BEE3F8` |
-| Neutral / Inactive | Gray | `#F3F4F6` | `#4B5563` | `#E5E7EB` |
+### 5. LibrarianLayout (`/librarian/*`)
+- White sidebar, same pattern, 4 nav items (Dashboard, Books, Borrows, Overdue)
+- Topbar: title "ការគ្រប់គ្រងបណ្ណាល័យ", badge "បណ្ណារក្ស", user avatar
+- Same sidebar/nav-item structure
 
-### Tailwind Config
-```js
-// tailwind.config.js
-colors: {
-  primary: {
-    50:  '#F0F4F8',
-    100: '#D9E8F5',
-    500: '#4A7FA5',
-    700: '#2C5282',
-    900: '#1A3557',
-  }
-}
-```
+### 6. ParentLayout (`/parent/*`)
+- No sidebar — clean content-only layout
+- Header with brand logo (gradient primary), brand name, brand sub
+- Optional nav tabs (defined but not used in current page views)
+- Footer with placeholder links
+- Content max-width 1100px, centered
+- Sticky header + nav
 
 ---
 
-## 📐 Spacing & Layout
+## Public Pages
 
-### Base Spacing Scale
-Always use multiples of 4px.
-```
-4px   → gap between inline elements
-8px   → padding inside small components (badges, tags)
-12px  → inner card padding (compact)
-16px  → standard card padding
-20px  → page content padding
-24px  → section gaps
-32px  → between major sections
-```
+### 7. HomeView (`/`)
+- **Role**: Public landing
+- **Content**: Large hero section with school illustration/icon, app name (SMS), tagline in Khmer, login/register buttons, "skip to dashboard" link
+- **Key sections**: Hero, brand story, features grid (3 cards: school management, attendance tracking, report cards), footer with copyright
+- **Design style**: Modern landing page, centered layout, gradient primary brand elements, shadow cards, clean white sections with gray dividers
 
-### Page Layout
-```
-Sidebar width:    220px (fixed)
-Content area:     flex-1 (fills remaining space)
-Top bar height:   56px
-Content padding:  20px all sides
-Card gap:         12px
-```
+### 8. LoginView (`/login`)
+- **Role**: Public / Auth
+- **Content**: Centered card with app logo, email input, password input, "Remember me" checkbox, login button, link to register, link to home
+- **Design style**: Centered card on app-bg background, max-width ~400px, clean form layout
 
-### Breakpoints (Tailwind default)
-| Name | Width | Usage |
-|---|---|---|
-| `sm` | 640px | Mobile landscape |
-| `md` | 768px | Tablet |
-| `lg` | 1024px | Laptop (main target) |
-| `xl` | 1280px | Desktop |
+### 9. RegisterView (`/register`)
+- **Role**: Public / Auth
+- **Content**: Centered card with app logo, school select dropdown, full name, email, password, confirm password, register button, link to login, link to home
+- **Design style**: Same centered card pattern as LoginView
+
+### 10. UnauthorizedView (`/unauthorized`)
+- **Role**: Public
+- **Content**: Centered card with lock/access-denied icon, "គ្មានសិទ្ធិចូលប្រើ" title, description, return-to-dashboard button
+- **Design style**: Minimal centered card, danger-colored elements
 
 ---
 
-## 🧩 Component Library
+## Super Admin Pages
+
+### 11. Super DashboardView (`/super/dashboard`)
+- **Role**: Super Admin
+- **Content**: Page header with title/subtitle, stats grid (total schools, total users, active users, platform health), recent activity / usage summary
+- **Design style**: Stat cards (stat-card, stat-icon, stat-value pattern), metric-driven dashboard
+
+### 12. Super SchoolsListView (`/super/schools`)
+- **Role**: Super Admin
+- **Content**: Page header with "Add School" button, search/filter bar, table of schools (name, domain, admin count, student count, status, actions), empty state
+- **Design style**: Search bar + data table pattern, table-wrapper with thead/tbody styling, action buttons in table-actions
+
+### 13. Super NewSchoolView (`/super/schools/new`)
+- **Role**: Super Admin
+- **Content**: Page header "Add New School", card with form: school name, domain, address, phone, admin email/password fields, submit button
+- **Design style**: Single form card, form-group + form-input pattern
 
 ---
 
-### 1. Sidebar Navigation
+## Admin Pages
 
-```
-Width: 220px
-Background: white
-Border-right: 1px solid gray-200
-Position: fixed left
-```
+### 14. Admin DashboardView (`/admin/dashboard`)
+- **Role**: Admin
+- **Content**: Stats row (total students, teachers, classes, attendance rate), charts/recent activity, quick action buttons, recent items
+- **Design style**: stat-card grid, metric cards with icon/color differentiation, tables for recent data
 
-**Structure:**
-```
-[Logo + School Name]
-─────────────────────
-[Nav Section Label]   ← tiny uppercase gray text
-[Nav Item]            ← icon + Khmer label
-[Nav Item - Active]   ← blue bg, blue text
-─────────────────────
-[User Profile]        ← avatar + name + role (bottom)
-```
+### 15. Admin AcademicYearsView (`/admin/academic-years`)
+- **Role**: Admin
+- **Content**: Page header with "New Academic Year" button, list/card view of academic years, each showing year name, current status, date range
+- **Design style**: Card list with status badges, year-selection UI (standalone page before main admin)
 
-**Nav Item States:**
-```css
-/* Default */
-.nav-item {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #4B5563;       /* gray-600 */
-}
+### 16. Admin ClassesView (`/admin/classes`)
+- **Role**: Admin
+- **Content**: Page header with "New Class" button, search input, table of classes (name, grade, homeroom teacher, student count, actions), modal for create/edit class
+- **Design style**: Search bar + table, modal form for CRUD
 
-/* Hover */
-.nav-item:hover {
-  background: #F3F4F6;  /* gray-100 */
-}
+### 17. Admin TeachersView (`/admin/teachers`)
+- **Role**: Admin
+- **Content**: Page header with "Add Teacher" button, search input, teacher list (avatar, name, email, phone, subject, class, status, actions), modal for add/edit
+- **Design style**: Table with avatar column, status badge, modal forms, empty state
 
-/* Active */
-.nav-item.active {
-  background: #F0F4F8;  /* primary-50 */
-  color: #2C5282;       /* primary-700 */
-  font-weight: 700;
-}
-```
+### 18. Admin StudentsView (`/admin/students`)
+- **Role**: Admin
+- **Content**: Page header with "Add Student" button, search + filter by class + filter by gender + filter by status (graduated/active), table of students (name, gender, DOB, class, parent phone, status, actions), import CSV button, pagination
+- **Design style**: Rich filter bar, data table with pagination, modal for add/edit/import
 
-**Nav Icon:**
-- Size: 18x18px
-- Default: gray bg with gray icon
-- Active: primary-700 bg with white icon
-- Border-radius: 6px
+### 19. Admin StudentDetailView (`/admin/students/:id`)
+- **Role**: Admin
+- **Content**: Student profile header (name, class, photo avatar), tabs for Scores, Attendance, Health, Growth, Vaccinations, Notes; each tab has relevant sub-content
+- **Design style**: Tabbed detail page, card sections per tab
 
----
+### 20. Admin StudentAgeView (`/admin/students/age`)
+- **Role**: Admin
+- **Content**: Page header "អាយុសិស្ស", filter by class, table showing each student's age in years/months, summary stats (average age, youngest, oldest)
+- **Design style**: Simple table with computed ages, summary badges
 
-### 2. Top Bar
+### 21. Admin AttendanceStudentsView (`/admin/attendance/students`)
+- **Role**: Admin
+- **Content**: Page header with "បញ្ចូលវត្តមានថ្ងៃនេះ" button, date picker, filter by class, table of students with attendance status (present/late/absent/permission), bulk update
+- **Design style**: Date selector + class filter + student table with status toggle buttons per row
 
-```
-Height: 56px
-Background: white
-Border-bottom: 1px solid gray-200
-Contents: [Page Title] ........... [Academic Year Badge] [Avatar]
-```
+### 22. Admin AttendanceTeachersView (`/admin/attendance/teachers`)
+- **Role**: Admin
+- **Content**: Page header, date selector, filter by status (all/present/absent), teacher attendance table with status, late minutes, actions
+- **Design style**: Similar to student attendance, date-driven, status badge per row
 
----
+### 23. Admin ScoresView (`/admin/scores`)
+- **Role**: Admin
+- **Content**: Header with breadcrumb/context, class selector, score type selector (monthly/semester), subject selector, student score table with inputs for each subject, save button
+- **Design style**: Selector bar + editable table, form-input inside table cells for scores
 
-### 3. Cards
+### 24. Admin HealthView (`/admin/health`)
+- **Role**: Admin
+- **Content**: Page header with "បន្ថែមកំណត់ត្រា" button, filter by class + student, health records table (date, weight, height, BMI, notes, actions), modal for add/edit
+- **Design style**: Table with modal CRUD, BMI computed data shown
 
-Cards are the main UI container. All content lives inside cards.
+### 25. Admin SickDaysView (`/admin/sick-days`)
+- **Role**: Admin
+- **Content**: Page header with "បន្ថែមថ្ងៃឈឺ" button, filter by class + month, sick-day records table (student, date, reason, duration, actions), modal for add/edit
+- **Design style**: Date-filtered table with modal form
 
-**Base Card:**
-```css
-.card {
-  background: white;
-  border: 1px solid #E5E7EB;   /* gray-200 */
-  border-radius: 12px;          /* rounded-xl */
-  padding: 16px;
-}
-```
+### 26. Admin BudgetView (`/admin/budget`)
+- **Role**: Admin
+- **Content**: Page header, financial summary cards (total income, total expenses, balance), year selector, income table, expense table, buttons to add income/expense, modals for CRUD
+- **Design style**: Stat cards at top, dual tables (income + expenses), modal forms
 
-**Card Header:**
-```
-[Card Title]         [Action Link or Button]
-```
+### 27. Admin InventoryView (`/admin/inventory`)
+- **Role**: Admin
+- **Content**: Page header with "Add Item" button, search bar, filter by category, items table (name, category, quantity, condition, status, actions), modal for add/edit
+- **Design style**: Filter bar + data table, badge for condition/status
 
-**Tailwind:**
-```html
-<div class="bg-white border border-gray-200 rounded-xl p-4">
-  <div class="flex items-center justify-between mb-3">
-    <h3 class="text-sm font-bold text-gray-900">ចំណងជើង</h3>
-    <button class="text-xs text-primary-500 hover:underline">មើលទាំងអស់</button>
-  </div>
-  <!-- content -->
-</div>
-```
+### 28. Admin LibraryView (`/admin/library`)
+- **Role**: Admin
+- **Content**: Dashboard-style view with stats (total books, borrowed, overdue), list of recent borrows, quick actions
+- **Design style**: Card-based dashboard with stats and recent activity list
 
-**Stat Card (Dashboard):**
-```html
-<div class="bg-white border border-gray-200 rounded-xl p-4">
-  <div class="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center mb-3">
-    <!-- icon -->
-  </div>
-  <p class="text-2xl font-bold text-gray-900">248</p>
-  <p class="text-xs text-gray-500 mt-1">សិស្សសរុប</p>
-  <p class="text-xs text-green-600 mt-1">+12 ឆ្នាំនេះ</p>
-</div>
-```
+### 29. Admin UsersView (`/admin/users`)
+- **Role**: Admin
+- **Content**: Page header with "បន្ថែមអ្នកប្រើ" button, users table (email, full name, role, status, last login, actions), modal for add/edit user credentials/role
+- **Design style**: Table with status badges, modal form for user management
 
----
+### 30. Admin ReportsView (`/admin/reports`)
+- **Role**: Admin
+- **Content**: Page header, filter bar (class, month, semester, year), report cards / link management, list of generated report links with status, copy link, actions
+- **Design style**: Filter + table of report links, badge statuses
 
-### 4. Buttons
+### 31. Admin ApprovalsView (`/admin/approvals`)
+- **Role**: Admin
+- **Content**: Page header "ការអនុញ្ញាត", tabs (pending/approved/rejected), list of report links awaiting approval, approve/reject buttons, status badges
+- **Design style**: Tabbed UI, card/list items with action buttons
 
-**Primary Button:**
-```html
-<button class="bg-primary-700 hover:bg-primary-900 text-white text-sm font-bold
-               px-4 py-2 rounded-lg transition-colors">
-  បន្ថែម
-</button>
-```
+### 32. Admin AdminReportPreviewView (`/admin/approvals/:reportLinkId`)
+- **Role**: Admin
+- **Content**: Preview of report card before approval, shows student scores, attendance, ranking, teacher message, signature areas, approve/reject buttons
+- **Design style**: Full report card preview, similar to parent report card view but with admin action controls
 
-**Secondary Button (Outline):**
-```html
-<button class="border border-gray-200 hover:bg-gray-100 text-gray-700 text-sm
-               font-bold px-4 py-2 rounded-lg transition-colors">
-  បោះបង់
-</button>
-```
+### 33. Admin SettingsView (`/admin/settings`)
+- **Role**: Admin
+- **Content**: Tabbed settings page — General (school name, address, phone, logo), Academic (year management), Notifications, Security; form inputs per section
+- **Design style**: Tabbed settings panels, form sections with save buttons
 
-**Danger Button:**
-```html
-<button class="bg-red-50 hover:bg-red-100 text-red-700 text-sm font-bold
-               px-4 py-2 rounded-lg border border-red-200 transition-colors">
-  លុប
-</button>
-```
-
-**Icon Button:**
-```html
-<button class="w-8 h-8 flex items-center justify-center rounded-lg
-               hover:bg-gray-100 text-gray-500 transition-colors">
-  <!-- icon -->
-</button>
-```
+### 34. Admin Honorboardeditor (`/admin/honor-board-editor`)
+- **Role**: Admin
+- **Content**: Honor board editor tool — select academic year, class, semester; view ranked student list, select students to feature, preview board
+- **Design style**: Ranked list with selection, preview card
 
 ---
 
-### 5. Form Inputs
+## Teacher Pages
 
-**Text Input:**
-```html
-<div class="flex flex-col gap-1">
-  <label class="text-xs font-bold text-gray-600">ឈ្មោះសិស្ស</label>
-  <input
-    type="text"
-    placeholder="បញ្ចូលឈ្មោះ..."
-    class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900
-           placeholder-gray-400 focus:outline-none focus:border-primary-500
-           focus:ring-2 focus:ring-primary-100 transition-all"
-  />
-</div>
-```
+### 35. Teacher DashboardView (`/teacher/dashboard`)
+- **Role**: Teacher
+- **Content**: Welcome card, stats (my students, attendance rate, pending reports), upcoming holidays, recent activity, quick action buttons
+- **Design style**: Stat cards + info cards dashboard
 
-**Select Dropdown:**
-```html
-<select class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900
-               focus:outline-none focus:border-primary-500 focus:ring-2
-               focus:ring-primary-100 bg-white w-full">
-  <option>ជ្រើសរើស...</option>
-</select>
-```
+### 36. Teacher StudentsView (`/teacher/students`)
+- **Role**: Teacher
+- **Content**: Page header with search, student list (avatar, name, gender, class), click to student detail
+- **Design style**: Card grid or list of students with avatars
 
-**Date Input:**
-```html
-<input type="date"
-  class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900
-         focus:outline-none focus:border-primary-500 focus:ring-2
-         focus:ring-primary-100 w-full" />
-```
+### 37. Teacher StudentDetailView (`/teacher/students/:id`)
+- **Role**: Teacher
+- **Content**: Student profile header, tabs for Scores, Attendance, Health, Growth, Vaccinations, Notes — similar to admin detail but teacher scoped
+- **Design style**: Same tabbed detail pattern as admin StudentDetailView
 
----
+### 38. Teacher AttendanceView (`/teacher/attendance`)
+- **Role**: Teacher
+- **Content**: Date picker, class selector (if multiple), student roster with attendance status buttons (present/late/absent/permission), bulk actions, save button
+- **Design style**: Date-driven attendance grid with color-coded status buttons
 
-### 6. Badges & Status Pills
+### 39. Teacher MyAttendanceView (`/teacher/attendance/my`)
+- **Role**: Teacher
+- **Content**: Calendar/month view showing teacher's own attendance records, stats (present days, late, absent, permission), history table
+- **Design style**: Calendar grid + stats + table
 
-```html
-<!-- Present / Success -->
-<span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
-  មានវត្តមាន
-</span>
+### 40. Teacher ScoresView (`/teacher/scores`)
+- **Role**: Teacher
+- **Content**: Score type selection (monthly/semester), class/subject selection, student score entry table, save button
+- **Design style**: Entry form with table grid
 
-<!-- Absent / Danger -->
-<span class="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
-  អវត្តមាន
-</span>
+### 41. Teacher ScoresMonthlyView (`/teacher/scores/monthly`)
+- **Role**: Teacher
+- **Content**: Month selector, class + subject filter, student scores table for selected month, auto-calculated averages, save
+- **Design style**: Month-driven score entry grid
 
-<!-- Late / Warning -->
-<span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-  យឺត
-</span>
+### 42. Teacher ScoresSemesterView (`/teacher/scores/semester`)
+- **Role**: Teacher
+- **Content**: Semester selector, class + subject filter, student scores table with semester subjects, weighted calculation, save
+- **Design style**: Semester-driven score entry grid
 
-<!-- Permission / Info -->
-<span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-  មានច្បាប់
-</span>
-```
+### 43. Teacher ScoresRankingView (`/teacher/scores/ranking`)
+- **Role**: Teacher
+- **Content**: Class selector, type (monthly/semester), month/semester selector, ranked student list (rank, name, average, grade), top 3 highlighted
+- **Design style**: Ranked table with medal/badge indicators for top 3
 
----
+### 44. Teacher ScoreSummaryView (`/teacher/scores/summary/:id`)
+- **Role**: Teacher
+- **Content**: Single student score summary for a given report link — scores by subject, average, grade, rank in class, attendance summary
+- **Design style**: Compact card-based summary
 
-### 7. Table
+### 45. Teacher CertificateDesignView (`/teacher/scores/certificates`)
+- **Role**: Teacher
+- **Content**: Certificate designer tool — select class, semester/month, rank threshold; preview certificate with border/watermark options; generate PDF
+- **Design style**: Side-by-side toolbar + preview (same certificate system as parent report card)
 
-```html
-<div class="overflow-hidden rounded-xl border border-gray-200">
-  <table class="w-full text-sm">
-    <thead class="bg-gray-50 border-b border-gray-200">
-      <tr>
-        <th class="text-left text-xs font-bold text-gray-500 px-4 py-3">ឈ្មោះ</th>
-        <th class="text-left text-xs font-bold text-gray-500 px-4 py-3">ថ្នាក់</th>
-        <th class="text-left text-xs font-bold text-gray-500 px-4 py-3">វត្តមាន</th>
-        <th class="text-left text-xs font-bold text-gray-500 px-4 py-3">សកម្មភាព</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100 bg-white">
-      <tr class="hover:bg-gray-50 transition-colors">
-        <td class="px-4 py-3 text-gray-900">សុខ ចន្ថា</td>
-        <td class="px-4 py-3 text-gray-500">ថ្នាក់ទី ១</td>
-        <td class="px-4 py-3">
-          <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
-            មានវត្តមាន
-          </span>
-        </td>
-        <td class="px-4 py-3">
-          <!-- action buttons -->
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-```
+### 46. Teacher Honorboardeditor (`/teacher/scores/honor-board-editor`)
+- **Role**: Teacher
+- **Content**: Honor board editor — select class, type, period; ranked student list with selection; preview
+- **Design style**: Same as admin version but teacher-scoped
 
----
+### 47. Teacher ReportLinkView (`/teacher/scores/report-link`)
+- **Role**: Teacher
+- **Content**: Generate report links — select class, score type (monthly/semester), month/semester; show generated link, copy to clipboard, share options, list of existing links
+- **Design style**: Generator form + links table
 
-### 8. Avatar
+### 48. Teacher ReportRepliesView (`/teacher/scores/report-replies`)
+- **Role**: Teacher
+- **Content**: List of parent replies to reports — shows student name, parent message, voice recording, reply date, read/unread status
+- **Design style**: Card/list of reply items with audio player, text display
 
-```html
-<!-- With image -->
-<img src="..." class="w-9 h-9 rounded-full object-cover border border-gray-200" />
+### 49. Teacher HolidaysView (`/teacher/holidays`)
+- **Role**: Teacher
+- **Content**: Calendar/table view of school holidays — date, holiday name, type (public/school), duration
+- **Design style**: Calendar grid or table list with holiday badges
 
-<!-- Initials fallback -->
-<div class="w-9 h-9 rounded-full bg-primary-700 flex items-center justify-center
-            text-white text-xs font-bold">
-  សច
-</div>
-```
+### 50. Teacher SickDaysView (`/teacher/sick-days`)
+- **Role**: Teacher
+- **Content**: Record/view sick days — date range, reason, status (pending/approved/rejected), apply button
+- **Design style**: Form + history table with status badges
+
+### 51. Teacher GrowthView (`/teacher/growth`)
+- **Role**: Teacher
+- **Content**: Student growth tracking — select student, view weight/height/BMI over time, chart/graph visualization, add measurement button
+- **Design style**: Chart/table combo for growth metrics, visualization-focused
+
+### 52. Teacher VaccinationsView (`/teacher/vaccinations`)
+- **Role**: Teacher
+- **Content**: Vaccination records — select class, student vaccination table (vaccine name, date given, next dose, status), add record modal
+- **Design style**: Table with vaccine status badges, modal for add/edit
+
+### 53. Teacher ReportsView (`/teacher/reports`)
+- **Role**: Teacher
+- **Content**: Report management — list of generated report links, status (draft/pending/approved), view report cards, print options
+- **Design style**: List/table of report links with action buttons
 
 ---
 
-### 9. Modal / Dialog
+## Librarian Pages
 
-```html
-<!-- Overlay -->
-<div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-  <!-- Modal Box -->
-  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-base font-bold text-gray-900">បន្ថែមសិស្សថ្មី</h2>
-      <button class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
-    </div>
-    <!-- Content -->
-    <div class="space-y-3">
-      <!-- form inputs here -->
-    </div>
-    <!-- Footer -->
-    <div class="flex gap-2 mt-5 justify-end">
-      <button class="...">បោះបង់</button>
-      <button class="...">រក្សាទុក</button>
-    </div>
-  </div>
-</div>
-```
+### 54. Librarian DashboardView (`/librarian/dashboard`)
+- **Role**: Librarian
+- **Content**: Stats cards (total books, borrowed books, overdue books, available), recent borrows list, quick actions (add book, issue book)
+- **Design style**: Stat cards + recent activity list
+
+### 55. Librarian BooksView (`/librarian/books`)
+- **Role**: Librarian
+- **Content**: Page header with "Add Book" button, search bar, filter by category, books table (title, author, ISBN, category, total copies, available, status, actions), modal for add/edit
+- **Design style**: Search + filter bar, data table, modal form, status badges
+
+### 56. Librarian BorrowsView (`/librarian/borrows`)
+- **Role**: Librarian
+- **Content**: Page header with "Issue Book" button, filter by status (active/returned/overdue), borrow records table (student name, book, issue date, due date, return date, status, fine, actions)
+- **Design style**: Filtered table with status badges, modal for issuing books
+
+### 57. Librarian OverdueView (`/librarian/overdue`)
+- **Role**: Librarian
+- **Content**: Page header "សៀវភៅហួសកំណត់", list of overdue items (student, book, due date, days overdue, phone number), "Mark Returned" button per item, empty state when clear
+- **Design style**: Table with urgency (red badges for overdue), action buttons, toast notifications
 
 ---
 
-### 10. Toast Notification
+## Parent Pages
 
-```html
-<!-- Success -->
-<div class="fixed bottom-4 right-4 z-50 flex items-center gap-3
-            bg-white border border-green-200 rounded-xl shadow-md px-4 py-3">
-  <div class="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm">
-    ✓
-  </div>
-  <p class="text-sm text-gray-800 font-bold">រក្សាទុករួចរាល់!</p>
-</div>
+### 58. Parent ReportDropdownView (`/parent/report/:report_link_id`)
+- **Role**: Public (link-based, no auth)
+- **Content**: Centered card with logo, report context (class name, period), student selector dropdown from class list, "View Report" button
+- **Design style**: Clean centered card, max-width 480px, gradient logo icon, no sidebar/footer
 
-<!-- Error -->
-<div class="fixed bottom-4 right-4 z-50 flex items-center gap-3
-            bg-white border border-red-200 rounded-xl shadow-md px-4 py-3">
-  <div class="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-sm">
-    ✕
-  </div>
-  <p class="text-sm text-gray-800 font-bold">មានបញ្ហា! សូមព្យាយាមម្ដងទៀត</p>
-</div>
-```
+### 59. Parent ReportCardView (`/parent/report/:report_link_id/:student_id`)
+- **Role**: Public (link-based, no auth)
+- **Content**: Full report card: student header (avatar, name, class), ranking section (rank circle, class stats, passed/failed), scores table (subject, score, grade A-F), attendance stats (present/late/absent/permission with rate bar), teacher message (text + voice), signature & stamp (if approved), parent reply form (text + voice recording), certificate download button (if top 3)
+- **Design style**: Mobile-first card stack design, max-width 640px, grades colored by level (A green, B blue, C amber, etc.), attendance bar with gradient fill, ranking hero circle with tier colors, certificate modal with border selector and PDF preview
 
 ---
 
-### 11. Empty State
+## Shared Components & Patterns
 
-```html
-<div class="flex flex-col items-center justify-center py-16 text-center">
-  <div class="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center
-              text-2xl mb-4">
-    📭
-  </div>
-  <p class="text-sm font-bold text-gray-700">មិនមានទិន្នន័យ</p>
-  <p class="text-xs text-gray-400 mt-1">សូមបន្ថែមទិន្នន័យថ្មី</p>
-  <button class="mt-4 ...">បន្ថែម</button>
-</div>
-```
+### CSS Design Tokens (`style.css`)
+- **Brand**: primary-50 (#F0F4F8) → primary-900 (#1A3557), accent #4A7FA5
+- **Semantic**: success (green), danger (red), warning (amber), info (blue), purple
+- **Surfaces**: --bg-app (gray-50), --bg-card (white), --bg-sidebar (white)
+- **Typography**: --font-sans (Inter), --font-khmer (Hanuman)
+- **Shadows**: sm, md, lg, xl with gray/black values
+- **Sidebar**: fixed 220px width, collapsible on mobile
 
----
+### Reusable UI Classes (defined in `style.css`)
+- **.card** / **.card-header** / **.card-body** / **.card-title** — white rounded container with border + shadow
+- **.stat-card** / **.stat-icon** / **.stat-info** / **.stat-label** / **.stat-value** / **.stat-sub** — metric display cards with hover elevation
+- **.btn** / **.btn-primary** / **.btn-secondary** / **.btn-ghost** / **.btn-danger** / **.btn-success** / **.btn-sm** / **.btn-lg** / **.btn-icon** — button variants
+- **.badge** / **.badge-blue** / **.badge-green** / **.badge-yellow** / **.badge-red** / **.badge-gray** / **.badge-purple** — status labels
+- **.table-wrapper** / **table** / **thead** / **tbody** / **.table-actions** — data tables with hover rows
+- **.form-group** / **.form-label** / **.form-input** / **.form-select** / **.form-textarea** / **.form-error** / **.form-hint** — form controls
+- **.page-header** / **.page-title** / **.page-subtitle** — page heading sections
+- **.filters-bar** / **.search-input-wrap** — toolbar for search/filter
+- **.tabs** / **.tab-item** — tab navigation
+- **.empty-state** / **.empty-state-icon** / **.empty-state-title** / **.empty-state-desc** — empty content display
+- **.modal-overlay** / **.modal** / **.modal-lg** / **.modal-header** / **.modal-title** / **.modal-body** / **.modal-footer** — modal dialogs
+- **.toast-container** / **.toast** / **.toast-success** / **.toast-error** / **.toast-info** / **.toast-warning** — toast notifications
+- **.skeleton** — shimmer loading placeholders
+- **.app-layout** / **.sidebar** / **.main-content** / **.top-bar** / **.page-content** — app shell
+- **.sidebar-brand** / **.sidebar-brand-icon** / **.sidebar-brand-text** — brand area
+- **.sidebar-nav** / **.nav-section-label** / **.nav-item** — navigation items
+- **.sidebar-footer** / **.sidebar-user** / **.avatar** — user area
+- **.grid-cols-4** / **.grid-cols-3** / **.grid-cols-2** — responsive grid helpers
+- **.dot** / **.dot-green** / **.dot-red** / **.dot-yellow** / **.dot-gray** — status indicators
 
-### 12. Loading Skeleton
+### Notification System
+- Realtime subscription via Supabase
+- NotificationsDropdown component in admin/teacher topbars
+- Toast notification system with auto-dismiss after 3s
 
-```html
-<div class="animate-pulse space-y-3">
-  <div class="h-4 bg-gray-200 rounded-lg w-3/4"></div>
-  <div class="h-4 bg-gray-200 rounded-lg w-1/2"></div>
-  <div class="h-4 bg-gray-200 rounded-lg w-2/3"></div>
-</div>
-```
+### Certificate System (used in parent ReportCardView + teacher CertificateDesignView)
+- html2canvas + jsPDF for PDF generation
+- Selectable border images (4 styles: border1–border4)
+- Watermark overlay
+- Content includes: Ministry header, school name, "ប័ណ្ណសរសើរ" (Certificate of Honor), student name, rank, period, average, signature spaces
+- Khmer OS Muol Light font for formal sections
 
----
+### Voice Recording (parent reply + teacher messages)
+- useVoiceRecorder composable — start/stop recording, upload to Supabase storage
+- Audio player displays recorded voice
+- Used in ReportCardView (parent reply) and ReportRepliesView (teacher)
 
-## 🗂️ Page Layout Templates
-
-### Dashboard Grid
-```
-┌─────────────────────────────────────────────────────┐
-│  [Stat]  [Stat]  [Stat]  [Stat]    ← 4 cols grid   │
-├─────────────────────────┬───────────────────────────┤
-│  [Recent Students]      │  [Attendance Summary]     │
-│  (table card)           │  (bar chart card)         │
-├──────────────┬──────────┴──────────┬────────────────┤
-│  [Mini Card] │  [Mini Card]        │  [Mini Card]   │
-└──────────────┴─────────────────────┴────────────────┘
-```
-
-### List Page (Students, Teachers, Books)
-```
-┌─────────────────────────────────────────────────────┐
-│  [Page Title]                  [+ បន្ថែម Button]    │
-├──────────────────┬──────────────────────────────────┤
-│  [Search Input]  │  [Filter Select]  [Filter Select] │
-├─────────────────────────────────────────────────────┤
-│  [Table with pagination]                             │
-└─────────────────────────────────────────────────────┘
-```
-
-### Detail Page (Student Profile)
-```
-┌──────────────────┬──────────────────────────────────┐
-│  [Avatar]        │  Student Name (large)            │
-│  [Profile Info]  │  Class · Gender · DOB            │
-│                  │  [Edit Button]                   │
-├──────────────────┴──────────────────────────────────┤
-│  [Tab: ព័ត៌មាន] [Tab: វត្តមាន] [Tab: ពិន្ទុ] ...  │
-├─────────────────────────────────────────────────────┤
-│  [Tab Content Card]                                  │
-└─────────────────────────────────────────────────────┘
-```
-
-### Score Entry Page
-```
-┌─────────────────────────────────────────────────────┐
-│  [Select: ថ្នាក់]  [Select: ខែ]  [Select: ប្រភេទ]  │
-├─────────────────────────────────────────────────────┤
-│  [Score Entry Table]                                 │
-│  Name | Subject1 | Subject2 | ... | Average         │
-│  ──── │ [input]  │ [input]  │ ... │ (auto)          │
-├─────────────────────────────────────────────────────┤
-│                              [រក្សាទុក Button]       │
-└─────────────────────────────────────────────────────┘
-```
+### Event/Action Patterns
+- CRUD operations via Supabase REST API
+- Modal-based create/edit forms
+- Toast feedback on success/error
+- Skeleton loading states
+- Empty state when no data
+- Data tables with hover row highlight
+- Search + filter bars for list views
+- Tab navigation for detail views (student profiles)
+- Color-coded badges for status indication
+- Scrollable table-wrapper for wide tables
+- Responsive grid: 4-col → 2-col → 1-col breakpoints
+- .page-content padding: 24px (desktop) → 16px (mobile)
+- Sidebar: drawer overlay pattern on mobile (position fixed, transform translateX)
 
 ---
 
-## 👁️ Role-Based UI Differences
+## Page Count by Role
 
-| Element | Admin | Teacher | Librarian |
-|---|---|---|---|
-| Sidebar color accent | Primary Blue | Primary Blue | Primary Blue |
-| Nav items shown | All | Class-scoped | Library only |
-| Role badge color | `bg-purple-50 text-purple-700` | `bg-blue-50 text-blue-700` | `bg-amber-50 text-amber-700` |
-| Dashboard stats | School-wide | Class-only | Books/borrows |
-
----
-
-## 📱 Parent Portal Design
-
-The parent portal is **separate from the main app** — simpler, mobile-first.
-
-```
-Background: gray-50
-Max-width: 480px (centered, mobile feel)
-No sidebar
-No top bar
-Logo + school name at top center
-```
-
-**Search Card:**
-```html
-<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl border border-gray-200 p-6 w-full max-w-sm">
-    <div class="text-center mb-6">
-      <!-- school logo -->
-      <h1 class="text-lg font-bold text-gray-900 mt-3">មើលព័ត៌មានកូន</h1>
-      <p class="text-xs text-gray-500 mt-1">បញ្ចូលឈ្មោះ និងថ្ងៃខែឆ្នាំកំណើត</p>
-    </div>
-    <!-- search form -->
-  </div>
-</div>
-```
-
-**Student result tabs:**
-```
-[វត្តមាន] [ពិន្ទុ] [សុខភាព] [កំណើន] [ចាក់វ៉ាក់សាំង] [ថ្ងៃឈឺ]
-```
-
----
-
-## ✅ Design Dos & Don'ts
-
-| ✅ Do | ❌ Don't |
-|---|---|
-| Use rounded-xl (12px) for cards | Use sharp square corners |
-| Use gray-200 for borders | Use heavy dark borders |
-| Keep spacing consistent (multiples of 4) | Mix random padding values |
-| Use Hanuman font for all Khmer text | Use system fonts for Khmer |
-| Use semantic colors for status badges | Use random colors for status |
-| Show loading skeletons while fetching | Show blank white screens |
-| Use empty state illustrations | Leave pages blank with no message |
-| Keep buttons consistent size | Mix large and small buttons randomly |
-| Use soft blue as the only accent color | Add multiple accent colors |
-
----
-
-## 🔧 Tailwind Config Summary
-
-```js
-// tailwind.config.js
-module.exports = {
-  content: ['./index.html', './src/**/*.{vue,js}'],
-  theme: {
-    extend: {
-      fontFamily: {
-        sans: ['Hanuman', 'Inter', 'sans-serif'],
-      },
-      colors: {
-        primary: {
-          50:  '#F0F4F8',
-          100: '#D9E8F5',
-          500: '#4A7FA5',
-          700: '#2C5282',
-          900: '#1A3557',
-        }
-      },
-      borderRadius: {
-        xl:  '12px',
-        '2xl': '16px',
-      }
-    }
-  },
-  plugins: [],
-}
-```
-
----
-
-## 📦 Recommended UI Libraries
-
-| Library | Purpose | Install |
-|---|---|---|
-| `@headlessui/vue` | Modal, dropdown, tabs (accessible) | `npm i @headlessui/vue` |
-| `@heroicons/vue` | Clean SVG icons | `npm i @heroicons/vue` |
-| `vue-chartjs` | Charts for growth & scores | `npm i vue-chartjs chart.js` |
-| `vee-validate` + `yup` | Form validation | `npm i vee-validate yup` |
-| `@vueuse/core` | Vue utilities (debounce, etc.) | `npm i @vueuse/core` |
-
----
-
-*This design system should be followed across all pages and components for consistency.*
+| Role | Pages |
+|------|-------|
+| Public | 4 (Home, Login, Register, Unauthorized) |
+| Super Admin | 3 (Dashboard, Schools, New School) |
+| Admin | 21 (Dashboard, AcademicYears, Classes, Teachers, Students, StudentDetail, StudentAge, AttendanceStudents, AttendanceTeachers, Scores, Health, SickDays, Budget, Inventory, Library, Users, Reports, Approvals, AdminReportPreview, Settings, Honorboardeditor) |
+| Teacher | 19 (Dashboard, Students, StudentDetail, Attendance, MyAttendance, Scores, ScoresMonthly, ScoresSemester, ScoresRanking, ScoreSummary, CertificateDesign, Honorboardeditor, ReportLink, ReportReplies, Holidays, SickDays, Growth, Vaccinations, Reports) |
+| Librarian | 4 (Dashboard, Books, Borrows, Overdue) |
+| Parent | 2 (ReportDropdown, ReportCard) |
+| **Total** | **53** |
