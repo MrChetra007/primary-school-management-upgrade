@@ -7,10 +7,12 @@ import { generateMonthlyScorePDF } from '@/utils/exportPdf'
 import { useRouter } from 'vue-router'
 import { CheckIcon, XCircleIcon, ArrowDownTrayIcon, BuildingOfficeIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
+import { useOfflineMutation } from '@/composables/useOfflineMutation'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { showToast } = useToast()
+const { mutate } = useOfflineMutation()
 const students = ref([])
 const subjects = ref([])
 const classInfo = ref(null)
@@ -173,13 +175,13 @@ async function saveAll() {
   })
 
   if (toUpsert.length > 0) {
-    const { data: saved, error } = await supabase
-      .from('scores')
-      .upsert(toUpsert)
-      .select()
-    if (error) {
-      showToast(error.message, 'error')
+    const result = await mutate('scores', 'upsert', toUpsert)
+    if (result && result.queued) {
+      showToast('ទិន្នន័យពិន្ទុបានរក្សាទុកក្នុងមូលដ្ឋាន — នឹងធ្វើសមកាលកម្មពេលមានបណ្តាញ', 'warning', 4000)
+    } else if (result && result.error) {
+      showToast(result.error.message, 'error')
     } else {
+      const saved = result?.data || []
       saved?.forEach(s => {
         const existing = scores.value.find(x => x.id === s.id)
         if (existing) Object.assign(existing, s)

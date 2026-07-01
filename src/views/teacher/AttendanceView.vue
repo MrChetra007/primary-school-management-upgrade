@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, ArrowDownTrayIcon, BuildingOfficeIcon, AcademicCapIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
-
 const auth = useAuthStore()
 const { showToast } = useToast()
 const students = ref([])
