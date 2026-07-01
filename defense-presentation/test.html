@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMS Dissertation Defense — Primary School Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500&family=Noto+Sans+Khmer:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    button { font: inherit; cursor: pointer; border: none; background: none; }
+    button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+    ul { list-style: none; }
+
+    /* ===== CSS CUSTOM PROPERTIES ===== */
+    :root {
+      --color-primary: #0F2C59;
+      --color-primary-light: #1E4B8F;
+      --color-accent: #F2B705;
+      --color-accent-soft: #FCE7A8;
+      --color-secondary: #14B8A6;
+      --color-bg: #F8FAFC;
+      --color-surface: #FFFFFF;
+      --color-text: #16213E;
+      --color-text-muted: #5B6B8C;
+      --color-text-inverse: #F8FAFC;
+      --color-border: #E2E8F0;
+      --font-heading: 'Poppins', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-khmer: 'Noto Sans Khmer', sans-serif;
+    }
+
+    /* ===== TYPOGRAPHY ===== */
+    h1 { font-family: var(--font-heading); font-weight: 700; font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1.15; letter-spacing: -0.02em; }
+    h2 { font-family: var(--font-heading); font-weight: 600; font-size: clamp(1.75rem, 3vw, 2.5rem); line-height: 1.2; letter-spacing: -0.01em; }
+    h3 { font-family: var(--font-heading); font-weight: 600; font-size: clamp(1.1rem, 1.8vw, 1.4rem); line-height: 1.3; }
+    body, p, li, span { font-family: var(--font-body); font-weight: 400; }
+    .khmer { font-family: var(--font-khmer); }
+    .text-sm { font-size: 0.85rem; }
+    .text-body { font-size: clamp(1rem, 1.3vw, 1.125rem); line-height: 1.65; }
+
+    /* ===== SLIDE BASE ===== */
+    .slides-container { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+    .slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: clamp(48px, 5vh, 72px) clamp(32px, 5vw, 80px);
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 450ms cubic-bezier(0.22, 1, 0.36, 1), transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none; will-change: opacity, transform;
+    }
+    .slide.slide-active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    /* ===== SLIDE TYPES ===== */
+    .slide--dark {
+      background: radial-gradient(ellipse at 50% 40%, var(--color-primary-light) 0%, var(--color-primary) 70%);
+      color: var(--color-text-inverse);
+    }
+    .slide--light { background: var(--color-bg); color: var(--color-text); }
+
+    /* ===== SLIDE CONTENT ===== */
+    .slide__content { width: 100%; max-width: 960px; }
+    .slide__content--center { text-align: center; }
+    .slide__content--left { text-align: left; }
+    .slide__title { margin-bottom: clamp(16px, 2vh, 32px); }
+    .slide__subtitle { font-family: var(--font-body); font-weight: 400; font-size: clamp(1rem, 1.6vw, 1.25rem); opacity: 0.8; margin-top: 8px; }
+
+    /* ===== BULLET LISTS ===== */
+    .bullet-list { display: flex; flex-direction: column; gap: clamp(10px, 1.5vh, 18px); }
+    .bullet-list li {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: clamp(0.95rem, 1.2vw, 1.1rem); line-height: 1.55;
+    }
+    .bullet-list li::before {
+      content: ''; flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%;
+      margin-top: 7px;
+    }
+    .slide--dark .bullet-list li::before { background: var(--color-accent); }
+    .slide--light .bullet-list li::before { background: var(--color-secondary); }
+
+    /* ===== PROGRESS BAR ===== */
+    .progress-bar {
+      position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+      background: var(--color-accent); z-index: 200; transition: width 400ms ease;
+    }
+
+    /* ===== TOP CHROME ===== */
+    .top-chrome {
+      position: fixed; top: 8px; left: 0; right: 0; z-index: 150;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 clamp(16px, 2vw, 32px);
+      pointer-events: none;
+    }
+    .top-chrome > * { pointer-events: auto; }
+    .top-chrome__left { display: flex; align-items: center; gap: 10px; }
+    .top-chrome__right { display: flex; align-items: center; gap: 8px; }
+
+    /* Chrome text color adapts to slide bg */
+    body.slide-dark .chrome-text { color: rgba(248,250,252,0.45); }
+    body.slide-light .chrome-text { color: rgba(22,33,62,0.4); }
+
+    .speaker-tag, .duration-badge {
+      font-family: var(--font-body); font-size: 0.75rem; font-weight: 500;
+      letter-spacing: 0.03em; text-transform: uppercase;
+    }
+    .duration-badge {
+      padding: 2px 8px; border-radius: 4px;
+    }
+    body.slide-dark .duration-badge { background: rgba(248,250,252,0.1); }
+    body.slide-light .duration-badge { background: rgba(22,33,62,0.06); }
+
+    /* ===== TIMER ===== */
+    .timer-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(15,44,89,0.85); color: var(--color-text-inverse);
+      padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-variant-numeric: tabular-nums;
+      font-family: var(--font-body); font-weight: 500;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+    .timer-pill.timer-warn { background: var(--color-accent); color: var(--color-text); }
+    .timer-pill.timer-danger { background: #DC2626; color: #fff; }
+    .timer-btn {
+      width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; border-radius: 4px; color: inherit; opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .timer-btn:hover { opacity: 1; }
+
+    /* ===== FULLSCREEN BUTTON ===== */
+    .fullscreen-btn {
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      background: rgba(15,44,89,0.85); color: var(--color-text-inverse);
+      border-radius: 6px; font-size: 0.9rem; transition: transform 0.15s ease, opacity 0.2s;
+      opacity: 0.7;
+    }
+    .fullscreen-btn:hover { transform: scale(1.05); opacity: 1; }
+
+    /* ===== BOTTOM CHROME ===== */
+    .bottom-chrome {
+      position: fixed; bottom: 12px; left: 0; right: 0; z-index: 150;
+      display: flex; justify-content: center; align-items: center;
+      padding: 0 clamp(16px, 2vw, 32px); gap: 16px;
+      pointer-events: none;
+    }
+    .bottom-chrome > * { pointer-events: auto; }
+    .slide-counter {
+      position: fixed; bottom: 12px; right: clamp(16px, 2vw, 32px); z-index: 150;
+      font-size: 0.75rem; font-weight: 500; font-variant-numeric: tabular-nums;
+      font-family: var(--font-body);
+    }
+
+    /* ===== NAVIGATION DOTS ===== */
+    .nav-dots { display: flex; gap: 6px; align-items: center; }
+    .nav-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(128,140,160,0.35); transition: transform 0.15s ease, background 0.25s ease;
+      padding: 0; cursor: pointer;
+    }
+    .nav-dot:hover { transform: scale(1.25); }
+    .nav-dot.nav-dot--active {
+      background: var(--color-accent); transform: scale(1.15);
+      animation: dotPulse 2s ease-in-out infinite;
+    }
+    @keyframes dotPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(242,183,5,0.4); }
+      50% { box-shadow: 0 0 0 4px rgba(242,183,5,0); }
+    }
+
+    /* ===== STAGGER ANIMATIONS ===== */
+    .stagger-item {
+      opacity: 0; transform: translateY(15px);
+    }
+    .slide.slide-active .stagger-item {
+      animation: staggerIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .slide.slide-active .stagger-item:nth-child(1) { animation-delay: 0.08s; }
+    .slide.slide-active .stagger-item:nth-child(2) { animation-delay: 0.16s; }
+    .slide.slide-active .stagger-item:nth-child(3) { animation-delay: 0.24s; }
+    .slide.slide-active .stagger-item:nth-child(4) { animation-delay: 0.32s; }
+    .slide.slide-active .stagger-item:nth-child(5) { animation-delay: 0.40s; }
+    .slide.slide-active .stagger-item:nth-child(6) { animation-delay: 0.48s; }
+    .slide.slide-active .stagger-item:nth-child(7) { animation-delay: 0.56s; }
+    .slide.slide-active .stagger-item:nth-child(8) { animation-delay: 0.64s; }
+    .slide.slide-active .stagger-item:nth-child(9) { animation-delay: 0.72s; }
+    .slide.slide-active .stagger-item:nth-child(10) { animation-delay: 0.80s; }
+    @keyframes staggerIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== STAT COUNTERS ===== */
+    .stat-grid { display: flex; gap: clamp(16px, 3vw, 40px); justify-content: center; margin-top: clamp(16px, 2vh, 28px); flex-wrap: wrap; }
+    .stat-item { text-align: center; }
+    .stat-value {
+      font-family: var(--font-heading); font-weight: 700;
+      font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.1;
+    }
+    .slide--dark .stat-value { color: var(--color-accent); }
+    .slide--light .stat-value { color: var(--color-primary); }
+    .stat-label { font-size: 0.85rem; margin-top: 4px; opacity: 0.7; }
+
+    /* ===== STACK DIAGRAM (Slide 5) ===== */
+    .stack-diagram { display: flex; flex-direction: column; gap: 6px; max-width: 520px; margin: 0 auto; }
+    .stack-layer {
+      padding: clamp(10px, 1.2vh, 16px) clamp(16px, 2vw, 24px);
+      border-radius: 8px; text-align: center;
+      font-family: var(--font-body); font-weight: 500;
+      font-size: clamp(0.85rem, 1.1vw, 1rem);
+      display: flex; justify-content: center; gap: clamp(12px, 2vw, 24px); flex-wrap: wrap;
+    }
+    .stack-layer--pwa { background: rgba(242,183,5,0.2); color: #D4A00A; border: 1px solid rgba(242,183,5,0.3); }
+    .stack-layer--frontend { background: rgba(20,184,166,0.15); color: #0D9488; border: 1px solid rgba(20,184,166,0.25); }
+    .stack-layer--state { background: rgba(30,75,143,0.12); color: #3B82F6; border: 1px solid rgba(30,75,143,0.2); }
+    .stack-layer--backend { background: rgba(242,183,5,0.12); color: var(--color-accent); border: 1px solid rgba(242,183,5,0.2); }
+    .stack-layer--security { background: rgba(220,38,38,0.12); color: #EF4444; border: 1px solid rgba(220,38,38,0.2); }
+
+    /* ===== HIERARCHY DIAGRAM (Slide 6) ===== */
+    .hierarchy-wrapper { display: flex; gap: clamp(24px, 4vw, 56px); align-items: center; justify-content: center; flex-wrap: wrap; }
+    .hierarchy-svg { width: clamp(200px, 28vw, 320px); height: auto; flex-shrink: 0; }
+    .hierarchy-node { opacity: 0; }
+    .hierarchy-line { stroke-dasharray: 30; stroke-dashoffset: 30; }
+    .slide-active .hierarchy-line-1 { animation: drawLine 0.4s ease forwards 0.15s; }
+    .slide-active .hierarchy-line-2 { animation: drawLine 0.4s ease forwards 0.35s; }
+    .slide-active .hierarchy-line-3 { animation: drawLine 0.4s ease forwards 0.55s; }
+    .slide-active .hierarchy-line-4 { animation: drawLine 0.4s ease forwards 0.75s; }
+    @keyframes drawLine { to { stroke-dashoffset: 0; } }
+    .slide-active .hnode-1 { animation: nodeIn 0.35s ease forwards 0.05s; }
+    .slide-active .hnode-2 { animation: nodeIn 0.35s ease forwards 0.25s; }
+    .slide-active .hnode-3 { animation: nodeIn 0.35s ease forwards 0.45s; }
+    .slide-active .hnode-4 { animation: nodeIn 0.35s ease forwards 0.65s; }
+    .slide-active .hnode-5 { animation: nodeIn 0.35s ease forwards 0.85s; }
+    @keyframes nodeIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+    .hierarchy-annotations { display: flex; flex-direction: column; gap: 12px; max-width: 340px; }
+
+    /* ===== DESIGN PRINCIPLE DIAGRAM (Slide 7) ===== */
+    .principle-visual { display: flex; align-items: center; justify-content: center; gap: clamp(20px, 3vw, 40px); flex-wrap: wrap; margin: clamp(12px, 2vh, 24px) 0; }
+    .principle-card {
+      background: rgba(248,250,252,0.08); border: 1px solid rgba(248,250,252,0.15);
+      border-radius: 12px; padding: clamp(16px, 2vh, 28px) clamp(20px, 2.5vw, 36px);
+      text-align: center; min-width: 160px;
+    }
+    .principle-card__icon { font-size: clamp(1.8rem, 3vw, 2.8rem); margin-bottom: 8px; }
+    .principle-card__label { font-size: 0.9rem; opacity: 0.85; }
+    .principle-arrow { font-size: clamp(1.5rem, 2.5vw, 2rem); opacity: 0.5; }
+    .principle-roles { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+    .role-chip {
+      padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;
+      border: 1px solid rgba(242,183,5,0.4); color: var(--color-accent);
+    }
+
+    /* ===== SECURITY LAYERS (Slide 8) ===== */
+    .security-layers { display: flex; flex-direction: column; gap: 8px; max-width: 560px; margin: 0 auto; }
+    .security-layer {
+      display: flex; align-items: center; gap: 16px;
+      padding: clamp(10px, 1.2vh, 16px) clamp(14px, 2vw, 20px);
+      border-radius: 8px; background: var(--color-surface);
+      border-left: 4px solid var(--layer-color, var(--color-secondary));
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .security-layer__role { font-family: var(--font-heading); font-weight: 600; font-size: clamp(0.85rem, 1.1vw, 1rem); min-width: 140px; color: var(--color-text); }
+    .security-layer__scope { font-size: clamp(0.8rem, 1vw, 0.9rem); color: var(--color-text-muted); }
+    .security-layer--anon { border-left-color: #EF4444; background: #FEF2F2; }
+    .security-layer--anon .security-layer__scope { color: #991B1B; font-weight: 500; }
+
+    /* ===== APPROVAL FLOW (Slide 10) ===== */
+    .approval-flow { display: flex; align-items: stretch; gap: 0; justify-content: center; flex-wrap: wrap; margin: clamp(12px, 2vh, 24px) 0; }
+    .approval-step {
+      background: var(--color-surface); border-radius: 10px; padding: clamp(14px, 1.5vh, 22px) clamp(14px, 1.5vw, 22px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; flex: 1; min-width: 160px; max-width: 220px;
+      border-top: 3px solid var(--color-secondary);
+    }
+    .approval-step:nth-child(3) { border-top-color: var(--color-accent); }
+    .approval-step__num {
+      width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--font-heading); font-weight: 700; font-size: 0.85rem;
+      background: var(--color-secondary); color: #fff; margin-bottom: 8px;
+    }
+    .approval-step:nth-child(3) .approval-step__num { background: var(--color-accent); color: var(--color-text); }
+    .approval-step__title { font-family: var(--font-heading); font-weight: 600; font-size: clamp(0.8rem, 1vw, 0.95rem); color: var(--color-text); margin-bottom: 4px; }
+    .approval-step__desc { font-size: clamp(0.72rem, 0.85vw, 0.82rem); color: var(--color-text-muted); line-height: 1.4; }
+    .approval-arrow {
+      display: flex; align-items: center; font-size: 1.4rem; color: var(--color-text-muted); padding: 0 6px;
+    }
+
+    /* ===== CHALLENGE CARDS (Slide 12) ===== */
+    .challenge-list { display: flex; flex-direction: column; gap: clamp(10px, 1.5vh, 16px); }
+    .challenge-item {
+      background: var(--color-surface); border-radius: 10px; padding: clamp(12px, 1.5vh, 20px) clamp(16px, 2vw, 24px);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05); text-align: left;
+    }
+    .challenge-item__title { font-family: var(--font-heading); font-weight: 600; font-size: clamp(0.85rem, 1.1vw, 1rem); color: var(--color-primary); margin-bottom: 4px; }
+    .challenge-item__body { font-size: clamp(0.78rem, 0.95vw, 0.88rem); color: var(--color-text-muted); line-height: 1.5; }
+    .challenge-item__body strong { color: var(--color-text); font-weight: 500; }
+
+    /* ===== FUTURE ITEMS (Slide 13) ===== */
+    .future-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: clamp(10px, 1.5vh, 16px); }
+    .future-card {
+      background: rgba(248,250,252,0.07); border: 1px solid rgba(248,250,252,0.12);
+      border-radius: 10px; padding: clamp(14px, 1.5vh, 22px) clamp(16px, 2vw, 20px); text-align: left;
+    }
+    .future-card__title { font-family: var(--font-heading); font-weight: 600; font-size: clamp(0.85rem, 1vw, 0.95rem); color: var(--color-accent); margin-bottom: 4px; }
+    .future-card__desc { font-size: clamp(0.78rem, 0.9vw, 0.85rem); opacity: 0.75; line-height: 1.45; }
+
+    /* ===== TITLE SLIDE SPECIFICS ===== */
+    .title-team { display: flex; gap: clamp(16px, 3vw, 32px); justify-content: center; flex-wrap: wrap; margin-top: clamp(16px, 2.5vh, 32px); }
+    .title-team-member { font-size: clamp(0.85rem, 1.1vw, 1rem); opacity: 0.75; }
+    .title-meta { margin-top: clamp(20px, 3vh, 36px); font-size: clamp(0.8rem, 1vw, 0.9rem); opacity: 0.5; }
+
+    /* ===== THANK YOU SLIDE ===== */
+    .thankyou-team { display: flex; gap: clamp(20px, 4vw, 48px); justify-content: center; flex-wrap: wrap; margin: clamp(16px, 2.5vh, 32px) 0; }
+    .thankyou-member { text-align: center; }
+    .thankyou-member__name { font-family: var(--font-heading); font-weight: 600; font-size: clamp(0.95rem, 1.2vw, 1.1rem); }
+    .thankyou-member__role { font-size: 0.8rem; opacity: 0.55; margin-top: 2px; }
+    .thankyou-contact { font-size: 0.85rem; opacity: 0.6; margin-top: clamp(16px, 2vh, 28px); }
+
+    /* ===== OVERVIEW OVERLAY ===== */
+    .overview-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(15,44,89,0.92); backdrop-filter: blur(8px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 300ms ease;
+    }
+    .overview-overlay.visible { opacity: 1; pointer-events: auto; }
+    .overview-title { color: var(--color-text-inverse); font-family: var(--font-heading); font-weight: 600; font-size: 1.1rem; margin-bottom: 20px; }
+    .overview-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;
+      max-width: 900px; width: 90%;
+    }
+    .overview-card {
+      aspect-ratio: 16/9; border-radius: 6px; padding: 8px 10px;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
+      text-align: center; border: 2px solid transparent;
+    }
+    .overview-card:hover { transform: scale(1.06); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+    .overview-card--dark { background: var(--color-primary); color: var(--color-text-inverse); }
+    .overview-card--light { background: var(--color-surface); color: var(--color-text); }
+    .overview-card--active { border-color: var(--color-accent); }
+    .overview-card__num { font-family: var(--font-heading); font-weight: 700; font-size: 0.9rem; }
+    .overview-card__title { font-size: 0.55rem; margin-top: 3px; opacity: 0.75; line-height: 1.2; }
+    .overview-reset {
+      margin-top: 20px; padding: 8px 20px; border-radius: 6px;
+      background: rgba(248,250,252,0.12); color: var(--color-text-inverse);
+      font-size: 0.8rem; font-weight: 500; transition: background 0.2s;
+    }
+    .overview-reset:hover { background: rgba(248,250,252,0.22); }
+
+    /* ===== TWO COLUMN LAYOUT ===== */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(16px, 3vw, 40px); align-items: start; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ===== FEATURE CALLOUT ===== */
+    .callout {
+      padding: clamp(10px, 1.2vh, 16px) clamp(14px, 2vw, 20px);
+      border-radius: 8px; font-size: clamp(0.82rem, 1vw, 0.92rem); line-height: 1.5;
+    }
+    .slide--dark .callout { background: rgba(248,250,252,0.06); border-left: 3px solid var(--color-accent); }
+    .slide--light .callout { background: #F0FDF4; border-left: 3px solid var(--color-secondary); color: var(--color-text); }
+
+    /* ===== PRINT ===== */
+    @media print {
+      .progress-bar, .top-chrome, .bottom-chrome, .slide-counter, .overview-overlay { display: none !important; }
+      .slides-container { height: auto; overflow: visible; }
+      .slide {
+        position: relative !important; opacity: 1 !important; transform: none !important;
+        pointer-events: auto !important; page-break-after: always; min-height: 100vh;
+        transition: none !important;
+      }
+      .slide .stagger-item { opacity: 1 !important; transform: none !important; animation: none !important; }
+      .hierarchy-node, .hierarchy-line { opacity: 1 !important; stroke-dashoffset: 0 !important; animation: none !important; }
+    }
+
+    /* ===== REDUCED MOTION ===== */
+    @media (prefers-reduced-motion: reduce) {
+      .slide { transition: opacity 0.15s ease !important; transform: none !important; }
+      .slide.slide-active { transform: none !important; }
+      .slide .stagger-item { opacity: 1 !important; transform: none !important; animation: none !important; }
+      .hierarchy-node { opacity: 1 !important; transform: none !important; animation: none !important; }
+      .hierarchy-line { stroke-dashoffset: 0 !important; animation: none !important; }
+      .nav-dot--active { animation: none !important; }
+      .nav-dot, .fullscreen-btn { transition: none !important; }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      .overview-grid { grid-template-columns: repeat(3, 1fr); }
+      .approval-flow { flex-direction: column; align-items: center; }
+      .approval-arrow { transform: rotate(90deg); }
+      .hierarchy-wrapper { flex-direction: column; }
+      .principle-visual { flex-direction: column; }
+      .principle-arrow { transform: rotate(90deg); }
+      .title-team { flex-direction: column; align-items: center; }
+      .thankyou-team { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body class="slide-dark">
+
+  <!-- ===== PROGRESS BAR ===== -->
+  <div class="progress-bar" id="progressBar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+  <!-- ===== TOP CHROME ===== -->
+  <header class="top-chrome" id="topChrome">
+    <div class="top-chrome__left">
+      <span class="chrome-text speaker-tag" id="speakerTag">Speaker 1</span>
+      <span class="chrome-text duration-badge" id="durationBadge">~0:30</span>
+    </div>
+    <div class="top-chrome__right">
+      <div class="timer-pill" id="timerPill">
+        <span id="timerDisplay">15:00</span>
+        <button class="timer-btn" id="timerBtn" aria-label="Start timer">▶</button>
+      </div>
+      <button class="fullscreen-btn" id="fullscreenBtn" aria-label="Toggle fullscreen">⛶</button>
+    </div>
+  </header>
+
+  <!-- ===== SLIDES ===== -->
+  <main class="slides-container" id="slidesContainer">
+
+    <!-- SLIDE 1: Title -->
+    <section class="slide slide--dark slide-active" id="slide-0" data-speaker="Speaker 1" data-duration="~0:30">
+      <div class="slide__content slide__content--center">
+        <h1 class="stagger-item">Primary School Management System</h1>
+        <p class="slide__subtitle stagger-item">A Multi-Tenant SaaS Platform for Cambodian Primary Schools</p>
+        <div class="title-team stagger-item">
+          <span class="title-team-member">Team Member 1</span>
+          <span class="title-team-member">Team Member 2</span>
+          <span class="title-team-member">Team Member 3</span>
+        </div>
+        <div class="title-meta stagger-item">
+          <p>University Name Placeholder &nbsp;·&nbsp; Defense Date Placeholder</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: Problem Statement -->
+    <section class="slide slide--light" id="slide-1" data-speaker="Speaker 1" data-duration="~1:00">
+      <div class="slide__content slide__content--left">
+        <h2 class="slide__title stagger-item">Problem Statement</h2>
+        <ul class="bullet-list">
+          <li class="stagger-item">Paper-based record keeping across all school operations — enrollment, attendance, scores, health</li>
+          <li class="stagger-item">No dedicated software budget in Cambodian public primary schools</li>
+          <li class="stagger-item">Student health, attendance, and academic performance tracked in separate, disconnected systems</li>
+          <li class="stagger-item">Report card generation is entirely manual — error-prone and time-consuming for teachers</li>
+          <li class="stagger-item">No secure, practical mechanism to share student progress with parents</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: Objectives & Scope -->
+    <section class="slide slide--dark" id="slide-2" data-speaker="Speaker 1" data-duration="~1:00">
+      <div class="slide__content slide__content--left">
+        <h2 class="slide__title stagger-item">Objectives &amp; Scope</h2>
+        <ul class="bullet-list">
+          <li class="stagger-item">Design a multi-tenant SaaS platform — one codebase serving unlimited schools</li>
+          <li class="stagger-item">Digitize student records: enrollment, attendance, scores, health, and growth tracking</li>
+          <li class="stagger-item">Enable secure, login-free parent access to report cards via private links</li>
+          <li class="stagger-item">Support 5 distinct user roles with appropriate access boundaries</li>
+          <li class="stagger-item">Deliver a bilingual Khmer/English interface with PWA offline capability</li>
+          <li class="stagger-item">Provide teachers with a reusable phrase library for parent communication</li>
+        </ul>
+        <div class="stat-grid stagger-item">
+          <div class="stat-item">
+            <div class="stat-value"><span class="counter" data-target="5" data-suffix="">0</span></div>
+            <div class="stat-label">User Roles</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value"><span class="counter" data-target="2" data-suffix="">0</span></div>
+            <div class="stat-label">Languages</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Existing Gap -->
+    <section class="slide slide--light" id="slide-3" data-speaker="Speaker 1" data-duration="~1:00">
+      <div class="slide__content slide__content--left">
+        <h2 class="slide__title stagger-item">Why Existing Solutions Don't Fit</h2>
+        <ul class="bullet-list">
+          <li class="stagger-item"><strong>Excel spreadsheets</strong> — no multi-tenancy, no access control, no parent sharing, single-user</li>
+          <li class="stagger-item"><strong>Paper records</strong> — slow, error-prone, no backup, impossible to aggregate data across schools</li>
+          <li class="stagger-item"><strong>Generic SIS software</strong> (Schoology, PowerSchool) — expensive licensing, English-only, requires reliable internet, not designed for Cambodian school structures</li>
+          <li class="stagger-item"><strong>Per-school custom builds</strong> — no economies of scale, each deployment is isolated and costly</li>
+        </ul>
+        <div class="callout stagger-item" style="margin-top: clamp(12px, 2vh, 20px);">
+          <strong>The gap:</strong> No solution that is free, bilingual, offline-capable, and multi-tenant by design.
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: Tech Stack -->
+    <section class="slide slide--dark" id="slide-4" data-speaker="Speaker 2" data-duration="~0:45">
+      <div class="slide__content slide__content--center">
+        <h2 class="slide__title stagger-item">Technology Stack</h2>
+        <div class="stack-diagram stagger-item">
+          <div class="stack-layer stack-layer--pwa">PWA — vite-plugin-pwa (offline-first, installable)</div>
+          <div class="stack-layer stack-layer--frontend">
+            <span>Vue 3</span><span>Vite</span><span>Tailwind CSS</span>
+          </div>
+          <div class="stack-layer stack-layer--state">
+            <span>Pinia (State)</span><span>Chart.js (Data Viz)</span>
+          </div>
+          <div class="stack-layer stack-layer--backend">Supabase / PostgreSQL</div>
+          <div class="stack-layer stack-layer--security">Row Level Security (RLS) — tenant isolation</div>
+        </div>
+        <p class="text-sm stagger-item" style="margin-top: clamp(12px, 2vh, 20px); opacity: 0.55;">Built solo, end-to-end — from schema design through deployment</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Data Model & Multi-Tenancy -->
+    <section class="slide slide--light" id="slide-5" data-speaker="Speaker 2" data-duration="~1:15">
+      <div class="slide__content slide__content--left">
+        <h2 class="slide__title stagger-item">Data Model &amp; Multi-Tenancy</h2>
+        <div class="hierarchy-wrapper stagger-item">
+          <svg class="hierarchy-svg" viewBox="0 0 280 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="School data hierarchy diagram">
+            <!-- Lines -->
+            <line class="hierarchy-line hierarchy-line-1" x1="140" y1="73" x2="140" y2="102" stroke="#0F2C59" stroke-width="2.5" stroke-linecap="round"/>
+            <line class="hierarchy-line hierarchy-line-2" x1="140" y1="148" x2="140" y2="177" stroke="#0F2C59" stroke-width="2.5" stroke-linecap="round"/>
+            <line class="hierarchy-line hierarchy-line-3" x1="140" y1="223" x2="140" y2="252" stroke="#0F2C59" stroke-width="2.5" stroke-linecap="round"/>
+            <line class="hierarchy-line hierarchy-line-4" x1="140" y1="298" x2="140" y2="327" stroke="#0F2C59" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- school_id labels -->
+            <text x="160" y="92" fill="#F2B705" font-size="9" font-family="Inter, sans-serif" font-weight="600" opacity="0.9">school_id</text>
+            <text x="160" y="167" fill="#F2B705" font-size="9" font-family="Inter, sans-serif" font-weight="600" opacity="0.9">school_id</text>
+            <text x="160" y="242" fill="#F2B705" font-size="9" font-family="Inter, sans-serif" font-weight="600" opacity="0.9">school_id</text>
+            <text x="160" y="317" fill="#F2B705" font-size="9" font-family="Inter, sans-serif" font-weight="600" opacity="0.9">school_id</text>
+            <!-- Nodes -->
+            <g class="hierarchy-node hnode-1" style="transform-origin: 140px 48px;">
+              <circle cx="140" cy="48" r="25" fill="#0F2C59"/>
+              <text x="140" y="52" text-anchor="middle" fill="#F8FAFC" font-size="9" font-family="Poppins, sans-serif" font-weight="600">School</text>
+            </g>
+            <g class="hierarchy-node hnode-2" style="transform-origin: 140px 123px;">
+              <circle cx="140" cy="123" r="25" fill="#1E4B8F"/>
+              <text x="140" y="127" text-anchor="middle" fill="#F8FAFC" font-size="9" font-family="Poppins, sans-serif" font-weight="600">Users</text>
+            </g>
+            <g class="hierarchy-node hnode-3" style="transform-origin: 140px 198px;">
+              <circle cx="140" cy="198" r="25" fill="#14B8A6"/>
+              <text x="140" y="202" text-anchor="middle" fill="#fff" font-size="8" font-family="Poppins, sans-serif" font-weight="600">Teachers</text>
+            </g>
+            <g class="hierarchy-node hnode-4" style="transform-origin: 140px 273px;">
+              <circle cx="140" cy="273" r="25" fill="#F2B705"/>
+              <text x="140" y="277" text-anchor="middle" fill="#16213E" font-size="8" font-family="Poppins, sans-serif" font-weight="600">Classes</text>
+            </g>
+            <g class="hierarchy-node hnode-5" style="transform-origin: 140px 348px;">
+              <circle cx="140" cy="348" r="25" fill="#0F2C59"/>
+              <text x="140" y="352" text-anchor="middle" fill="#F8FAFC" font-size="8" font-family="Poppins, sans-serif" font-weight="600">Students</text>
+            </g>
+          </svg>
+          <div class="hierarchy-annotations">
+            <p class="text-body"><strong style="color: var(--color-primary);">~30 database tables</strong> — every table scoped by <code style="background: var(--color-accent-soft); padding: 1px 6px; border-radius: 3px; font-size: 0.85em;">school_id</code></p>
+            <p class="text-body"><strong style="color: var(--color-primary);">25+ performance indexes</strong> — optimized for multi-tenant queries</p>
+            <p class="text-body"><strong style="color: var(--color-primary);">Postgres RLS</strong> — tenant isolation enforced at the database level, not just the application layer</p>
+          </div>
+        </div>
+        <div class="stat-grid stagger-item">
+          <div class="stat-item">
+            <div class="stat-value"><span class="counter" data-target="30" data-suffix="+">0</span></div>
+            <div class="stat-label">Database Tables</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value"><span class="counter" data-target="25" data-suffix="+">0</span></div>
+            <div class="stat-label">Performance Indexes</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: Core Design Decision -->
+    <section class="slide slide--dark" id="slide-6" data-speaker="Speaker 2" data-duration="~0:45">
+      <div class="slide__content slide__content--center">
+        <h2 class="slide__title stagger-item">"Every User Is a Teacher"</h2>
+        <p class="slide__subtitle stagger-item" style="max-width: 600px; margin: 0 auto;">In Cambodian primary schools, all staff — the director, the librarian — are also teachers.</p>
+        <div class="principle-visual stagger-item">
+          <div class="principle-card">
+            <div class="principle-card__icon">👤</div>
+            <div class="principle-card__label">One unified<br>profile record</div>
+          </div>
+          <div class="principle-arrow">→</div>
+          <div class="principle-card" style="border-color: rgba(242,183,5,0.3);">
+            <div class="principle-card__icon">🔑</div>
+            <div class="principle-card__label">Role field controls<br>access, not identity</div>
+          </div>
+        </div>
+        <div class="principle-roles stagger-item">
+          <span class="role-chip">Super Admin</span>
+          <span class="role-chip">Admin / Director</span>
+          <span class="role-chip">Teacher</span>
+          <span class="role-chip">Librarian</span>
+          <span class="role-chip">Parent</span>
+        </div>
+        <ul class="bullet-list stagger-item" style="margin-top: clamp(12px, 2vh, 20px); max-width: 560px; margin-left: auto; margin-right: auto;">
+          <li>No separate director table, no librarian table — eliminates data duplication</li>
+          <li>A teacher promoted to director requires zero data migration</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: Security Model -->
+    <section class="slide slide--light" id="slide-7" data-speaker="Speaker 2" data-duration="~1:00">
+      <div class="slide__content slide__content--center">
+        <h2 class="slide__title stagger-item">Security Model — RLS Layers</h2>
+        <div class="security-layers stagger-item">
+          <div class="security-layer" style="--layer-color: #F2B705;">
+            <div class="security-layer__role">Super Admin</div>
+            <div class="security-layer__scope">Cross-school platform access — manages all tenants</div>
+          </div>
+          <div class="security-layer" style="--layer-color: #14B8A6;">
+            <div class="security-layer__role">Admin / Director</div>
+            <div class="security-layer__scope">Full access within their school_id — approves reports, manages staff</div>
+          </div>
+          <div class="security-layer" style="--layer-color: #3B82F6;">
+            <div class="security-layer__role">Teacher / Librarian</div>
+            <div class="security-layer__scope">Access scoped to assigned classes or library within their school</div>
+          </div>
+          <div class="security-layer security-layer--anon">
+            <div class="security-layer__role">Parent (Anonymous)</div>
+            <div class="security-layer__scope">No login — access strictly limited to a single approved report UUID link</div>
+          </div>
+        </div>
+        <div class="callout stagger-item" style="margin-top: clamp(12px, 2vh, 20px); max-width: 520px; margin-left: auto; margin-right: auto;">
+          Parents never touch the authentication system. Even anonymous access is gated by database-level RLS policies.
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: Parent Portal -->
+    <section class="slide slide--dark" id="slide-8" data-speaker="Speaker 3" data-duration="~0:45">
+      <div class="slide__content slide__content--left">
+        <h2 class="slide__title stagger-item">Feature: Parent Portal</h2>
+        <ul class="bullet-list">
+          <li class="stagger-item">Parents access their child's report card via a <strong>private UUID link</strong> — no login required</li>
+          <li class="stagger-item">No name search, no date-of-birth verification — just the link, nothing else</li>
+          <li class="stagger-item"><strong>Shown:</strong> academic scores and attendance records only</li>
+          <li class="stagger-item"><strong>Hidden by design:</strong> health records, growth measurements, vaccination history — visible to staff only</li>
+          <li class="stagger-item">Link is single-purpose, revocable, and scoped to one approved report card</li>
+        </ul>
+        <div class="callout stagger-item" style="margin-top: clamp(12px, 2vh, 20px);">
+          Privacy by design — the link reveals only what a parent needs to see, nothing more.
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: Approval Flow -->
+    <section class="slide slide--light" id="slide-9" data-speaker="Speaker 3" data-duration="~1:00">
+      <div class="slide__content slide__content--center">
+        <h2 class="slide__title stagger-item">Feature: Approval Flow &amp; Notifications</h2>
+        <div class="approval-flow stagger-item">
+          <div class="approval-step">
+            <div class="approval-step__num">1</div>
+            <div class="approval-step__title">Teacher Submits</div>
+            <div class="approval-step__desc">Completes report card and requests principal approval</div>
+          </div>
+          <div class="approval-arrow">→</div>
+          <div class="approval-step">
+            <div class="approval-step__num">2</div>
+            <div class="approval-step__title">Principal Reviews</div>
+            <div class="approval-step__desc">In-app notification with real-time badge count — approve or reject with feedback</div>
+          </div>
+          <div class="approval-arrow">→</div>
+          <div class="approval-step">
+            <div class="approval-step__num">3</div>
+            <div class="approval-step__title">Link Generated</div>
+            <div class="approval-step__desc">Parent link activated with principal's digital signature and school stamp</div>
+          </div>
+        </div>
+        <div class="callout stagger-item" style="max-width: 520px; margin: clamp(8px, 1.5vh, 16px) auto 0;">
+          Rejection sends the report back to the teacher with written feedback — no broken links, no unapproved data reaching parents.
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: Real-World Deployment -->
+    <section class="slide slide--dark" id="slide-10" data-speaker="Speaker 3" data-duration="~0:45">
+      <div class="slide__content slide__content--left">
+        <h2 class="slide__title stagger-item">Live in Production</h2>
+        <ul class="bullet-list">
+          <li class="stagger-item">Deployed and operational at a <strong>primary school in Battambang, Cambodia</strong></li>
+          <li class="stagger-item">PWA installable on teacher devices — functions as a native app on mobile and desktop</li>
+          <li class="stagger-item">Offline-first architecture designed for <strong>low-bandwidth and intermittent connectivity</strong></li>
+          <li class="stagger-item">Real teacher training conducted on-site at the pilot school</li>
+          <li class="stagger-item">Teacher Phrase Library in active use — reusable feedback chips reduce repetitive writing</li>
+          <li class="stagger-item">Built <strong>solo, end-to-end</strong>: schema design → frontend → backend → deployment → training</li>
+        </ul>
+        <div class="stat-grid stagger-item">
+          <div class="stat-item">
+            <div class="stat-value"><span class="counter" data-target="1" data-suffix="">0</span></div>
+            <div class="stat-label">Live Deployment</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: Challenges & Solutions -->
+    <section class="slide slide--light" id="slide-11" data-speaker="Speaker 3" data-duration="~1:00">
+      <div class="slide__content slide__content--left">
+        <h2 class="slide__title stagger-item">Challenges &amp; Solutions</h2>
+        <div class="challenge-list">
+          <div class="challenge-item stagger-item">
+            <div class="challenge-item__title">Khmer Digit Parsing for Grade Rollups</div>
+            <div class="challenge-item__body">
+              Class names like <span class="khmer">ថ្នាក់ទី១ក</span> use Khmer numerals — standard <code>parseInt()</code> returns <code>NaN</code>.<br>
+              <strong>Solution:</strong> Custom parser mapping Khmer digits (០–៩) to Arabic (0–9), enabling automated end-of-year grade promotion.
+            </div>
+          </div>
+          <div class="challenge-item stagger-item">
+            <div class="challenge-item__title">RLS for Anonymous Multi-Step Parent Access</div>
+            <div class="challenge-item__body">
+              Parents have no auth token — how do you enforce RLS on an unauthenticated request?<br>
+              <strong>Solution:</strong> A <code>report_links</code> table with UUID, expiration, and approved flag. RLS policy validates the UUID against this table before returning any data.
+            </div>
+          </div>
+          <div class="challenge-item stagger-item">
+            <div class="challenge-item__title">Bilingual UI with Asymmetric Text Lengths</div>
+            <div class="challenge-item__body">
+              Khmer and English labels differ significantly in length — fixed-width layouts break.<br>
+              <strong>Solution:</strong> Tailwind's responsive utilities combined with per-language string management and flexible containers.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 13: Future Work -->
+    <section class="slide slide--dark" id="slide-12" data-speaker="Speaker 3" data-duration="~0:45">
+      <div class="slide__content slide__content--left">
+        <h2 class="slide__title stagger-item">Future Work</h2>
+        <div class="future-grid stagger-item">
+          <div class="future-card">
+            <div class="future-card__title">Province-Wide Expansion</div>
+            <div class="future-card__desc">Extend pilot to additional primary schools across Battambang province</div>
+          </div>
+          <div class="future-card">
+            <div class="future-card__title">MoEYS Partnership</div>
+            <div class="future-card__desc">Engage Ministry of Education, Youth and Sport for national adoption pathway</div>
+          </div>
+          <div class="future-card">
+            <div class="future-card__title">UNICEF Cambodia Collaboration</div>
+            <div class="future-card__desc">Integrate health and vaccination tracking with UNICEF's child welfare programs</div>
+          </div>
+          <div class="future-card">
+            <div class="future-card__title">Parent Notifications</div>
+            <div class="future-card__desc">Automated SMS/push notifications to parents where connectivity permits</div>
+          </div>
+          <div class="future-card">
+            <div class="future-card__title">Mobile Admin Dashboard</div>
+            <div class="future-card__desc">Optimized mobile interface for directors managing schools on-the-go</div>
+          </div>
+          <div class="future-card">
+            <div class="future-card__title">Data Analytics</div>
+            <div class="future-card__desc">Aggregated, anonymized insights for education policy researchers</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: Thank You -->
+    <section class="slide slide--dark" id="slide-13" data-speaker="Speaker 3" data-duration="~remaining">
+      <div class="slide__content slide__content--center">
+        <h1 class="stagger-item" style="margin-bottom: 8px;">Thank You</h1>
+        <p class="slide__subtitle stagger-item">Questions &amp; Discussion</p>
+        <div class="thankyou-team stagger-item">
+          <div class="thankyou-member">
+            <div class="thankyou-member__name">Team Member 1</div>
+            <div class="thankyou-member__role">Speaker 1</div>
+          </div>
+          <div class="thankyou-member">
+            <div class="thankyou-member__name">Team Member 2</div>
+            <div class="thankyou-member__role">Speaker 2</div>
+          </div>
+          <div class="thankyou-member">
+            <div class="thankyou-member__name">Team Member 3</div>
+            <div class="thankyou-member__role">Speaker 3</div>
+          </div>
+        </div>
+        <div class="thankyou-contact stagger-item">
+          <p>contact@example.com</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== BOTTOM CHROME ===== -->
+  <nav class="bottom-chrome" id="bottomChrome" aria-label="Slide navigation">
+    <div class="nav-dots" id="navDots" role="tablist"></div>
+  </nav>
+  <div class="slide-counter chrome-text" id="slideCounter" aria-live="polite">1 / 14</div>
+
+  <!-- ===== OVERVIEW OVERLAY ===== -->
+  <div class="overview-overlay" id="overviewOverlay" role="dialog" aria-label="Slide overview">
+    <div class="overview-title">Slide Overview</div>
+    <div class="overview-grid" id="overviewGrid"></div>
+    <button class="overview-reset" id="overviewReset">Reset Timer</button>
+  </div>
+
+  <script>
+    // ===== STATE =====
+    let currentSlide = 0;
+    const totalSlides = 14;
+    let timerSeconds = 900; // 15 minutes
+    let timerInterval = null;
+    let timerRunning = false;
+    let overviewVisible = false;
+
+    // ===== SLIDE METADATA =====
+    const slideTitles = [
+      'Title',
+      'Problem Statement',
+      'Objectives & Scope',
+      'Existing Gap',
+      'Tech Stack',
+      'Data Model & Multi-Tenancy',
+      'Core Design Decision',
+      'Security Model',
+      'Parent Portal',
+      'Approval Flow',
+      'Deployment',
+      'Challenges & Solutions',
+      'Future Work',
+      'Thank You / Q&A'
+    ];
+    const slideTypes = ['dark','light','dark','light','dark','light','dark','light','dark','light','dark','light','dark','dark'];
+
+    // ===== DOM REFERENCES =====
+    const slides = document.querySelectorAll('.slide');
+    const progressBar = document.getElementById('progressBar');
+    const speakerTag = document.getElementById('speakerTag');
+    const durationBadge = document.getElementById('durationBadge');
+    const navDotsContainer = document.getElementById('navDots');
+    const slideCounter = document.getElementById('slideCounter');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerPill = document.getElementById('timerPill');
+    const timerBtn = document.getElementById('timerBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const overviewOverlay = document.getElementById('overviewOverlay');
+    const overviewGrid = document.getElementById('overviewGrid');
+    const overviewReset = document.getElementById('overviewReset');
+
+    // ===== BUILD NAV DOTS =====
+    for (let i = 0; i < totalSlides; i++) {
+      const dot = document.createElement('button');
+      dot.className = 'nav-dot' + (i === 0 ? ' nav-dot--active' : '');
+      dot.setAttribute('role', 'tab');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+      dot.setAttribute('data-index', i);
+      dot.addEventListener('click', function() { goToSlide(i); });
+      navDotsContainer.appendChild(dot);
+    }
+    const navDots = navDotsContainer.querySelectorAll('.nav-dot');
+
+    // ===== BUILD OVERVIEW GRID =====
+    for (let i = 0; i < totalSlides; i++) {
+      const card = document.createElement('button');
+      card.className = 'overview-card overview-card--' + slideTypes[i] + (i === 0 ? ' overview-card--active' : '');
+      card.setAttribute('data-index', i);
+      card.innerHTML = '<div class="overview-card__num">' + (i + 1) + '</div><div class="overview-card__title">' + slideTitles[i] + '</div>';
+      card.addEventListener('click', function() {
+        goToSlide(i);
+        toggleOverview(false);
+      });
+      overviewGrid.appendChild(card);
+    }
+    const overviewCards = overviewGrid.querySelectorAll('.overview-card');
+
+    // ===== SLIDE NAVIGATION =====
+    function goToSlide(n) {
+      if (n < 0 || n >= totalSlides || n === currentSlide) return;
+      // Deactivate current
+      slides[currentSlide].classList.remove('slide-active');
+      navDots[currentSlide].classList.remove('nav-dot--active');
+      overviewCards[currentSlide].classList.remove('overview-card--active');
+
+      currentSlide = n;
+
+      // Activate new
+      slides[currentSlide].classList.add('slide-active');
+      navDots[currentSlide].classList.add('nav-dot--active');
+      overviewCards[currentSlide].classList.add('overview-card--active');
+
+      // Update chrome
+      const slide = slides[currentSlide];
+      const isDark = slide.classList.contains('slide--dark');
+      document.body.classList.toggle('slide-dark', isDark);
+      document.body.classList.toggle('slide-light', !isDark);
+
+      speakerTag.textContent = slide.dataset.speaker || '';
+      durationBadge.textContent = slide.dataset.duration || '';
+      slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+      progressBar.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+      progressBar.setAttribute('aria-valuenow', Math.round((currentSlide + 1) / totalSlides * 100));
+
+      // Trigger counter animations on the new slide
+      animateCounters(slides[currentSlide]);
+    }
+
+    function nextSlide() { goToSlide(currentSlide + 1); }
+    function prevSlide() { goToSlide(currentSlide - 1); }
+
+    // ===== TIMER =====
+    function formatTime(s) {
+      var m = Math.floor(s / 60);
+      var sec = s % 60;
+      return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
+
+    function updateTimerDisplay() {
+      timerDisplay.textContent = formatTime(timerSeconds);
+      timerPill.classList.remove('timer-warn', 'timer-danger');
+      if (timerSeconds <= 60) {
+        timerPill.classList.add('timer-danger');
+      } else if (timerSeconds <= 180) {
+        timerPill.classList.add('timer-warn');
+      }
+    }
+
+    function startTimer() {
+      if (timerRunning) {
+        // Pause
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timerRunning = false;
+        timerBtn.textContent = '▶';
+        timerBtn.setAttribute('aria-label', 'Resume timer');
+      } else {
+        // Start
+        if (timerSeconds <= 0) return;
+        timerRunning = true;
+        timerBtn.textContent = '⏸';
+        timerBtn.setAttribute('aria-label', 'Pause timer');
+        timerInterval = setInterval(function() {
+          timerSeconds--;
+          updateTimerDisplay();
+          if (timerSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timerRunning = false;
+            timerBtn.textContent = '▶';
+            timerBtn.setAttribute('aria-label', 'Timer finished');
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerRunning = false;
+      timerSeconds = 900;
+      updateTimerDisplay();
+      timerBtn.textContent = '▶';
+      timerBtn.setAttribute('aria-label', 'Start timer');
+    }
+
+    timerBtn.addEventListener('click', startTimer);
+    overviewReset.addEventListener('click', resetTimer);
+
+    // ===== OVERVIEW =====
+    function toggleOverview(forceState) {
+      if (typeof forceState === 'boolean') {
+        overviewVisible = forceState;
+      } else {
+        overviewVisible = !overviewVisible;
+      }
+      overviewOverlay.classList.toggle('visible', overviewVisible);
+    }
+
+    // ===== FULLSCREEN =====
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(function() {});
+      } else {
+        document.exitFullscreen().catch(function() {});
+      }
+    }
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+    // ===== COUNTER ANIMATIONS =====
+    function animateCounters(slideEl) {
+      var counters = slideEl.querySelectorAll('.counter');
+      counters.forEach(function(counter) {
+        var target = parseInt(counter.dataset.target, 10);
+        var suffix = counter.dataset.suffix || '';
+        var duration = 1400;
+        counter.textContent = '0' + suffix;
+
+        setTimeout(function() {
+          var startTime = performance.now();
+          function update(now) {
+            var elapsed = now - startTime;
+            var progress = Math.min(elapsed / duration, 1);
+            // Ease-out cubic
+            var eased = 1 - Math.pow(1 - progress, 3);
+            var current = Math.round(target * eased);
+            counter.textContent = current + suffix;
+            if (progress < 1) {
+              requestAnimationFrame(update);
+            }
+          }
+          requestAnimationFrame(update);
+        }, 350);
+      });
+    }
+
+    // ===== EVENT LISTENERS =====
+    document.addEventListener('keydown', function(e) {
+      // Don't intercept if user is in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      switch(e.key) {
+        case 'ArrowRight':
+        case ' ':
+          e.preventDefault();
+          if (overviewVisible) { toggleOverview(false); } else { nextSlide(); }
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          if (overviewVisible) { toggleOverview(false); } else { prevSlide(); }
+          break;
+        case 'Home':
+          e.preventDefault();
+          toggleOverview(false);
+          goToSlide(0);
+          break;
+        case 'End':
+          e.preventDefault();
+          toggleOverview(false);
+          goToSlide(totalSlides - 1);
+          break;
+        case 'o':
+        case 'O':
+          e.preventDefault();
+          toggleOverview();
+          break;
+        case 'Escape':
+          if (overviewVisible) { toggleOverview(false); }
+          break;
+        case 'f':
+        case 'F':
+          e.preventDefault();
+          toggleFullscreen();
+          break;
+      }
+    });
+
+    // Close overview when clicking the overlay background (not on a card)
+    overviewOverlay.addEventListener('click', function(e) {
+      if (e.target === overviewOverlay) {
+        toggleOverview(false);
+      }
+    });
+
+    // ===== INIT =====
+    (function init() {
+      // Set initial body class
+      var firstSlide = slides[0];
+      document.body.classList.add('slide-dark');
+      speakerTag.textContent = firstSlide.dataset.speaker || '';
+      durationBadge.textContent = firstSlide.dataset.duration || '';
+      slideCounter.textContent = '1 / ' + totalSlides;
+      progressBar.style.width = (1 / totalSlides * 100) + '%';
+      updateTimerDisplay();
+
+      // Trigger counters on first slide (title slide has none, but safe to call)
+      animateCounters(firstSlide);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Primary School Management System — Dissertation Defense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500&family=Noto+Sans+Khmer&display=swap" rel="stylesheet">
+<style>
+/* ===== COLORS ===== */
+:root {
+  --color-primary: #0F2C59;
+  --color-primary-light: #1E4B8F;
+  --color-accent: #F2B705;
+  --color-accent-soft: #FCE7A8;
+  --color-secondary: #14B8A6;
+  --color-bg: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-text: #16213E;
+  --color-text-muted: #5B6B8C;
+  --color-text-inverse: #F8FAFC;
+  --color-border: #E2E8F0;
+  --color-danger: #EF4444;
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-khmer: 'Noto Sans Khmer', sans-serif;
+  --transition-speed: 450ms;
+  --easing: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--font-body); font-weight: 400; color: var(--color-text); background: var(--color-bg); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* ===== SLIDE BASE ===== */
+.presentation { width: 100%; height: 100%; position: relative; overflow: hidden; }
+.slides-container { width: 100%; height: 100%; position: relative; }
+.slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: clamp(1.5rem, 4vw, 4rem); opacity: 0; visibility: hidden; transition: opacity var(--transition-speed) var(--easing), transform var(--transition-speed) var(--easing); transform: translateY(20px); overflow-y: auto; }
+.slide.active { opacity: 1; visibility: visible; transform: translateY(0); z-index: 2; }
+.slide.exit { opacity: 0; transform: translateY(-20px); }
+
+/* ===== SLIDE VARIANTS ===== */
+.slide-title { background: linear-gradient(135deg, var(--color-primary) 0%, #0a1f3d 100%); color: var(--color-text-inverse); text-align: center; }
+.slide-dark { background: linear-gradient(135deg, var(--color-primary) 0%, #0a1f3d 100%); color: var(--color-text-inverse); }
+.slide-light { background: var(--color-bg); color: var(--color-text); }
+.slide-surface { background: var(--color-surface); color: var(--color-text); border-bottom: 4px solid var(--color-accent); }
+
+.slide-title h1 { font-family: var(--font-heading); font-weight: 700; font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1.15; margin-bottom: 0.6em; }
+.slide-title .subtitle { font-family: var(--font-body); font-weight: 400; font-size: clamp(1.1rem, 2vw, 1.5rem); opacity: 0.85; max-width: 700px; margin: 0 auto 1.5em; }
+.slide-title .meta { font-size: clamp(0.85rem, 1.2vw, 1rem); opacity: 0.7; }
+.slide-title .team-names { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; margin: 1.5em 0; }
+.slide-title .team-names span { font-family: var(--font-heading); font-weight: 600; font-size: clamp(0.95rem, 1.3vw, 1.1rem); }
+
+/* ===== CONTENT STYLES ===== */
+.slide-content { width: 100%; max-width: 1100px; margin: 0 auto; }
+.slide-content h2 { font-family: var(--font-heading); font-weight: 700; font-size: clamp(1.75rem, 3vw, 2.5rem); margin-bottom: 0.5em; line-height: 1.2; }
+.slide-dark .slide-content h2 { color: var(--color-text-inverse); }
+.slide-light .slide-content h2 { color: var(--color-primary); }
+.slide-content p { font-size: clamp(1rem, 1.4vw, 1.125rem); line-height: 1.6; margin-bottom: 0.75em; }
+.slide-content ul { list-style: none; padding: 0; }
+.slide-content ul li { font-size: clamp(0.95rem, 1.3vw, 1.1rem); line-height: 1.55; padding: 0.3em 0 0.3em 1.5em; position: relative; }
+.slide-content ul li::before { content: ''; position: absolute; left: 0; top: 0.7em; width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent); }
+.slide-dark .slide-content ul li::before { background: var(--color-accent); }
+.slide-content ul li strong { font-weight: 600; }
+
+/* ===== SPEAKER TAG ===== */
+.speaker-tag { position: absolute; top: 1rem; left: 1.5rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.5; z-index: 5; }
+.slide-dark .speaker-tag { color: var(--color-text-inverse); }
+.slide-light .speaker-tag { color: var(--color-text-muted); }
+
+/* ===== DURATION BADGE ===== */
+.duration-badge { position: absolute; top: 1rem; right: 1.5rem; font-size: 0.7rem; font-weight: 500; padding: 0.2em 0.6em; border-radius: 4px; opacity: 0.5; z-index: 5; background: rgba(0,0,0,0.08); }
+.slide-dark .duration-badge { color: var(--color-text-inverse); background: rgba(255,255,255,0.1); }
+.slide-light .duration-badge { color: var(--color-text-muted); }
+
+/* ===== SLIDE NUMBER & PROGRESS ===== */
+.slide-number { position: absolute; bottom: 1.5rem; right: 2rem; font-size: 0.8rem; font-weight: 500; opacity: 0.4; z-index: 5; }
+.slide-dark .slide-number { color: var(--color-text-inverse); }
+.slide-light .slide-number { color: var(--color-text-muted); }
+.progress-bar { position: fixed; bottom: 0; left: 0; height: 3px; background: var(--color-accent); z-index: 100; transition: width 400ms var(--easing); width: 0%; }
+
+/* ===== NAVIGATION DOTS ===== */
+.nav-dots { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.5rem; z-index: 50; align-items: center; }
+.nav-dot { width: 10px; height: 10px; border-radius: 50%; border: none; background: var(--color-border); cursor: pointer; transition: all 300ms var(--easing); padding: 0; }
+.nav-dot:hover { transform: scale(1.2); background: var(--color-text-muted); }
+.nav-dot.active { background: var(--color-accent); box-shadow: 0 0 0 3px var(--color-accent-soft); }
+.nav-dot.active:hover { transform: scale(1.05); }
+
+/* ===== TIMER ===== */
+.timer { position: fixed; bottom: 2rem; right: 2rem; font-family: var(--font-heading); font-weight: 600; font-size: 0.9rem; z-index: 50; display: flex; align-items: center; gap: 0.5rem; background: var(--color-surface); padding: 0.35em 0.7em; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); color: var(--color-text); }
+.timer.warning { color: var(--color-accent); background: #fff8e1; }
+.timer.danger { color: var(--color-danger); background: #fef2f2; animation: pulse 1s ease-in-out infinite; }
+.timer-btn { font-size: 0.7rem; padding: 0.15em 0.45em; border: 1px solid var(--color-border); border-radius: 4px; background: transparent; cursor: pointer; font-family: var(--font-body); color: var(--color-text-muted); }
+.timer-btn:hover { background: var(--color-bg); }
+
+/* ===== FULLSCREEN BUTTON ===== */
+.fullscreen-btn { position: fixed; top: 1rem; right: 1rem; z-index: 50; background: rgba(0,0,0,0.06); border: none; border-radius: 6px; padding: 0.4em 0.7em; cursor: pointer; font-size: 0.8rem; color: var(--color-text-muted); font-family: var(--font-body); display: flex; align-items: center; gap: 0.3em; opacity: 0; transition: opacity 300ms; }
+.fullscreen-btn:hover { background: rgba(0,0,0,0.1); }
+.fullscreen-btn.visible { opacity: 1; }
+
+/* ===== OVERVIEW GRID ===== */
+.overlay { position: fixed; inset: 0; background: rgba(15, 44, 89, 0.95); z-index: 200; display: none; justify-content: center; align-items: center; padding: 2rem; }
+.overlay.open { display: flex; }
+.overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; width: 100%; max-width: 1200px; max-height: 80vh; overflow-y: auto; }
+.overview-thumb { background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 8px; padding: 1rem; cursor: pointer; color: var(--color-text-inverse); text-align: center; transition: all 250ms; min-height: 100px; display: flex; flex-direction: column; justify-content: center; }
+.overview-thumb:hover { border-color: var(--color-accent); background: rgba(255,255,255,0.15); }
+.overview-thumb.active { border-color: var(--color-accent); background: rgba(242, 183, 5, 0.15); }
+.overview-thumb .num { font-family: var(--font-heading); font-weight: 700; font-size: 1.2rem; margin-bottom: 0.3em; }
+.overview-thumb .title { font-size: 0.75rem; opacity: 0.8; line-height: 1.3; }
+.overview-close { position: absolute; top: 1.5rem; right: 2rem; background: none; border: 2px solid rgba(255,255,255,0.3); color: var(--color-text-inverse); font-size: 1.5rem; padding: 0.2em 0.5em; border-radius: 6px; cursor: pointer; }
+.overview-close:hover { border-color: var(--color-accent); }
+
+/* ===== STACK DIAGRAM ===== */
+.stack-diagram { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin: 1.5rem 0; width: 100%; }
+.stack-row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.stack-item { padding: 0.5em 1em; border-radius: 8px; font-family: var(--font-heading); font-weight: 600; font-size: clamp(0.75rem, 1vw, 0.9rem); text-align: center; min-width: 80px; }
+.stack-item.frontend { background: #0F2C59; color: #fff; }
+.stack-item.backend { background: #14B8A6; color: #fff; }
+.stack-item.database { background: #F2B705; color: #16213E; }
+.stack-item.infra { background: #1E4B8F; color: #fff; }
+.stack-connector { width: 2px; height: 12px; background: var(--color-border); }
+.stack-arrow { font-size: 1.2rem; color: var(--color-text-muted); }
+
+/* ===== HIERARCHY DIAGRAM ===== */
+.hierarchy { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; margin: 1rem 0; width: 100%; }
+.h-node { padding: 0.5em 1.2em; border-radius: 8px; font-family: var(--font-heading); font-weight: 600; font-size: clamp(0.7rem, 0.9vw, 0.85rem); text-align: center; opacity: 0; transform: scale(0.8); transition: all 500ms var(--easing); }
+.h-node.visible { opacity: 1; transform: scale(1); }
+.h-node.school { background: #0F2C59; color: #fff; padding: 0.6em 2em; }
+.h-node.users { background: #1E4B8F; color: #fff; }
+.h-node.teachers { background: #14B8A6; color: #fff; }
+.h-node.classes { background: #F2B705; color: #16213E; }
+.h-node.students { background: #FCE7A8; color: #16213E; }
+.h-connector { width: 2px; height: 10px; background: var(--color-text-muted); opacity: 0; transition: opacity 400ms; }
+.h-connector.visible { opacity: 1; }
+.h-bracket { display: flex; gap: 0; align-items: flex-start; }
+.h-bracket-line { width: 2px; height: 20px; background: var(--color-text-muted); opacity: 0; transition: opacity 400ms; }
+.h-bracket-line.visible { opacity: 1; }
+
+/* ===== APPROVAL FLOW ===== */
+.approval-flow { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin: 1.5rem 0; flex-wrap: wrap; }
+.approval-step { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.75em 1em; border-radius: 10px; min-width: 120px; text-align: center; }
+.approval-step .step-icon { font-size: 1.8rem; }
+.approval-step .step-label { font-size: clamp(0.7rem, 0.9vw, 0.8rem); font-weight: 500; }
+.approval-step.teacher { background: #e8f5f5; border: 2px solid #14B8A6; }
+.slide-dark .approval-step.teacher { background: rgba(20,184,166,0.15); border-color: #14B8A6; }
+.approval-step.admin { background: #f0f0f8; border: 2px solid #1E4B8F; }
+.slide-dark .approval-step.admin { background: rgba(30,75,143,0.15); border-color: #1E4B8F; }
+.approval-step.parent { background: #fff8e1; border: 2px solid #F2B705; }
+.slide-dark .approval-step.parent { background: rgba(242,183,5,0.15); border-color: #F2B705; }
+.approval-arrow { font-size: 1.5rem; color: var(--color-text-muted); }
+
+/* ===== STAT COUNTERS ===== */
+.stat-counter { font-family: var(--font-heading); font-weight: 700; font-size: clamp(2rem, 3.5vw, 3rem); color: var(--color-accent); display: inline-block; }
+.slide-dark .stat-counter { color: var(--color-accent); }
+.stat-label { font-size: clamp(0.85rem, 1.1vw, 1rem); color: var(--color-text-muted); display: block; }
+.slide-dark .stat-label { color: rgba(255,255,255,0.7); }
+.stat-grid { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; margin: 1.5rem 0; }
+.stat-item { text-align: center; min-width: 120px; }
+
+/* ===== CARDS ===== */
+.card { background: var(--color-surface); border-radius: 12px; padding: 1.25em; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid var(--color-border); }
+.slide-dark .card { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0; }
+
+/* ===== ANIMATIONS ===== */
+.stagger-item { opacity: 0; transform: translateY(12px); transition: opacity 400ms var(--easing), transform 400ms var(--easing); }
+.stagger-item.visible { opacity: 1; transform: translateY(0); }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+@keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .slide { padding: 1.5rem; }
+  .slide-title .team-names { flex-direction: column; gap: 0.5rem; }
+  .nav-dots { gap: 0.35rem; }
+  .nav-dot { width: 8px; height: 8px; }
+  .approval-flow { flex-direction: column; }
+  .approval-arrow { transform: rotate(90deg); }
+  .stat-grid { gap: 1rem; }
+  .overview-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+}
+
+/* ===== PRINT ===== */
+@media print {
+  @page { size: landscape; margin: 0.5in; }
+  html, body { overflow: visible; height: auto; background: white; }
+  .presentation, .slides-container { overflow: visible; height: auto; }
+  .slide { position: relative; opacity: 1 !important; visibility: visible !important; transform: none !important; page-break-after: always; min-height: 100vh; padding: 1in; break-inside: avoid; }
+  .slide-title { background: var(--color-primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .slide-dark { background: var(--color-primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .nav-dots, .timer, .fullscreen-btn, .progress-bar, .speaker-tag, .duration-badge, .slide-number { display: none !important; }
+  .h-node, .h-connector { opacity: 1 !important; transform: none !important; }
+  .stagger-item { opacity: 1 !important; transform: none !important; }
+}
+
+/* ===== ACCESSIBILITY ===== */
+*:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  .slide { transition: opacity 200ms ease; transform: none !important; }
+  .slide.exit { transform: none; }
+  .h-node { transform: none; }
+  .stagger-item { transform: none; }
+  .timer.danger { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="presentation" role="application" aria-label="Presentation">
+  <div class="progress-bar" id="progressBar" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="14"></div>
+
+  <div class="slides-container" id="slidesContainer">
+
+    <!-- ===== SLIDE 1: TITLE ===== -->
+    <div class="slide slide-title active" data-slide="1" role="tabpanel" aria-label="Slide 1: Title">
+      <div class="speaker-tag">Speaker 1</div>
+      <div class="duration-badge">~1 min</div>
+      <div class="slide-content" style="text-align:center;">
+        <p style="font-size:clamp(0.85rem,1.1vw,1rem);opacity:0.6;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1.5rem;">Bachelor's Thesis Dissertation Defense</p>
+        <h1>Primary School<br>Management System</h1>
+        <p class="subtitle">A Multi-Tenant SaaS Platform for Cambodian Primary Schools</p>
+        <div class="team-names">
+          <span>Team Member 1</span>
+          <span>Team Member 2</span>
+          <span>Team Member 3</span>
+        </div>
+        <p class="meta">[University Name] &mdash; [Department]</p>
+        <p class="meta" style="margin-top:0.3em;">[Defense Date]</p>
+      </div>
+      <div class="slide-number">1 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 2: PROBLEM STATEMENT ===== -->
+    <div class="slide slide-light" data-slide="2" role="tabpanel" aria-label="Slide 2: Problem Statement">
+      <div class="speaker-tag">Speaker 1</div>
+      <div class="duration-badge">~1 min</div>
+      <div class="slide-content">
+        <h2>The Problem</h2>
+        <p style="font-size:1.05rem;color:var(--color-text-muted);margin-bottom:1.25rem;">Cambodian public primary schools manage student data entirely on paper.</p>
+        <ul>
+          <li><strong>Paper-based records</strong> — attendance sheets, score ledgers, health cards stored in physical filing cabinets, prone to loss and damage</li>
+          <li><strong>No software budget</strong> — most schools cannot afford commercial SIS solutions; government funding covers only basic infrastructure</li>
+          <li><strong>Fragmented tracking</strong> — attendance, scores, health records, and growth data exist in separate unconnected paper systems</li>
+          <li><strong>No parent engagement</strong> — report cards are handwritten and delivered months late; parents have no visibility into their child's progress</li>
+          <li><strong>Manual year-end promotion</strong> — re-enrolling students into new classes each academic year is done by hand, error-prone and time-consuming</li>
+        </ul>
+      </div>
+      <div class="slide-number">2 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 3: OBJECTIVES & SCOPE ===== -->
+    <div class="slide slide-surface" data-slide="3" role="tabpanel" aria-label="Slide 3: Objectives and Scope">
+      <div class="speaker-tag">Speaker 1</div>
+      <div class="duration-badge">~1 min</div>
+      <div class="slide-content">
+        <h2>Objectives &amp; Scope</h2>
+        <p style="color:var(--color-text-muted);margin-bottom:1rem;">A complete, affordable digital solution designed specifically for the Cambodian primary school context.</p>
+        <div class="stat-grid">
+          <div class="stat-item"><span class="stat-counter" data-target="5">0</span><span class="stat-label">User Roles</span></div>
+          <div class="stat-item"><span class="stat-counter" data-target="30">0</span><span class="stat-label">Database Tables</span></div>
+          <div class="stat-item"><span class="stat-counter" data-target="75">0</span><span class="stat-label">Source Files</span></div>
+        </div>
+        <ul>
+          <li><strong>Digital record keeping</strong> — replace paper attendance, scores, health, and growth tracking with a unified system</li>
+          <li><strong>Role-based access</strong> — five roles serving the school ecosystem: <strong>Super Admin</strong>, <strong>Admin</strong>, <strong>Teacher</strong>, <strong>Librarian</strong>, and <strong>Parent</strong></li>
+          <li><strong>Automated reporting</strong> — generate score summaries, attendance records, and report cards with one click</li>
+          <li><strong>Parent portal</strong> — share report cards securely via private links; no login or personal data required</li>
+          <li><strong>End-of-year rollup</strong> — automated grade promotion with Khmer digit parsing and graduation handling</li>
+        </ul>
+      </div>
+      <div class="slide-number">3 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 4: EXISTING GAP ===== -->
+    <div class="slide slide-light" data-slide="4" role="tabpanel" aria-label="Slide 4: Existing Gap">
+      <div class="speaker-tag">Speaker 1</div>
+      <div class="duration-badge">~1 min</div>
+      <div class="slide-content">
+        <h2>Why Not Existing Tools?</h2>
+        <p style="color:var(--color-text-muted);margin-bottom:1rem;">Generic solutions fail to address the specific realities of Cambodian public primary schools.</p>
+        <div class="card-grid">
+          <div class="card stagger-item">
+            <h3 style="font-size:1rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.5rem;">Excel / Paper</h3>
+            <p style="font-size:0.9rem;color:var(--color-text-muted);">No access control, easy data loss, no concurrent multi-user support, no reporting automation, no parent access.</p>
+          </div>
+          <div class="card stagger-item">
+            <h3 style="font-size:1rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.5rem;">Commercial SIS</h3>
+            <p style="font-size:0.9rem;color:var(--color-text-muted);">Too expensive for public schools (often $5–15/student/year). Requires internet always-on. No Khmer language or Cambodian calendar support.</p>
+          </div>
+          <div class="card stagger-item">
+            <h3 style="font-size:1rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.5rem;">Single-School Apps</h3>
+            <p style="font-size:0.9rem;color:var(--color-text-muted);">No multi-tenant architecture — each deployment requires separate infrastructure. No centralized oversight for the Ministry of Education.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-number">4 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 5: TECH STACK ===== -->
+    <div class="slide slide-dark" data-slide="5" role="tabpanel" aria-label="Slide 5: Tech Stack">
+      <div class="speaker-tag">Speaker 2</div>
+      <div class="duration-badge">~1 min</div>
+      <div class="slide-content" style="text-align:center;">
+        <h2>Technology Stack</h2>
+        <p style="opacity:0.8;margin-bottom:1.5rem;">Modern, cost-effective, and scalable — entirely open-source and cloud-native.</p>
+        <div class="stack-diagram">
+          <div class="stack-row">
+            <div class="stack-item frontend">Vue 3</div>
+            <div class="stack-item frontend">Vite</div>
+            <div class="stack-item frontend">Tailwind CSS</div>
+          </div>
+          <div class="stack-arrow">&#8595;</div>
+          <div class="stack-row">
+            <div class="stack-item infra">PWA<br><span style="font-weight:400;font-size:0.7rem;opacity:0.8;">vite-plugin-pwa</span></div>
+            <div class="stack-item frontend">Pinia<br><span style="font-weight:400;font-size:0.7rem;opacity:0.8;">State Mgmt</span></div>
+            <div class="stack-item frontend">Chart.js<br><span style="font-weight:400;font-size:0.7rem;opacity:0.8;">Data Viz</span></div>
+          </div>
+          <div class="stack-arrow">&#8595;</div>
+          <div class="stack-row">
+            <div class="stack-item backend">Supabase<br><span style="font-weight:400;font-size:0.7rem;opacity:0.8;">Auth &amp; Realtime</span></div>
+            <div class="stack-item backend">PostgreSQL</div>
+          </div>
+          <div class="stack-arrow">&#8595;</div>
+          <div class="stack-row">
+            <div class="stack-item database">Row Level Security</div>
+            <div class="stack-item database">Edge Functions</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+          <span style="font-size:0.75rem;opacity:0.6;">PWA offline support</span>
+          <span style="font-size:0.75rem;opacity:0.6;">Bilingual Khmer/English</span>
+          <span style="font-size:0.75rem;opacity:0.6;">Supabase Realtime</span>
+          <span style="font-size:0.75rem;opacity:0.6;">Vercel Deploy</span>
+        </div>
+      </div>
+      <div class="slide-number">5 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 6: DATA MODEL & MULTI-TENANCY ===== -->
+    <div class="slide slide-light" data-slide="6" role="tabpanel" aria-label="Slide 6: Data Model and Multi-Tenancy">
+      <div class="speaker-tag">Speaker 2</div>
+      <div class="duration-badge">~1.5 min</div>
+      <div class="slide-content" style="text-align:center;">
+        <h2>Data Model &amp; Multi-Tenancy</h2>
+        <p style="color:var(--color-text-muted);margin-bottom:0.75rem;">Every table scoped by <code style="background:var(--color-border);padding:0.1em 0.3em;border-radius:4px;font-size:0.9em;">school_id</code> — tenant isolation enforced at the database level.</p>
+        <div class="hierarchy" id="hierarchyDiagram">
+          <div class="h-node school">Schools</div>
+          <div class="h-connector"></div>
+          <div class="h-bracket">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              <div class="h-node users">Users</div>
+              <div class="h-connector"></div>
+              <div class="h-node teachers">Teachers</div>
+            </div>
+            <div style="width:40px;"></div>
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              <div class="h-node classes">Classes</div>
+              <div class="h-connector"></div>
+              <div class="h-node students">Students</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:left;max-width:900px;margin:0.75rem auto 0;background:var(--color-surface);border:1px solid var(--color-border);border-radius:10px;padding:0.75rem 1rem;">
+          <div style="display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:0.5rem;">
+            <span style="font-size:1.2rem;flex-shrink:0;">&#9889;</span>
+            <div>
+              <strong style="font-size:0.85rem;">Database Indexing</strong>
+              <p style="font-size:0.75rem;color:var(--color-text-muted);margin:0;">An index is like a book's table of contents — it lets the database find records instantly instead of reading every row. With 25+ indexes on frequently-queried columns (school_id, student_id, date), a query that scans a school's 10,000 attendance records runs in milliseconds rather than seconds.</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+            <span style="font-size:1.2rem;flex-shrink:0;">&#128274;</span>
+            <div>
+              <strong style="font-size:0.85rem;">Row Level Security (RLS)</strong>
+              <p style="font-size:0.75rem;color:var(--color-text-muted);margin:0;">Every database query is automatically filtered by the user's role and school — a teacher's SELECT on the students table only returns their own class, even if the query asks for "all students." This is enforced server-side by PostgreSQL, not in application code, making it impossible to accidentally leak data across tenants.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-number">6 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 7: CORE DESIGN DECISION ===== -->
+    <div class="slide slide-dark" data-slide="7" role="tabpanel" aria-label="Slide 7: Core Design Decision">
+      <div class="speaker-tag">Speaker 2</div>
+      <div class="duration-badge">~1 min</div>
+      <div class="slide-content" style="text-align:center;">
+        <h2>"Every User Is a Teacher"</h2>
+        <p style="opacity:0.8;max-width:800px;margin:0 auto 1.25rem;">In Cambodian schools, all staff members — directors, librarians — are also teachers. The system reflects this reality.</p>
+        <div class="card" style="display:inline-block;text-align:left;max-width:700px;margin:0 auto;">
+          <ul>
+            <li>Every account always has a matching <strong><code>teachers</code></strong> row</li>
+            <li>The <strong><code>role</code></strong> field controls only what you can access — not who you are</li>
+            <li>A director is a teacher who runs the school; a librarian is a teacher who manages the library</li>
+            <li>Unified profile means <strong>one source of truth</strong> for personal data, attendance, check-in times</li>
+            <li>Simplified account management via <strong>server-side Edge Function</strong> — a small backend API that runs on-demand in the cloud (similar to AWS Lambda). When an admin creates a user, the <code>manage-user</code> function atomically inserts <strong>3 rows</strong> across separate tables (auth + public.users + teachers) in a single secure call, ensuring data integrity without exposing the database directly to the frontend.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="slide-number">7 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 8: SECURITY MODEL ===== -->
+    <div class="slide slide-surface" data-slide="8" role="tabpanel" aria-label="Slide 8: Security Model">
+      <div class="speaker-tag">Speaker 2</div>
+      <div class="duration-badge">~1 min</div>
+      <div class="slide-content">
+        <h2>Security Model</h2>
+        <div style="text-align:left;background:var(--color-primary);color:var(--color-text-inverse);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;">
+          <p style="font-size:0.85rem;margin:0;line-height:1.5;">
+            <strong>What is Row Level Security?</strong> In a traditional app, the backend code decides who sees what. RLS moves this logic <em>into the database itself</em> — every SQL query is wrapped with invisible filters based on who is making the request. For example, when a teacher loads their class list, PostgreSQL automatically appends <code style="background:rgba(255,255,255,0.15);padding:0.1em 0.3em;border-radius:3px;">WHERE teacher_id = current_user</code> to the query. Even if a malicious request tried to fetch <em>all</em> students, the database would only return the ones that teacher is allowed to see. No application code, no middleware — the database enforces it directly.
+          </p>
+        </div>
+        <div class="card-grid">
+          <div class="card stagger-item">
+            <h3 style="font-size:0.95rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.3rem;">Super Admin</h3>
+            <p style="font-size:0.8rem;color:var(--color-text-muted);">Bypasses school RLS. Sees all schools, creates new tenants, manages platform-level operations.</p>
+          </div>
+          <div class="card stagger-item">
+            <h3 style="font-size:0.95rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.3rem;">Admin / Director</h3>
+            <p style="font-size:0.8rem;color:var(--color-text-muted);">Scoped to <code>school_id</code> — manages classes, teachers, students, scores, budget, and inventory for their school only.</p>
+          </div>
+          <div class="card stagger-item">
+            <h3 style="font-size:0.95rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.3rem;">Teacher</h3>
+            <p style="font-size:0.8rem;color:var(--color-text-muted);">Sees only their assigned class and students. Writes scores, attendance, health records within that scope.</p>
+          </div>
+          <div class="card stagger-item">
+            <h3 style="font-size:0.95rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.3rem;">Parent (Anon)</h3>
+            <p style="font-size:0.8rem;color:var(--color-text-muted);">No login. No account. Access via UUID link only. Sees <strong>only</strong> scores + attendance. Health data always private.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-number">8 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 9: PARENT PORTAL ===== -->
+    <div class="slide slide-light" data-slide="9" role="tabpanel" aria-label="Slide 9: Parent Portal">
+      <div class="speaker-tag">Speaker 3</div>
+      <div class="duration-badge">~1 min</div>
+      <div class="slide-content" style="text-align:center;">
+        <h2>Parent Portal: Link-Only Access</h2>
+        <p style="color:var(--color-text-muted);max-width:800px;margin:0 auto 1rem;">No login, no search, no personal data exposure — just a private link generated per class per period.</p>
+        <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;margin:1rem 0;">
+          <div style="background:var(--color-surface);border:2px solid var(--color-border);border-radius:10px;padding:0.75em 1.25em;text-align:center;">
+            <div style="font-size:1.5rem;margin-bottom:0.2rem;">&#128279;</div>
+            <div style="font-size:0.8rem;font-weight:500;">Teacher generates link</div>
+            <div style="font-size:0.65rem;color:var(--color-text-muted);">One per class per period</div>
+          </div>
+          <div style="font-size:1.5rem;color:var(--color-text-muted);">&#8594;</div>
+          <div style="background:var(--color-surface);border:2px solid var(--color-border);border-radius:10px;padding:0.75em 1.25em;text-align:center;">
+            <div style="font-size:1.5rem;margin-bottom:0.2rem;">&#128101;</div>
+            <div style="font-size:0.8rem;font-weight:500;">Parent selects child</div>
+            <div style="font-size:0.65rem;color:var(--color-text-muted);">From class dropdown</div>
+          </div>
+          <div style="font-size:1.5rem;color:var(--color-text-muted);">&#8594;</div>
+          <div style="background:var(--color-surface);border:2px solid var(--color-border);border-radius:10px;padding:0.75em 1.25em;text-align:center;">
+            <div style="font-size:1.5rem;margin-bottom:0.2rem;">&#128196;</div>
+            <div style="font-size:0.8rem;font-weight:500;">Report card shown</div>
+            <div style="font-size:0.65rem;color:var(--color-text-muted);">Scores + attendance only</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;margin-top:0.5rem;">
+          <div><span style="color:var(--color-secondary);font-weight:600;">&#10003;</span> <span style="font-size:0.85rem;">Scores</span></div>
+          <div><span style="color:var(--color-secondary);font-weight:600;">&#10003;</span> <span style="font-size:0.85rem;">Attendance</span></div>
+          <div><span style="color:var(--color-danger);font-weight:600;">&#10007;</span> <span style="font-size:0.85rem;">Health records</span></div>
+          <div><span style="color:var(--color-danger);font-weight:600;">&#10007;</span> <span style="font-size:0.85rem;">Growth data</span></div>
+          <div><span style="color:var(--color-danger);font-weight:600;">&#10007;</span> <span style="font-size:0.85rem;">Vaccinations</span></div>
+        </div>
+      </div>
+      <div class="slide-number">9 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 10: APPROVAL FLOW + NOTIFICATIONS ===== -->
+    <div class="slide slide-dark" data-slide="10" role="tabpanel" aria-label="Slide 10: Approval Flow and Notifications">
+      <div class="speaker-tag">Speaker 3</div>
+      <div class="duration-badge">~1 min</div>
+      <div class="slide-content" style="text-align:center;">
+        <h2>Report Link Approval Flow</h2>
+        <p style="opacity:0.8;margin-bottom:1rem;">Teacher requests &rarr; Principal approves/rejects &rarr; Link unlocks with digital signature + school stamp.</p>
+        <div class="approval-flow">
+          <div class="approval-step teacher">
+            <div class="step-icon">&#128295;</div>
+            <div class="step-label">Teacher Requests</div>
+            <span style="font-size:0.6rem;opacity:0.7;">Status: pending</span>
+          </div>
+          <div class="approval-arrow">&#8594;</div>
+          <div class="approval-step admin">
+            <div class="step-icon">&#128221;</div>
+            <div class="step-label">Admin Reviews</div>
+            <span style="font-size:0.6rem;opacity:0.7;">In-app notification</span>
+          </div>
+          <div class="approval-arrow">&#8594;</div>
+          <div class="approval-step parent">
+            <div class="step-icon">&#9989;</div>
+            <div class="step-label">Approved &#47; Rejected</div>
+            <span style="font-size:0.6rem;opacity:0.7;">Signature + stamp added</span>
+          </div>
+        </div>
+        <div style="margin-top:1rem;display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;">
+          <span style="font-size:0.75rem;opacity:0.7;">&#128276; Real-time notifications via Supabase Realtime</span>
+          <span style="font-size:0.75rem;opacity:0.7;">&#128220; Principal's signature &amp; stamp on report card footer</span>
+        </div>
+      </div>
+      <div class="slide-number">10 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 11: REAL-WORLD DEPLOYMENT ===== -->
+    <div class="slide slide-surface" data-slide="11" role="tabpanel" aria-label="Slide 11: Real-World Deployment">
+      <div class="speaker-tag">Speaker 3</div>
+      <div class="duration-badge">~1 min</div>
+      <div class="slide-content" style="text-align:center;">
+        <h2>Real-World Deployment</h2>
+        <div class="stat-grid">
+          <div class="stat-item"><span class="stat-counter" data-target="1">0</span><span class="stat-label">Live School</span></div>
+          <div class="stat-item"><span class="stat-counter" data-target="300">0</span><span class="stat-label">Students Served</span></div>
+          <div class="stat-item"><span class="stat-counter" data-target="6">0</span><span class="stat-label">Grade Levels</span></div>
+        </div>
+        <div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+          <div class="card stagger-item" style="text-align:left;max-width:300px;">
+            <h3 style="font-size:0.95rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.3rem;">&#127758; Battambang, Cambodia</h3>
+            <p style="font-size:0.8rem;color:var(--color-text-muted);">Live production deployment at a public primary school. Real teachers, real students, real report cards.</p>
+          </div>
+          <div class="card stagger-item" style="text-align:left;max-width:300px;">
+            <h3 style="font-size:0.95rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.3rem;">&#128241; PWA Installable</h3>
+            <p style="font-size:0.8rem;color:var(--color-text-muted);">Works offline, installs on phone home screen, low-bandwidth friendly — critical for rural connectivity.</p>
+          </div>
+          <div class="card stagger-item" style="text-align:left;max-width:300px;">
+            <h3 style="font-size:0.95rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.3rem;">&#128640; Future-Ready</h3>
+            <p style="font-size:0.8rem;color:var(--color-text-muted);">Multi-tenant from day one — a single codebase can serve unlimited schools with zero additional infrastructure.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-number">11 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 12: CHALLENGES & SOLUTIONS ===== -->
+    <div class="slide slide-light" data-slide="12" role="tabpanel" aria-label="Slide 12: Challenges and Solutions">
+      <div class="speaker-tag">Speaker 3</div>
+      <div class="duration-badge">~1.5 min</div>
+      <div class="slide-content">
+        <h2>Challenges &amp; Solutions</h2>
+        <div class="card-grid">
+          <div class="card stagger-item">
+            <h3 style="font-size:0.9rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.3rem;">Challenge: Khmer Digit Parsing</h3>
+            <p style="font-size:0.8rem;color:var(--color-text-muted);margin-bottom:0.5rem;">Class names like <span style="font-family:var(--font-khmer);">ថ្នាក់ទី១ក</span> (Grade 1A) use Khmer script numerals. The rollup system must extract numeric grades to promote students.</p>
+            <p style="font-size:0.8rem;color:var(--color-secondary);font-weight:500;">Solution: <code>khmer_to_int()</code> + <code>extract_grade_from_class_name()</code> PostgreSQL functions — map Khmer digits &#6480;&#6481;&#6482;&#6483; to Latin integers.</p>
+          </div>
+          <div class="card stagger-item">
+            <h3 style="font-size:0.9rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.3rem;">Challenge: Anon RLS Design</h3>
+            <p style="font-size:0.8rem;color:var(--color-text-muted);margin-bottom:0.5rem;">Parent portal uses Supabase's <strong>anon key</strong> — no login. Must grant data access without granting open read to the entire school database.</p>
+            <p style="font-size:0.8rem;color:var(--color-secondary);font-weight:500;">Solution: Every anon policy is scoped through <code>report_links</code> — a user knows a UUID, and RLS resolves it to a class, then to students, scores, and attendance. No open <code>using (true)</code> on sensitive tables.</p>
+          </div>
+          <div class="card stagger-item">
+            <h3 style="font-size:0.9rem;font-family:var(--font-heading);color:var(--color-primary);margin-bottom:0.3rem;">Challenge: Teacher Check-In</h3>
+            <p style="font-size:0.8rem;color:var(--color-text-muted);margin-bottom:0.5rem;">Once-per-day attendance with automatic late detection based on configurable school shift times.</p>
+            <p style="font-size:0.8rem;color:var(--color-secondary);font-weight:500;">Solution: <code>teacher_check_in()</code> DB function compares check-in time against <code>school_settings</code> morning/evening thresholds and inserts with auto-calculated status. <code>ON CONFLICT DO NOTHING</code> enforces once-per-day at the DB level.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-number">12 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 13: FUTURE WORK ===== -->
+    <div class="slide slide-dark" data-slide="13" role="tabpanel" aria-label="Slide 13: Future Work">
+      <div class="speaker-tag">Speaker 3</div>
+      <div class="duration-badge">~0.5 min</div>
+      <div class="slide-content" style="text-align:center;">
+        <h2>Future Work</h2>
+        <p style="opacity:0.8;margin-bottom:1.25rem;">Scaling the platform from one school to the nation.</p>
+        <div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;">
+          <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:1em 1.5em;max-width:280px;">
+            <h3 style="font-size:0.95rem;font-family:var(--font-heading);color:var(--color-accent);margin-bottom:0.3rem;">&#127757; Government Scale</h3>
+            <p style="font-size:0.8rem;opacity:0.7;">Deploy across multiple provinces. Potential partnerships with MoEYS, UNICEF Cambodia, Room to Read.</p>
+          </div>
+          <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:1em 1.5em;max-width:280px;">
+            <h3 style="font-size:0.95rem;font-family:var(--font-heading);color:var(--color-accent);margin-bottom:0.3rem;">&#128200; Analytics</h3>
+            <p style="font-size:0.8rem;opacity:0.7;">District-level dashboards, performance trends across schools, early warning indicators for at-risk students.</p>
+          </div>
+          <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:1em 1.5em;max-width:280px;">
+            <h3 style="font-size:0.95rem;font-family:var(--font-heading);color:var(--color-accent);margin-bottom:0.3rem;">&#128218; LMS Integration</h3>
+            <p style="font-size:0.8rem;opacity:0.7;">Learning Management System features — digital assignments, lesson plans, and curriculum tracking.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-number">13 / 14</div>
+    </div>
+
+    <!-- ===== SLIDE 14: THANK YOU / Q&A ===== -->
+    <div class="slide slide-title" data-slide="14" role="tabpanel" aria-label="Slide 14: Thank You and Q&A">
+      <div class="speaker-tag">Speaker 3</div>
+      <div class="duration-badge">~0.5 min</div>
+      <div class="slide-content" style="text-align:center;">
+        <h1 style="margin-bottom:0.3em;">Thank You</h1>
+        <p class="subtitle" style="margin-bottom:0;">Questions &amp; Discussion</p>
+        <div style="margin:2rem 0;">
+          <div class="team-names">
+            <span>Team Member 1</span>
+            <span>Team Member 2</span>
+            <span>Team Member 3</span>
+          </div>
+        </div>
+        <p class="meta" style="margin-bottom:0.3rem;">[University Name] &mdash; [Department]</p>
+        <p class="meta">[email@example.com] &bull; [defense date]</p>
+      </div>
+      <div class="slide-number">14 / 14</div>
+    </div>
+
+  </div><!-- /slides-container -->
+
+  <!-- ===== NAVIGATION DOTS ===== -->
+  <div class="nav-dots" id="navDots" role="tablist" aria-label="Slide navigation"></div>
+
+  <!-- ===== TIMER ===== -->
+  <div class="timer" id="timer" role="timer" aria-live="polite">
+    <span id="timerDisplay">15:00</span>
+    <button class="timer-btn" id="timerToggle" aria-label="Start countdown timer">Start</button>
+  </div>
+
+  <!-- ===== FULLSCREEN BUTTON ===== -->
+  <button class="fullscreen-btn" id="fullscreenBtn" aria-label="Toggle fullscreen">&#9974; Fullscreen</button>
+
+  <!-- ===== OVERVIEW OVERLAY ===== -->
+  <div class="overlay" id="overlay" role="dialog" aria-label="Slide overview">
+    <button class="overview-close" id="overviewClose" aria-label="Close overview">&times;</button>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+</div><!-- /presentation -->
+
+<script>
+/* ===== CONFIGURATION ===== */
+const TOTAL_SLIDES = 14;
+const COUNTDOWN_SECONDS = 900; // 15 minutes
+
+/* ===== STATE ===== */
+let currentSlide = 1;
+let timerRunning = false;
+let timerSeconds = COUNTDOWN_SECONDS;
+let timerInterval = null;
+let isAnimating = false;
+
+/* ===== DOM REFS ===== */
+const slides = document.querySelectorAll('.slide');
+const container = document.getElementById('slidesContainer');
+const navDots = document.getElementById('navDots');
+const timerDisplay = document.getElementById('timerDisplay');
+const timerToggle = document.getElementById('timerToggle');
+const timerEl = document.getElementById('timer');
+const progressBar = document.getElementById('progressBar');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const overlay = document.getElementById('overlay');
+const overlayGrid = document.getElementById('overviewGrid');
+const overviewClose = document.getElementById('overviewClose');
+
+/* ===== NAVIGATION DOTS ===== */
+function buildNavDots() {
+  for (let i = 1; i <= TOTAL_SLIDES; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 1 ? ' active' : '');
+    dot.setAttribute('role', 'tab');
+    dot.setAttribute('aria-label', 'Go to slide ' + i);
+    dot.setAttribute('data-slide', i);
+    dot.addEventListener('click', () => goToSlide(i));
+    navDots.appendChild(dot);
+  }
+}
+
+/* ===== GO TO SLIDE ===== */
+function goToSlide(n) {
+  if (isAnimating || n === currentSlide || n < 1 || n > TOTAL_SLIDES) return;
+  isAnimating = true;
+
+  slides.forEach((slide, idx) => {
+    const num = idx + 1;
+    slide.classList.remove('active', 'exit');
+    if (num === n) {
+      slide.classList.add('active');
+    } else if (num === currentSlide) {
+      slide.classList.add('exit');
+    }
+  });
+
+  // Update dots
+  document.querySelectorAll('.nav-dot').forEach((dot, idx) => {
+    dot.classList.toggle('active', idx + 1 === n);
+  });
+
+  // Update progress bar
+  progressBar.style.width = ((n / TOTAL_SLIDES) * 100) + '%';
+  progressBar.setAttribute('aria-valuenow', n);
+
+  currentSlide = n;
+
+  // Trigger content animations
+  setTimeout(() => {
+    animateSlideContent(n);
+    triggerStatCounters(n);
+    triggerHierarchyAnimation(n);
+    isAnimating = false;
+  }, 100);
+}
+
+/* ===== STAGGER CONTENT ANIMATION ===== */
+function animateSlideContent(slideNum) {
+  const slide = slides[slideNum - 1];
+  if (!slide) return;
+
+  // Stagger cards and list items
+  const cards = slide.querySelectorAll('.card');
+  const items = slide.querySelectorAll('ul li');
+  const elements = [...cards, ...items].filter((el, idx, self) => self.indexOf(el) === idx);
+
+  // Reset
+  elements.forEach(el => el.classList.remove('visible'));
+
+  // Animate in with delay
+  elements.forEach((el, i) => {
+    el.classList.add('stagger-item');
+    setTimeout(() => {
+      el.classList.add('visible');
+    }, 80 + (i * 100));
+  });
+}
+
+/* ===== STAT COUNTERS ===== */
+function triggerStatCounters(slideNum) {
+  const slide = slides[slideNum - 1];
+  if (!slide) return;
+
+  const counters = slide.querySelectorAll('.stat-counter[data-target]');
+  counters.forEach(counter => {
+    const target = parseInt(counter.getAttribute('data-target'), 10);
+    if (target < 1) return;
+    counter.textContent = '0';
+    animateCounter(counter, target);
+  });
+}
+
+function animateCounter(el, target) {
+  const duration = 1200;
+  const startTime = performance.now();
+
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(eased * target);
+    el.textContent = current;
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      el.textContent = target;
+    }
+  }
+  requestAnimationFrame(update);
+}
+
+/* ===== HIERARCHY DIAGRAM (Slide 6) ===== */
+function triggerHierarchyAnimation(slideNum) {
+  if (slideNum !== 6) return;
+
+  const nodes = document.querySelectorAll('#hierarchyDiagram .h-node');
+  const connectors = document.querySelectorAll('#hierarchyDiagram .h-connector');
+  const brackets = document.querySelectorAll('#hierarchyDiagram .h-bracket-line');
+
+  // Reset
+  nodes.forEach(el => el.classList.remove('visible'));
+  connectors.forEach(el => el.classList.remove('visible'));
+  brackets.forEach(el => el.classList.remove('visible'));
+
+  const delays = [0, 400, 700, 1100, 1400, 1700, 1900];
+  nodes.forEach((el, i) => {
+    setTimeout(() => el.classList.add('visible'), delays[i] || 2000);
+  });
+  connectors.forEach((el, i) => {
+    setTimeout(() => el.classList.add('visible'), delays[i + 1] - 100 || 1800);
+  });
+  brackets.forEach((el, i) => {
+    setTimeout(() => el.classList.add('visible'), 2200 + i * 200);
+  });
+}
+
+/* ===== KEYBOARD NAVIGATION ===== */
+document.addEventListener('keydown', (e) => {
+  if (overlay.classList.contains('open')) {
+    if (e.key === 'Escape' || e.key === 'o' || e.key === 'O') {
+      closeOverview();
+      e.preventDefault();
+    }
+    return;
+  }
+
+  switch (e.key) {
+    case 'ArrowRight':
+    case ' ':
+    case 'Space':
+    case 'ArrowDown':
+      e.preventDefault();
+      goToSlide(currentSlide + 1);
+      break;
+    case 'ArrowLeft':
+    case 'ArrowUp':
+      e.preventDefault();
+      goToSlide(currentSlide - 1);
+      break;
+    case 'Home':
+      e.preventDefault();
+      goToSlide(1);
+      break;
+    case 'End':
+      e.preventDefault();
+      goToSlide(TOTAL_SLIDES);
+      break;
+    case 'o':
+    case 'O':
+      e.preventDefault();
+      toggleOverview();
+      break;
+    case 'f':
+    case 'F':
+      e.preventDefault();
+      toggleFullscreen();
+      break;
+  }
+});
+
+/* ===== OVERVIEW GRID ===== */
+const slideTitles = [
+  'Title Slide',
+  'Problem Statement',
+  'Objectives &amp; Scope',
+  'Why Not Existing Tools?',
+  'Technology Stack',
+  'Data Model &amp; Multi-Tenancy',
+  '"Every User Is a Teacher"',
+  'Security Model',
+  'Parent Portal',
+  'Approval Flow',
+  'Real-World Deployment',
+  'Challenges &amp; Solutions',
+  'Future Work',
+  'Thank You / Q&amp;A'
+];
+
+function buildOverview() {
+  overlayGrid.innerHTML = '';
+  for (let i = 1; i <= TOTAL_SLIDES; i++) {
+    const thumb = document.createElement('div');
+    thumb.className = 'overview-thumb' + (i === currentSlide ? ' active' : '');
+    thumb.innerHTML = '<div class="num">' + i + '</div><div class="title">' + slideTitles[i - 1] + '</div>';
+    thumb.setAttribute('data-slide', i);
+    thumb.addEventListener('click', () => { goToSlide(i); closeOverview(); });
+    overlayGrid.appendChild(thumb);
+  }
+}
+
+function toggleOverview() {
+  if (overlay.classList.contains('open')) {
+    closeOverview();
+  } else {
+    openOverview();
+  }
+}
+
+function openOverview() {
+  buildOverview();
+  overlay.classList.add('open');
+}
+
+function closeOverview() {
+  overlay.classList.remove('open');
+}
+
+overviewClose.addEventListener('click', closeOverview);
+
+/* ===== FULLSCREEN ===== */
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+
+fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+document.addEventListener('fullscreenchange', () => {
+  fullscreenBtn.textContent = document.fullscreenElement ? '&#9973; Exit' : '&#9974; Fullscreen';
+});
+
+/* ===== TIMER ===== */
+function formatTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function updateTimerDisplay() {
+  timerDisplay.textContent = formatTime(timerSeconds);
+  timerEl.classList.remove('warning', 'danger');
+  if (timerSeconds <= 60) {
+    timerEl.classList.add('danger');
+  } else if (timerSeconds <= 180) {
+    timerEl.classList.add('warning');
+  }
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    timerToggle.textContent = 'Resume';
+  } else {
+    timerRunning = true;
+    timerToggle.textContent = 'Pause';
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      updateTimerDisplay();
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        timerToggle.textContent = 'Reset';
+        timerSeconds = 0;
+        updateTimerDisplay();
+      }
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = COUNTDOWN_SECONDS;
+  timerToggle.textContent = 'Start';
+  updateTimerDisplay();
+}
+
+timerToggle.addEventListener('click', () => {
+  if (timerToggle.textContent === 'Reset') {
+    resetTimer();
+  } else {
+    toggleTimer();
+  }
+});
+
+/* ===== WHEEL NAVIGATION ===== */
+container.addEventListener('wheel', (e) => {
+  if (overlay.classList.contains('open')) return;
+  if (e.deltaY > 0) {
+    goToSlide(currentSlide + 1);
+  } else {
+    goToSlide(currentSlide - 1);
+  }
+}, { passive: true });
+
+/* ===== TOUCH SUPPORT ===== */
+let touchStartY = 0;
+container.addEventListener('touchstart', (e) => {
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+container.addEventListener('touchend', (e) => {
+  const diff = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(diff) > 50) {
+    if (diff > 0) {
+      goToSlide(currentSlide + 1);
+    } else {
+      goToSlide(currentSlide - 1);
+    }
+  }
+}, { passive: true });
+
+/* ===== INIT ===== */
+function init() {
+  buildNavDots();
+  buildOverview();
+  updateTimerDisplay();
+  progressBar.style.width = (1 / TOTAL_SLIDES * 100) + '%';
+  progressBar.setAttribute('aria-valuemax', TOTAL_SLIDES);
+
+  // Show fullscreen button on hover
+  let fsTimeout;
+  document.addEventListener('mousemove', () => {
+    fullscreenBtn.classList.add('visible');
+    clearTimeout(fsTimeout);
+    fsTimeout = setTimeout(() => fullscreenBtn.classList.remove('visible'), 3000);
+  });
+
+  // Initial content animation
+  setTimeout(() => {
+    animateSlideContent(1);
+    triggerStatCounters(1);
+  }, 300);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
