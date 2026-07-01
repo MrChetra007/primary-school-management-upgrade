@@ -170,6 +170,7 @@ function buildMatrix() {
       full_name: student.full_name,
       examSubjects: examSubMap,
       monthlyAverages: mAvgs,
+      examTotal: 0,
       examAverage: 0,
       monthlyTotalAverage: 0,
       finalAverage: 0,
@@ -185,6 +186,7 @@ function calculateRowAverages(row) {
   const examArray = Object.values(row.examSubjects)
     .filter(s => s.score !== '')
     .map(s => ({ score: s.score }))
+  row.examTotal = examArray.reduce((sum, s) => sum + Number(s.score), 0)
   row.examAverage = computeMonthlyAverage(examArray)
 
   const validMonths = row.monthlyAverages.filter(m => m > 0)
@@ -333,6 +335,7 @@ watch(selectedSemester, fetchAllScores)
                 <th rowspan="2" class="hide-mobile" style="width:40px;">ល.រ</th>
                 <th rowspan="2" style="min-width:160px; text-align:left;">ឈ្មោះសិស្ស</th>
                 <th :colspan="subjects.length" class="text-center">ពិន្ទុប្រឡងឆមាស</th>
+                <th rowspan="2" class="summary-col">សរុប</th>
                 <th rowspan="2" class="summary-col">មធ្យមភាគ<br/>ប្រឡង</th>
                 <th :colspan="semesterMonths.length || 1" class="text-center">មធ្យមភាគប្រចាំខែ</th>
                 <th rowspan="2" class="summary-col">មធ្យមភាគ<br/>ខែ</th>
@@ -365,6 +368,7 @@ watch(selectedSemester, fetchAllScores)
                     @click.stop
                   />
                 </td>
+                <td class="total-cell">{{ row.examTotal }}</td>
                 <td class="avg-cell">{{ row.examAverage }}</td>
                 <td v-for="(avg, midx) in row.monthlyAverages" :key="midx" class="monthly-val">
                   {{ avg > 0 ? avg : '—' }}
@@ -521,6 +525,12 @@ watch(selectedSemester, fetchAllScores)
   background: #eff6ff;
 }
 
+.total-cell {
+  font-weight: 700;
+  color: #1e293b;
+  background: #f8fafc;
+}
+
 .highlight {
   background: #eff6ff;
   color: #1e40af;
@@ -531,6 +541,7 @@ watch(selectedSemester, fetchAllScores)
 /* ── Pinned row ── */
 tr.pinned td,
 tr.pinned td.avg-cell,
+tr.pinned td.total-cell,
 tr.pinned td.rank-cell {
   background: #dbeafe !important;
 }

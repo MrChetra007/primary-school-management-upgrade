@@ -114,6 +114,7 @@ function buildMatrix() {
       student_id: student.id,
       full_name: student.full_name,
       subjects: studentScores,
+      total: 0,
       average: 0,
       rank: 0
     }
@@ -127,6 +128,7 @@ function calculateRowAverage(row) {
   const scoresArray = Object.values(row.subjects)
     .filter(s => s.score !== '')
     .map(s => ({ score: s.score }))
+  row.total = scoresArray.reduce((sum, s) => sum + Number(s.score), 0)
   row.average = computeMonthlyAverage(scoresArray)
 }
 
@@ -284,6 +286,7 @@ watch(selectedMonth, fetchScores)
                   :class="{ 'pinned-col': pinnedCol === sub.id }">
                   <div class="vertical-text">{{ sub.subject_name }}</div>
                 </th>
+                <th class="summary-col">សរុប</th>
                 <th class="summary-col">មធ្យមភាគ</th>
                 <th class="summary-col">លំដាប់</th>
               </tr>
@@ -305,6 +308,7 @@ watch(selectedMonth, fetchScores)
                     @click.stop
                   />
                 </td>
+                <td class="total-cell">{{ row.total }}</td>
                 <td class="avg-cell" :class="{ 'text-danger': row.average < 50 }">{{ row.average }}</td>
                 <td class="rank-cell">{{ row.rank }}</td>
               </tr>
@@ -445,11 +449,18 @@ watch(selectedMonth, fetchScores)
   background: #eff6ff;
 }
 
+.total-cell {
+  font-weight: 700;
+  color: #1e293b;
+  background: #f8fafc;
+}
+
 .text-danger { color: #ef4444; }
 
 /* ── Pinned row ── */
 tr.pinned td,
 tr.pinned td.avg-cell,
+tr.pinned td.total-cell,
 tr.pinned td.rank-cell {
   background: #dbeafe !important;
 }
