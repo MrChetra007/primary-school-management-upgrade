@@ -298,7 +298,7 @@ watch(selectedMonth, fetchScores)
                   :class="{ 'pinned-col': pinnedCol === sub.id }">
                   <input 
                     type="text" 
-                    inputmode="numeric"
+                    inputmode="decimal"
                     class="score-input"
                     :value="row.subjects[sub.id].score"
                     @input="onScoreInput(row.student_id, sub.id, $event)"

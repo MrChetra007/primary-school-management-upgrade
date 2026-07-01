@@ -358,7 +358,7 @@ watch(selectedSemester, fetchAllScores)
                   :class="{ 'pinned-col': pinnedCol === sub.id }">
                   <input 
                     type="text" 
-                    inputmode="numeric"
+                    inputmode="decimal"
                     class="score-input"
                     :value="row.examSubjects[sub.id].score"
                     @input="onScoreInput(row.student_id, sub.id, $event)"
