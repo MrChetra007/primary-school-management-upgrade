@@ -38,6 +38,14 @@ export default defineConfig({
               expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
               networkTimeoutSeconds: 5
             }
+          },
+          {
+            urlPattern: /^https?:\/\/.*\/storage\/v1\/object\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'supabase-storage',
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 }
+            }
           }
         ]
       }

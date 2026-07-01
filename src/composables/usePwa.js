@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRegisterSW } from 'virtual:pwa-register/vue'
 
 export function usePwa() {
@@ -7,6 +7,7 @@ export function usePwa() {
   const isIOS = ref(false)
   const isStandalone = ref(false)
   const showIOSHint = ref(false)
+  let updateInterval = null
 
   const {
     needRefresh,
@@ -15,13 +16,20 @@ export function usePwa() {
   } = useRegisterSW({
     onRegisteredSW(swUrl, registration) {
       if (registration) {
-        setInterval(() => {
+        updateInterval = setInterval(() => {
           registration.update()
         }, 60 * 60 * 1000)
       }
     },
     onRegisterError(e) {
       console.error('SW registration error:', e)
+    }
+  })
+
+  onUnmounted(() => {
+    if (updateInterval) {
+      clearInterval(updateInterval)
+      updateInterval = null
     }
   })
 
