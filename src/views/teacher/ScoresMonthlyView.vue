@@ -20,12 +20,18 @@ const loading = ref(true)
 const saving = ref(false)
 const pinnedRow = ref(null)
 const pinnedCol = ref(null)
+const compactMode = ref(false)
+const selectedSubjectIdx = ref(0)
 
 function togglePin(id) {
   pinnedRow.value = pinnedRow.value === id ? null : id
 }
 function togglePinCol(id) {
   pinnedCol.value = pinnedCol.value === id ? null : id
+}
+function toggleCompactMode() {
+  compactMode.value = !compactMode.value
+  selectedSubjectIdx.value = 0
 }
 
 const selectedMonth = ref(new Date().getMonth() + 1)
@@ -235,6 +241,13 @@ watch(selectedMonth, fetchScores)
           </svg>
           មើលចំណាត់ថ្នាក់
         </button>
+        <button class="btn btn-secondary" @click="toggleCompactMode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="mr-2">
+            <path v-if="compactMode" d="M4 6h16M4 12h16M4 18h16"/>
+            <path v-else d="M4 6l16 0M4 12l16 0M4 18l16 0M12 6v12"/>
+          </svg>
+          {{ compactMode ? 'ទិដ្ឋភាពពេញ' : 'បញ្ចូលតាមមុខវិជ្ជា' }}
+        </button>
         <button class="btn btn-primary" @click="saveAll" :disabled="saving || loading">
           <ArrowDownTrayIcon class="w-4 h-4" /> 
           {{ saving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកទាំងអស់' }}
@@ -275,7 +288,7 @@ watch(selectedMonth, fetchScores)
           </div>
         </div>
 
-        <div class="table-wrapper horizontal-scroll">
+        <div v-if="!compactMode" class="table-wrapper horizontal-scroll">
           <table class="matrix-table">
             <thead>
               <tr>
@@ -314,6 +327,32 @@ watch(selectedMonth, fetchScores)
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Compact mode: one subject at a time -->
+        <div v-else class="compact-entry">
+          <div class="compact-subject-tabs">
+            <button v-for="(sub, idx) in subjects" :key="sub.id"
+              class="compact-tab"
+              :class="{ active: idx === selectedSubjectIdx }"
+              @click="selectedSubjectIdx = idx">
+              {{ sub.subject_name }}
+            </button>
+          </div>
+
+          <div class="compact-list">
+            <div v-for="(row, idx) in scoreMatrix" :key="row.student_id" class="compact-row">
+              <span class="compact-name">{{ idx + 1 }}. {{ row.full_name }}</span>
+              <input 
+                type="text" 
+                inputmode="decimal"
+                class="compact-input"
+                :value="row.subjects[subjects[selectedSubjectIdx]?.id]?.score ?? ''"
+                @input="onScoreInput(row.student_id, subjects[selectedSubjectIdx]?.id, $event)"
+                :ref="el => { if (el && idx === 0) el.focus() }"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -475,6 +514,79 @@ td.pinned-col {
 }
 th.pinned-col .vertical-text {
   color: #b45309;
+}
+
+/* ── Compact entry mode ── */
+.compact-entry {
+  padding: 4px;
+}
+.compact-subject-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 4px;
+  margin-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.compact-subject-tabs::-webkit-scrollbar { display: none; }
+.compact-tab {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.compact-tab.active {
+  background: var(--primary-500);
+  color: #fff;
+  border-color: var(--primary-500);
+}
+.compact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.compact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+.compact-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.compact-input {
+  width: 80px;
+  min-height: 44px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 4px 8px;
+  outline: none;
+  flex-shrink: 0;
+}
+.compact-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(30, 95, 165, 0.15);
 }
 
 /* ── Mobile responsive ── */

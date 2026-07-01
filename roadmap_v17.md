@@ -556,3 +556,17 @@ src/
 - Integrated `ScoresSemesterView.vue` — same pattern for semester scores
 
 **Build:** Verified — `npm run build` passes with 0 errors, PWA service worker generates 150 precached entries.
+
+### Session 2 — Score Entry UX Improvements
+
+**Mobile number pad:** Changed `inputmode="numeric"` → `inputmode="decimal"` in both `ScoresMonthlyView` and `ScoresSemesterView` so mobile keyboards show decimal point for scores like 8.5.
+
+**សរុប (Total) column:** Added total score column (sum of all subject scores) to both score views:
+- Monthly view: `row.total` displayed between subjects and average
+- Semester view: `row.examTotal` displayed after exam subjects
+
+**Compact entry mode:** Added toggle button "បញ្ចូលតាមមុខវិជ្ជា" / "ទិដ្ឋភាពពេញ" in both score views:
+- Full grid preserved as default
+- Compact mode: horizontal-scrollable subject tabs at top, students listed vertically with fat touch inputs (44px min-height, 18px font)
+- No horizontal scrolling on mobile, one subject at a time
+- Fixed CSS bug: `--primary-color` undefined in global styles → used `--primary-500` instead for active tab background
