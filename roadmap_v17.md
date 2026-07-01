@@ -71,12 +71,13 @@ Teachers maintain a personal library of reusable feedback phrases for student me
 
 ### Offline-First Architecture (v17)
 
-Teachers in rural Cambodia face unreliable internet. The app now supports offline writes with automatic sync:
+Teachers in rural Cambodia face unreliable internet. The app now supports offline writes with automatic sync, scoped to score entry only:
 
-- Connection status detected via `navigator.onLine` + browser events
+- Connection status detected via `navigator.onLine` + browser events — banner + sync **teacher-only**
 - Yellow banner at page top when offline (dismissible, shows pending count)
-- Write operations (insert/update/delete) intercepted when offline → queued to localStorage
+- Write operations (upsert) intercepted when offline → queued to localStorage
 - Auto-sync on reconnect: queue processed in FIFO order, success/failure toasts
+- Currently applied to **monthly + semester score entry** only
 - Single global toast container — no more duplicate toast implementations across views
 - Storage assets (profile pics, signatures, stamps, voice) cached via CacheFirst strategy
 
@@ -211,11 +212,11 @@ src/
 | `/teacher/dashboard`                 | Class overview + teacher check-in + today's attendance stats                             |
 | `/teacher/students`                  | Their class students list                                                                |
 | `/teacher/students/:id`              | Student detail + health + growth + vaccinations + sick days                              |
-| `/teacher/attendance`                | Mark daily student attendance (bulk) — **offline-aware (v17)**                           |
+| `/teacher/attendance`                | Mark daily student attendance (bulk)                                                     |
 | `/teacher/attendance/my`             | Own attendance — monthly calendar view                                                   |
 | `/teacher/scores`                    | Score hub — choose monthly or semester mode                                              |
-| `/teacher/scores/monthly`            | Monthly score entry grid + dynamic subjects + averages + rank + PDF                      |
-| `/teacher/scores/semester`           | Semester score entry + monthly averages pulled + semester calc + PDF                     |
+| `/teacher/scores/monthly`            | Monthly score entry grid + dynamic subjects + averages + rank + PDF — **offline-aware**  |
+| `/teacher/scores/semester`           | Semester score entry + monthly averages pulled + semester calc + PDF — **offline-aware** |
 | `/teacher/scores/ranking`            | Ranked list + stats summary tiles + grade distribution + Request Approval / Share Link   |
 | `/teacher/scores/summary/:id`        | Individual student score summary with radar chart (Chart.js)                             |
 | `/teacher/scores/certificates`       | Certificate design for Top 5 — template selection + download as image/PDF                |
@@ -396,7 +397,7 @@ src/
 - [x] Teacher ranking page: request/approve/share flow
 - [x] Parent report card: signature + stamp footer
 
-### ✅ Phase 12 — Toast Refactor + Offline Support (v17) ← CURRENT
+### ✅ Phase 12 — Toast Refactor + Offline Support (v17) ← DONE
 - [x] `useToast` composable — shared module-level toast state
 - [x] `ToastContainer.vue` — single global toast renderer in App.vue
 - [x] 28 views migrated from inline toast to composable
@@ -407,10 +408,12 @@ src/
 - [x] `offlineQueue` Pinia store — localStorage-backed FIFO queue
 - [x] `useOfflineMutation` composable — offline-aware wrapper for Supabase writes
 - [x] Auto-sync: process queue on reconnect with progress toasts
-- [x] AttendanceView integrated as proof-of-concept (queued writes when offline)
 - [x] Supabase Storage caching added to PWA runtime (CacheFirst, 30-day expiry)
 - [x] `setInterval` cleanup fix in `usePwa.js`
-- [ ] Migrate remaining write-heavy views (scores, sick-days, growth, vaccinations, etc.) to `useOfflineMutation`
+- [x] `ConnectionStatus.vue` gated to teacher-only — non-teachers see no banner/sync
+- [x] `useOfflineMutation` `upsert` type added for batch score saving
+- [x] `AttendanceView` reverted to direct Supabase calls (offline queue removed)
+- [x] `ScoresMonthlyView` + `ScoresSemesterView` integrated with offline queue (batch upsert via `mutate`)
 
 ---
 
@@ -495,7 +498,7 @@ src/
 5. **Validation** — vee-validate + yup usage inconsistent across forms
 6. **Responsive polish** — tablet/mobile layouts need attention
 7. **Empty/loading states** — skeleton loaders missing in some views
-8. **Extend offline queue to more views** — migrate scores, sick-days, growth, vaccinations, library borrows to `useOfflineMutation`
+8. **Extend offline queue to more views** — monthly + semester scores done; still pending: sick-days, growth, vaccinations, library borrows, budget, inventory
 9. **Offline queue conflict resolution** — handle conflicts when the same record is edited offline and modified elsewhere
 10. **PWA app icon** — replace default Vite logo with custom 192x192 + 512x512 icons
 
@@ -544,6 +547,12 @@ src/
   - Online → direct Supabase call
   - Offline → enqueue to localStorage, return `{ queued: true }`
 - Auto-sync wired in `ConnectionStatus.vue` — on reconnect, processes queue with progress/success/failure toasts
-- Integrated `AttendanceView` as proof of concept — `save()` now uses `mutate()` and shows offline-specific feedback ("បានរក្សាទុកក្នុងមូលដ្ឋាន — ទិន្នន័យចំនួន N នឹងធ្វើសមកាលកម្មពេលមានបណ្តាញ")
+- `ConnectionStatus.vue` gated to `authStore.isTeacher` — non-teachers see no banner/sync/toasts
 
-**Build:** Verified — `npm run build` passes with 0 errors, PWA service worker generates 149 precached entries.
+**Offline Queue — Scoped to Scores:**
+- Added `upsert` type to `useOfflineMutation` (batch `.upsert().select()` support)
+- Removed offline queue from `AttendanceView.vue` — reverted to direct `supabase` calls
+- Integrated `ScoresMonthlyView.vue` — `saveAll()` uses `mutate('scores', 'upsert', toUpsert)` with offline-feedback toast ("ទិន្នន័យពិន្ទុបានរក្សាទុកក្នុងមូលដ្ឋាន — នឹងធ្វើសមកាលកម្មពេលមានបណ្តាញ")
+- Integrated `ScoresSemesterView.vue` — same pattern for semester scores
+
+**Build:** Verified — `npm run build` passes with 0 errors, PWA service worker generates 150 precached entries.
