@@ -4,8 +4,10 @@ import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, ArrowsUpDownIcon } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
+const { showToast } = useToast()
 const growthRecords = ref([])
 const students = ref([])
 const classInfo = ref(null)
@@ -14,7 +16,6 @@ const saving = ref(false)
 const showModal = ref(false)
 const isEdit = ref(false)
 const deleteTarget = ref(null)
-const toast = ref(null)
 const search = ref('')
 
 const emptyForm = () => ({ id: null, student_id: '', date: new Date().toISOString().split('T')[0], age: '', height: '', weight: '' })
@@ -107,18 +108,10 @@ async function doDelete() {
   await loadGrowth()
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
 </script>
 
 <template>
   <div>
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`"><CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" /><XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}</div>
-    </div>
-
     <div class="page-header">
       <div>
         <h1 class="page-title">Growth Tracking</h1>

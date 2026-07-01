@@ -3,10 +3,11 @@ import { ref, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 
+const { showToast } = useToast()
 const overdueRecords = ref([])
 const loading = ref(true)
-const toast = ref(null)
 
 onMounted(loadOverdue)
 
@@ -42,22 +43,10 @@ async function markReturned(record) {
   }
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
 </script>
 
 <template>
   <div>
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" /> 
-        {{ toast.msg }}
-      </div>
-    </div>
-
     <div class="page-header">
       <div>
         <h1 class="page-title">សៀវភៅហួសកំណត់</h1>

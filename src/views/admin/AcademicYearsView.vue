@@ -15,17 +15,18 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon
 } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
+const { showToast } = useToast()
 const years = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const showModal = ref(false)
 const isEdit = ref(false)
 const deleteTarget = ref(null)
-const toast = ref(null)
 
 // Student Rollup State
 const showRollupModal = ref(false)
@@ -121,11 +122,6 @@ async function doDelete() {
   load()
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 // Student Rollup Actions
 async function openRollup(y) {
   rollupSource.value = y
@@ -204,10 +200,6 @@ async function executeRollup() {
 
 <template>
   <div class="standalone-page">
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`"><CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" /><XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}</div>
-    </div>
-
     <!-- Standalone Header -->
     <header class="standalone-header">
       <div class="header-content">

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { HeartIcon, PlusCircleIcon, ArrowsUpDownIcon, BeakerIcon, FaceFrownIcon, ArrowDownTrayIcon, CheckIcon, XCircleIcon, ClockIcon, CalendarIcon, ArrowsRightLeftIcon } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -38,9 +39,9 @@ const checkups = ref([])
 const growth = ref([])
 const vaccinations = ref([])
 const sickDays = ref([])
+const { showToast } = useToast()
 const loading = ref(true)
 const saving = ref(false)
-const toast = ref(null)
 const activeTab = ref('health')
 
 // Chart Options
@@ -209,11 +210,6 @@ function openSickDay(s = null) {
   showSickDayModal.value = true
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 function initials(name) {
   return (name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 }
@@ -221,10 +217,6 @@ function initials(name) {
 
 <template>
   <div>
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`"><component :is="toast.type === 'success' ? CheckIcon : XCircleIcon" class="w-4 h-4" /> {{ toast.msg }}</div>
-    </div>
-
     <div style="margin-bottom:16px;">
       <button class="btn btn-ghost btn-sm" @click="router.back()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>

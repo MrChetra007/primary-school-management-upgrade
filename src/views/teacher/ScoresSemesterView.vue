@@ -6,15 +6,16 @@ import { computeMonthlyAverage, computeSemesterAverage, computeRank } from '@/ut
 import { generateSemesterScorePDF } from '@/utils/exportPdf'
 import { useRouter } from 'vue-router'
 import { CheckIcon, XCircleIcon, ArrowDownTrayIcon, BuildingOfficeIcon } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { showToast } = useToast()
 const students = ref([])
 const subjects = ref([])
 const classInfo = ref(null)
 const loading = ref(true)
 const saving = ref(false)
-const toast = ref(null)
 const pinnedRow = ref(null)
 const pinnedCol = ref(null)
 
@@ -261,23 +262,12 @@ async function saveAll() {
 
 
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 watch(selectedSemester, fetchAllScores)
 </script>
 
 <template>
   <div class="scores-semester-view">
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" /> 
-        {{ toast.msg }}
-      </div>
-    </div>
+
 
     <div class="page-header no-print">
       <div>

@@ -15,7 +15,6 @@ const selectedLinkId = ref('')
 const currentLink = ref(null)
 const messages = ref([])
 const allStudents = ref([])
-const toast = ref(null)
 const months = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
 
 onMounted(async () => {
@@ -126,14 +125,6 @@ watch(selectedLinkId, onLinkSelected)
 
 <template>
   <div class="replies-view">
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckCircleIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" /> 
-        {{ toast.msg }}
-      </div>
-    </div>
-
     <div class="page-header">
       <div style="display:flex; align-items:center; gap:16px;">
         <button class="btn btn-ghost btn-sm btn-icon" @click="router.back()">

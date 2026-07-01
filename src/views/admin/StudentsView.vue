@@ -12,10 +12,12 @@ import {
   AcademicCapIcon,
   TrashIcon,
 } from "@heroicons/vue/24/outline";
+import { useToast } from "@/composables/useToast";
 
 const router = useRouter();
 const auth = useAuthStore();
 const yearStore = useAcademicYearStore();
+const { showToast } = useToast();
 const students = ref([]);
 const classes = ref([]);
 const loading = ref(true);
@@ -25,7 +27,6 @@ const filterClass = ref("");
 const showModal = ref(false);
 const isEdit = ref(false);
 const deleteTarget = ref(null);
-const toast = ref(null);
 
 const selectedStudents = ref([]);
 const bulkClassId = ref("");
@@ -220,13 +221,6 @@ async function doDelete() {
   }
   showToast("បានលុបសិស្ស", "success");
   loadStudents();
-}
-
-function showToast(msg, type = "success") {
-  toast.value = { msg, type };
-  setTimeout(() => {
-    toast.value = null;
-  }, 3000);
 }
 
 async function refactorNames() {
@@ -463,15 +457,6 @@ async function doImport() {
 
 <template>
   <div>
-    <!-- Toast -->
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" />
-        {{ toast.msg }}
-      </div>
-    </div>
-
     <!-- Page header -->
     <div class="page-header">
       <div>

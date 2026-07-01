@@ -4,8 +4,10 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, BookOpenIcon, CheckCircleIcon, ExclamationTriangleIcon, ClipboardDocumentListIcon, TrashIcon, ArrowUpTrayIcon } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
+const { showToast } = useToast()
 const books = ref([])
 const borrows = ref([])
 const loading = ref(true)
@@ -14,7 +16,6 @@ const search = ref('')
 const showBookModal = ref(false)
 const isEdit = ref(false)
 const deleteTarget = ref(null)
-const toast = ref(null)
 const activeTab = ref('books')
 
 // Borrow modal
@@ -157,11 +158,6 @@ async function returnBook(borrow) {
   showToast('បានទទួលសៀវភៅសងវិញរួចរាល់!', 'success'); loadBooks(); loadBorrows()
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 function availBadge(b) {
   if (b.available_copies === 0) return 'badge-red'
   if (b.available_copies < b.total_copies) return 'badge-yellow'
@@ -187,12 +183,7 @@ function getStatusLabel(status) {
 
 <template>
   <div>
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}
-      </div>
-    </div>
+
 
     <div class="page-header">
       <div>

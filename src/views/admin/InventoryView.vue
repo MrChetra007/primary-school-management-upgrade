@@ -4,15 +4,16 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, ExclamationTriangleIcon, TrashIcon, CubeIcon } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
+const { showToast } = useToast()
 const items = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const showModal = ref(false)
 const isEdit = ref(false)
 const deleteTarget = ref(null)
-const toast = ref(null)
 const search = ref('')
 const filterCategory = ref('')
 
@@ -71,11 +72,6 @@ async function doDelete() {
   showToast('បានលុបទិន្នន័យរួចរាល់', 'success'); load()
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 function stockStatus(item) {
   if (item.quantity === 0) return { label: 'អស់ពីស្តុក', cls: 'badge-red' }
   if (item.quantity <= item.min_stock) return { label: 'ស្តុកទាប', cls: 'badge-yellow' }
@@ -85,13 +81,6 @@ function stockStatus(item) {
 
 <template>
   <div>
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}
-      </div>
-    </div>
-
     <div class="page-header">
       <div>
         <h1 class="page-title">សារពើភ័ណ្ឌ</h1>

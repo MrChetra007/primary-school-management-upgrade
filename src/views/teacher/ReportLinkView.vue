@@ -12,12 +12,14 @@ import {
 } from '@heroicons/vue/24/outline'
 import PhrasePicker from '@/components/report/PhrasePicker.vue'
 import { useRouter } from 'vue-router'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const auth = useAuthStore()
 const schoolStore = useSchoolStore()
 const academicYearStore = useAcademicYearStore()
 
+const { showToast } = useToast()
 const loading = ref(true)
 const classInfo = ref(null)
 const students = ref([])
@@ -25,7 +27,6 @@ const subjects = ref([])
 const allScores = ref([])
 const attendancesMap = ref({})
 const currentLink = ref(null)
-const toast = ref(null)
 const processing = ref(false)
 const draftMessages = ref({})
 const savingStudentId = ref(null)
@@ -55,11 +56,6 @@ function getGrade(score) {
   if (score >= 6) return 'D'
   if (score >= 5) return 'E'
   return 'F'
-}
-
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
 }
 
 onMounted(async () => {
@@ -392,10 +388,6 @@ async function handleCopyLink() {
 
 <template>
   <div class="report-link-view">
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">{{ toast.msg }}</div>
-    </div>
-
     <div class="page-header">
       <div style="display:flex; align-items:center; gap:16px;">
         <button class="btn btn-ghost btn-sm btn-icon" @click="router.push('/teacher/scores/ranking')">

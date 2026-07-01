@@ -4,14 +4,15 @@ import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, ArrowDownTrayIcon, BuildingOfficeIcon, AcademicCapIcon } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
+const { showToast } = useToast()
 const students = ref([])
 const attendance = ref([])
 const classInfo = ref(null)
 const loading = ref(true)
 const saving = ref(false)
-const toast = ref(null)
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const bulkEntries = ref([])
@@ -110,11 +111,6 @@ function statusBadge(status) {
   return map[status] || 'badge-gray'
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 function initials(name) {
   return (name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 }
@@ -135,13 +131,7 @@ function markAllPresent() {
 
 <template>
   <div>
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" /> 
-        {{ toast.msg }}
-      </div>
-    </div>
+
 
     <div class="page-header">
       <div>

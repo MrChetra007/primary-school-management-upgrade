@@ -5,10 +5,12 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, HeartIcon, CalendarIcon, StarIcon, ArrowsUpDownIcon, BeakerIcon, FaceFrownIcon, PencilIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const { showToast } = useToast()
 const studentId = route.params.id
 const student = ref(null)
 const loading = ref(true)
@@ -23,7 +25,6 @@ const showModal = ref(false)
 const modalType = ref('') // 'growth', 'vaccine', 'sick'
 const isEdit = ref(false)
 const saving = ref(false)
-const toast = ref(null)
 
 const growthForm = ref({ date: new Date().toISOString().split('T')[0], age: '', height: '', weight: '' })
 const vaccineForm = ref({ date: new Date().toISOString().split('T')[0], name: '', description: '', completed: true })
@@ -120,11 +121,6 @@ async function handleDelete(type, id) {
   await loadHealth()
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 function initials(name) { 
   return (name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() 
 }
@@ -132,14 +128,6 @@ function initials(name) {
 
 <template>
   <div class="student-detail-page">
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" /> 
-        {{ toast.msg }}
-      </div>
-    </div>
-
     <div v-if="loading" class="card card-body">
       <div class="skeleton" style="height:200px; margin-bottom:20px;"></div>
       <div class="skeleton" style="height:400px;"></div>

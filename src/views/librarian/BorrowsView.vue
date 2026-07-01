@@ -4,15 +4,16 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, ClipboardDocumentListIcon, ArrowUpTrayIcon } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 
 const borrows = ref([])
 const auth = useAuthStore()
+const { showToast } = useToast()
 const books = ref([])
 const students = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const showModal = ref(false)
-const toast = ref(null)
 const search = ref('')
 
 const studentSearch = ref('')
@@ -157,22 +158,10 @@ async function returnBook(record) {
   }
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
 </script>
 
 <template>
   <div>
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" /> 
-        {{ toast.msg }}
-      </div>
-    </div>
-
     <div class="page-header">
       <div>
         <h1 class="page-title">កំណត់ត្រាខ្ចីសៀវភៅ</h1>

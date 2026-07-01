@@ -6,6 +6,7 @@ import { computeRank } from '@/utils/scoreCalculator'
 import { useVoiceRecorder } from '@/composables/useVoiceRecorder'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const reportLinkId = route.params.report_link_id
@@ -18,9 +19,9 @@ const scores = ref([])
 const attendances = ref([])
 const message = ref(null)
 const parentText = ref('')
+const { showToast } = useToast()
 const saving = ref(false)
 const saved = ref(false)
-const toast = ref(null)
 const rankedList = ref([])
 const generating = ref(false)
 const schoolInfo = ref(null)
@@ -202,11 +203,6 @@ function getGrade(score) {
   return 'F'
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 const assetImages = import.meta.glob('../../assets/*.png', {
   eager: true,
   query: '?url',
@@ -309,12 +305,6 @@ async function submitParentReply() {
     </div>
 
     <template v-else>
-      <div class="toast-container">
-        <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-          {{ toast.msg }}
-        </div>
-      </div>
-
       <!-- Student Header -->
       <div class="card student-header">
         <div class="card-body" style="display: flex; align-items: center; gap: 16px;">

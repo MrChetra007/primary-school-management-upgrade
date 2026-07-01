@@ -13,15 +13,16 @@ import {
 } from '@heroicons/vue/24/outline'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
+const { showToast } = useToast()
 const loading = ref(true)
 const classInfo = ref(null)
 const topStudents = ref([])
-const toast = ref(null)
 const semesterConfigs = ref([])
 
 // Certificate Customization
@@ -158,11 +159,6 @@ async function downloadCertificates() {
   showToast('ទាញយកបានជោគជ័យ!', 'success')
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 function toKhmerNum(num) {
   if (num === null || num === undefined) return ''
   const khmerNums = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩']
@@ -180,13 +176,7 @@ const contextName = computed(() => {
 
 <template>
   <div class="certificate-design-view">
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" /> 
-        {{ toast.msg }}
-      </div>
-    </div>
+
 
     <div class="page-header no-print">
       <div style="display:flex; align-items:center; gap:16px;">

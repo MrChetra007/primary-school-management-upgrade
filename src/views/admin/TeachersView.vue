@@ -4,8 +4,10 @@ import { CheckIcon, XCircleIcon, AcademicCapIcon, CameraIcon, TrashIcon } from '
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
+import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
+const { showToast } = useToast()
 const teachers = ref([])
 const loading = ref(true)
 const saving = ref(false)
@@ -13,7 +15,6 @@ const search = ref('')
 const showModal = ref(false)
 const isEdit = ref(false)
 const deleteTarget = ref(null)
-const toast = ref(null)
 const uploadingPhoto = ref(false)
 
 const form = ref({
@@ -86,11 +87,6 @@ async function doDelete() {
   load()
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 function initials(name) {
   return (name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??'
 }
@@ -98,12 +94,6 @@ function initials(name) {
 
 <template>
   <div>
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" /><XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}
-      </div>
-    </div>
-
     <div class="page-header">
       <div>
         <h1 class="page-title">ប្រវត្តិរូបបុគ្គលិក</h1>

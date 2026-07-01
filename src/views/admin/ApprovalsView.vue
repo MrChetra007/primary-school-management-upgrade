@@ -5,10 +5,12 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
 import { formatDate } from '@/utils/formatDate'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const auth = useAuthStore()
 const notificationsStore = useNotificationsStore()
+const { showToast } = useToast()
 const loading = ref(true)
 const links = ref([])
 const filterTab = ref('pending')
@@ -16,7 +18,6 @@ const processingId = ref(null)
 const rejectionModal = ref(false)
 const selectedLink = ref(null)
 const rejectionNote = ref('')
-const toast = ref(null)
 
 const tabs = [
   { id: 'pending', label: 'កំពុងរង់ចាំ' },
@@ -62,11 +63,6 @@ function statusLabel(status) {
   if (status === 'approved') return 'បានអនុម័ត'
   if (status === 'rejected') return 'បដិសេធ'
   return 'កំពុងរង់ចាំ'
-}
-
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
 }
 
 function openRejection(link) {
@@ -131,10 +127,6 @@ async function handleReject() {
         <h1 class="page-title">ការអនុម័តតំណភ្ជាប់</h1>
         <p class="page-subtitle">ពិនិត្យ និងអនុម័តសំណើសុំតំណភ្ជាប់របាយការណ៍ពីគ្រូ</p>
       </div>
-    </div>
-
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">{{ toast.msg }}</div>
     </div>
 
     <!-- Filter Tabs -->

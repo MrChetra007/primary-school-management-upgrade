@@ -5,13 +5,14 @@ import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { toInputDate, formatDate } from '@/utils/formatDate'
 import { BuildingOfficeIcon, CalendarIcon, BookOpenIcon, CalendarDaysIcon, ClockIcon, ArrowDownTrayIcon, CheckIcon, XCircleIcon, SunIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
+const { showToast } = useToast()
 const currentTab = ref('school')
 const loading = ref(false)
 const saving = ref(false)
-const toast = ref(null)
 
 const monthNames = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ']
 
@@ -24,11 +25,6 @@ const tabs = [
   { id: 'semester', label: 'ការកំណត់ឆមាស' },
   { id: 'signature', label: 'ហត្ថលេខា និងត្រា' },
 ]
-
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
 
 // ── SCHOOL INFO ───────────────────────────────────────────
 const schoolForm = ref({
@@ -304,10 +300,6 @@ function switchTab(id) {
 
 <template>
   <div class="settings-page">
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`"><CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" /><XCircleIcon v-else class="w-4 h-4" /> {{ toast.msg }}</div>
-    </div>
-
     <div class="page-header">
       <div><h1 class="page-title">ការកំណត់</h1><p class="page-subtitle">ការកំណត់ព័ត៌មានសាលា ឆ្នាំសិក្សា និងប្រព័ន្ធគ្រប់គ្រង</p></div>
     </div>

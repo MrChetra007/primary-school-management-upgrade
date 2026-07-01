@@ -14,16 +14,17 @@ import {
   CreditCardIcon, 
   TrashIcon 
 } from '@heroicons/vue/24/outline'
+import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
+const { showToast } = useToast()
 const transactions = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const showModal = ref(false)
 const isEdit = ref(false)
 const deleteTarget = ref(null)
-const toast = ref(null)
 const filterType = ref('')
 
 // Default form state
@@ -104,11 +105,6 @@ async function doDelete() {
   load()
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 // Format number for Riel (No decimals)
 function fmt(n) { 
   return Number(n).toLocaleString('en-US', { 
@@ -120,15 +116,6 @@ function fmt(n) {
 
 <template>
   <div>
-    <!-- Toast Notification -->
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" /> 
-        {{ toast.msg }}
-      </div>
-    </div>
-
     <!-- Page Header -->
     <div class="page-header">
       <div>

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
 import { computeRank } from '@/utils/scoreCalculator'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,6 +13,7 @@ const auth = useAuthStore()
 const notificationsStore = useNotificationsStore()
 const reportLinkId = route.params.reportLinkId
 
+const { showToast } = useToast()
 const loading = ref(true)
 const link = ref(null)
 const students = ref([])
@@ -19,7 +21,6 @@ const allScores = ref([])
 const attendancesMap = ref({})
 const subjects = ref([])
 const processing = ref(false)
-const toast = ref(null)
 const rejectionModal = ref(false)
 const rejectionNote = ref('')
 
@@ -40,11 +41,6 @@ function getGrade(score) {
   if (score >= 6) return 'D'
   if (score >= 5) return 'E'
   return 'F'
-}
-
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
 }
 
 onMounted(async () => {
@@ -225,10 +221,6 @@ async function handleReject() {
 
 <template>
   <div class="admin-preview">
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">{{ toast.msg }}</div>
-    </div>
-
     <div v-if="loading" class="card" style="padding:80px 20px;text-align:center;">
       <div class="spinner"></div>
       <p style="margin-top:12px;color:var(--text-secondary);">កំពុងផ្ទុក...</p>

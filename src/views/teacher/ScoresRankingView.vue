@@ -14,11 +14,13 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useRoute, useRouter } from 'vue-router'
 import { generateMonthlyScorePDF, generateSemesterScorePDF } from '@/utils/exportPdf'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const academicYearStore = useAcademicYearStore()
+const { showToast } = useToast()
 const loading = ref(true)
 const classInfo = ref(null)
 const students = ref([])
@@ -26,7 +28,6 @@ const subjects = ref([])
 const rawScores = ref([])
 const rankedList = ref([])
 const exporting = ref(false)
-const toast = ref(null)
 
 const mode = ref(route.query.mode || 'monthly') 
 const selectedMonth = ref(Number(route.query.month) || new Date().getMonth() + 1)
@@ -304,11 +305,6 @@ function handleNavigateToHonorBoard() {
   })
 }
 
-function showToast(msg, type = 'success') {
-  toast.value = { msg, type }
-  setTimeout(() => { toast.value = null }, 3000)
-}
-
 watch([mode, selectedMonth, selectedSemester], () => {
   fetchData()
 })
@@ -326,13 +322,7 @@ function toKhmerNum(num) {
 
 <template>
   <div class="ranking-view">
-    <div class="toast-container">
-      <div v-if="toast" class="toast" :class="`toast-${toast.type}`">
-        <CheckIcon v-if="toast.type === 'success'" class="w-4 h-4" />
-        <XCircleIcon v-else class="w-4 h-4" /> 
-        {{ toast.msg }}
-      </div>
-    </div>
+
 
     <div class="page-header no-print">
       <div style="display:flex; align-items:center; gap:16px;">
