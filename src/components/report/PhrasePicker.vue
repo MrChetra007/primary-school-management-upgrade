@@ -140,6 +140,20 @@ onMounted(loadPhrases)
 
 .phrase-input {
   width: 200px;
+  border: 2px solid #cbd5e1 !important;
+  background: #ffffff !important;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.phrase-input:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+.phrase-input::placeholder {
+  color: #94a3b8;
 }
 
 .phrase-loading,
