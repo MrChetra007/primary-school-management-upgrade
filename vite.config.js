@@ -9,7 +9,7 @@ export default defineConfig({
     vue(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['icon.png'],
       manifest: {
         name: 'School Management System',

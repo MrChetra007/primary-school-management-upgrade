@@ -35,11 +35,7 @@ const {
   canInstall,
   showIOSHint,
   install,
-  dismissIOSHint,
-  needRefresh,
-  offlineReady,
-  updateServiceWorker,
-  closeUpdate
+  dismissIOSHint
 } = usePwa()
 
 onMounted(() => {
@@ -831,22 +827,6 @@ const stats = [
       </div>
     </section>
 
-    <!-- ══ UPDATE TOAST ══════════════════════════════════════════════ -->
-    <div v-if="needRefresh" class="update-toast">
-      <div class="update-toast-inner">
-        <span>កំណែថ្មីមានហើយ! សូមធ្វើការកំណត់ឡើងវិញ</span>
-        <div class="update-toast-actions">
-          <button class="update-btn update-btn-reload" @click="updateServiceWorker()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-              <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-            </svg>
-            កំណត់ឡើងវិញ
-          </button>
-          <button class="update-btn update-btn-dismiss" @click="closeUpdate()">ក្រោយ</button>
-        </div>
-      </div>
-    </div>
-
     <!-- ══ FOOTER ════════════════════════════════════════════════════ -->
     <footer class="footer">
       <div class="footer-inner">
@@ -1107,68 +1087,7 @@ const stats = [
   justify-content: center;
 }
 
-/* ── Update toast ───────────────────────────────────────────── */
-.update-toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  animation: slideUp 0.3s ease;
-}
-@keyframes slideUp {
-  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-.update-toast-inner {
-  background: #0f172a;
-  color: #e2e8f0;
-  border-radius: 12px;
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  font-size: 13px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-  font-family: "Kantumruy Pro", sans-serif;
-}
-.update-toast-actions {
-  display: flex;
-  gap: 6px;
-}
-.update-btn {
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  font-family: "Kantumruy Pro", sans-serif;
-  cursor: pointer;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.update-btn-reload {
-  background: #1e5fa5;
-  color: #fff;
-}
-.update-btn-reload:hover { background: #184d8a; }
-.update-btn-dismiss {
-  background: #334155;
-  color: #94a3b8;
-}
-.update-btn-dismiss:hover { background: #475569; color: #e2e8f0; }
-
 @media (max-width: 600px) {
-  .update-toast {
-    left: 12px;
-    right: 12px;
-    transform: none;
-  }
-  .update-toast-inner {
-    flex-direction: column;
-    text-align: center;
-  }
   .btn-install {
     width: 100%;
     justify-content: center;

@@ -7,11 +7,13 @@ export function usePwa() {
   const isIOS = ref(false)
   const isStandalone = ref(false)
   const showIOSHint = ref(false)
+  const showUpdatePrompt = ref(false)
+  const offlineReady = ref(false)
   let updateInterval = null
 
   const {
     needRefresh,
-    offlineReady,
+    offlineReady: swOfflineReady,
     updateServiceWorker
   } = useRegisterSW({
     onRegisteredSW(swUrl, registration) {
@@ -23,6 +25,12 @@ export function usePwa() {
     },
     onRegisterError(e) {
       console.error('SW registration error:', e)
+    },
+    onNeedRefresh() {
+      showUpdatePrompt.value = true
+    },
+    onOfflineReady() {
+      offlineReady.value = true
     }
   })
 
@@ -32,6 +40,15 @@ export function usePwa() {
       updateInterval = null
     }
   })
+
+  function updateNow() {
+    showUpdatePrompt.value = false
+    updateServiceWorker()
+  }
+
+  function dismissUpdate() {
+    showUpdatePrompt.value = false
+  }
 
   function checkIOS() {
     const ua = navigator.userAgent || navigator.vendor || window.opera
@@ -62,10 +79,6 @@ export function usePwa() {
     showIOSHint.value = false
   }
 
-  function closeUpdate() {
-    needRefresh.value = false
-  }
-
   onMounted(() => {
     checkIOS()
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -82,11 +95,11 @@ export function usePwa() {
     isIOS,
     isStandalone,
     showIOSHint,
+    showUpdatePrompt,
+    offlineReady,
     install,
     dismissIOSHint,
-    needRefresh,
-    offlineReady,
-    updateServiceWorker,
-    closeUpdate
+    updateNow,
+    dismissUpdate
   }
 }
