@@ -115,7 +115,7 @@ onMounted(async () => {
 
       const [{ data: attData }, { data: msgData }] = await Promise.all([
         supabase.from('attendances').select('*').in('student_id', studentIds).gte('date', startDate).lt('date', endDate),
-        supabase.from('report_messages').select('student_id, teacher_text').in('student_id', studentIds)
+        supabase.from('report_messages').select('student_id, teacher_text, parent_text').in('student_id', studentIds)
       ])
 
       const attMap = {}
@@ -126,7 +126,7 @@ onMounted(async () => {
       attendancesMap.value = attMap
 
       const msgMap = {}
-      for (const m of msgData || []) msgMap[m.student_id] = m.teacher_text
+      for (const m of msgData || []) msgMap[m.student_id] = { teacher: m.teacher_text, parent: m.parent_text }
       messagesMap.value = msgMap
     }
 
@@ -181,7 +181,9 @@ function buildPrintHtml() {
   function buildStudentCard(student) {
     const scores = getStudentScores(student.id)
     const att = getAttendance(student.id)
-    const teacherMsg = messagesMap.value[student.id] || ''
+    const msg = messagesMap.value[student.id] || {}
+    const teacherMsg = msg.teacher || ''
+    const parentMsg = msg.parent || ''
 
     const cells = subjects.value.map(cs => {
       const score = scores[cs.subject_id]
@@ -270,6 +272,8 @@ function buildPrintHtml() {
             <div class="note-block">
               <div class="note-title">សារគ្រូ</div>
               <div class="note-text">${teacherMsg || '—'}</div>
+              <div class="note-title parent-note-title">ការឆ្លើយតបមាតាបិតា</div>
+              <div class="note-text parent-note-text">${parentMsg || '—'}</div>
             </div>
           </div>
 
@@ -561,6 +565,17 @@ function buildPrintHtml() {
       line-height: 1.5;
       white-space: pre-wrap;
       color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .parent-note-title {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed #cbd5e1;
+    }
+
+    .parent-note-text {
+      color: #6b7280;
     }
 
     .signature-block {
