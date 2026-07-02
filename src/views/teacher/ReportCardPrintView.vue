@@ -280,6 +280,7 @@ function buildPrintHtml() {
           <div class="signature-block">
             <div class="sig-side">
               <div class="sig-date">ថ្ងៃទី ________ ខែ ________ ឆ្នាំ ________</div>
+              <div class="sig-sub-role">បានឃើញ និងឯកភាព</div>
               <div class="sig-role">នាយក</div>
               <div class="sig-line"></div>
               <div class="sig-name">${directorName}</div>
@@ -344,7 +345,7 @@ function buildPrintHtml() {
     .card-container {
       page-break-inside: avoid;
       break-inside: avoid;
-      padding: 6mm 10mm;
+      padding: 4mm 8mm;
     }
 
     .card-blank { visibility: hidden; }
@@ -600,6 +601,12 @@ function buildPrintHtml() {
       font-weight: 700;
       font-size: 11px;
       margin-bottom: 4px;
+    }
+
+    .sig-sub-role {
+      font-size: 10px;
+      color: #4b5563;
+      margin-bottom: 2px;
     }
 
     .sig-line {
