@@ -230,7 +230,7 @@ function buildPrintHtml() {
               <span class="si-label">ថ្នាក់:</span>
               <span class="si-value">${className}</span>
               <span class="si-label" style="margin-left:24px;">ភេទ:</span>
-              <span class="si-value">${student.gender === 'female' ? 'ស្រី' : 'ប្រុស'}</span>
+              <span class="si-value">${(student.gender || '').toLowerCase() === 'female' ? 'ស្រី' : 'ប្រុស'}</span>
             </div>
             <div class="si-row">
               <span class="si-label">កាលបរិច្ឆេទ:</span>
