@@ -404,7 +404,7 @@ async function handleCopyLink() {
   <div class="report-link-view">
     <div class="page-header">
       <div style="display:flex; align-items:center; gap:16px;">
-        <button class="btn btn-ghost btn-sm btn-icon" @click="router.push('/teacher/scores/ranking')">
+        <button class="btn btn-ghost btn-sm btn-icon" @click="router.back()">
           <ChevronLeftIcon class="w-5 h-5" />
         </button>
         <div>
