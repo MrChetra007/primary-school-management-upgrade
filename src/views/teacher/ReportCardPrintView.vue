@@ -161,7 +161,7 @@ function getAttendance(studentId) {
 }
 
 // CUT LINE marker, reused between the two halves of a page
-const CUT_LINE = '<div class="cut-line">— — — — — — — — កាត់ត្រង់នេះ / Cut here — — — — — — — —</div>'
+const CUT_LINE = '<div class="cut-line">— — — — — — — — កាត់ត្រង់នេះ — — — — — — — —</div>'
 
 function buildPrintHtml() {
   const schoolName = schoolInfo.value?.name_khmer || schoolStore.schoolName || 'សាលាបឋមសិក្សា'
@@ -218,23 +218,22 @@ function buildPrintHtml() {
             </div>
             <div class="lh-right">
               <div class="lh-label">សន្លឹកលទ្ធផលសិក្សា</div>
-              <div class="lh-label-en">STUDENT REPORT CARD</div>
             </div>
           </div>
 
           <div class="student-info-bar">
             <div class="si-row">
-              <span class="si-label">ឈ្មោះ / Name:</span>
+              <span class="si-label">ឈ្មោះ:</span>
               <span class="si-value">${student.full_name}</span>
             </div>
             <div class="si-row">
-              <span class="si-label">ថ្នាក់ / Class:</span>
+              <span class="si-label">ថ្នាក់:</span>
               <span class="si-value">${className}</span>
-              <span class="si-label" style="margin-left:24px;">ភេទ / Gender:</span>
+              <span class="si-label" style="margin-left:24px;">ភេទ:</span>
               <span class="si-value">${student.gender === 'female' ? 'ស្រី' : 'ប្រុស'}</span>
             </div>
             <div class="si-row">
-              <span class="si-label">កាលបរិច្ឆេទ / Period:</span>
+              <span class="si-label">កាលបរិច្ឆេទ:</span>
               <span class="si-value">${periodLabel.value} • ឆ្នាំសិក្សា ${yearName}</span>
             </div>
           </div>
@@ -245,7 +244,7 @@ function buildPrintHtml() {
 
           <div class="attendance-note-section">
             <div class="attendance-block">
-              <div class="att-title">វត្តមាន / Attendance</div>
+              <div class="att-title">វត្តមាន</div>
               <div class="att-grid">
                 <div class="att-item">
                   <span class="att-num">${att.present}</span>
@@ -267,7 +266,7 @@ function buildPrintHtml() {
               <div class="att-rate">${att.rate}%</div>
             </div>
             <div class="note-block">
-              <div class="note-title">សារគ្រូ / Teacher's Note</div>
+              <div class="note-title">សារគ្រូ</div>
               <div class="note-text">${teacherMsg || '—'}</div>
             </div>
           </div>
@@ -275,14 +274,14 @@ function buildPrintHtml() {
           <div class="signature-block">
             <div class="sig-side">
               <div class="sig-date">ថ្ងៃទី ________ ខែ ________ ឆ្នាំ ________</div>
-              <div class="sig-role">នាយក / Principal</div>
+              <div class="sig-role">នាយក</div>
               <div class="sig-line"></div>
               <div class="sig-name">${directorName}</div>
               ${stampUrl ? `<img src="${stampUrl}" class="sig-stamp" />` : `<div class="sig-stamp-placeholder">(ត្រា និងហត្ថលេខា)</div>`}
             </div>
             <div class="sig-side">
               <div class="sig-date">ថ្ងៃទី ________ ខែ ________ ឆ្នាំ ________</div>
-              <div class="sig-role">គ្រូប្រចាំថ្នាក់ / Teacher</div>
+              <div class="sig-role">គ្រូប្រចាំថ្នាក់</div>
               <div class="sig-line"></div>
               <div class="sig-name">${teacherName.value}</div>
             </div>
@@ -410,13 +409,6 @@ function buildPrintHtml() {
       font-size: 12px;
       font-weight: 700;
       color: #1d4ed8;
-    }
-
-    .lh-label-en {
-      font-size: 9px;
-      font-weight: 600;
-      color: #6b7280;
-      letter-spacing: 0.5px;
     }
 
     .student-info-bar {
@@ -682,7 +674,7 @@ function goBack() {
       <h2 class="print-title">បោះពុម្ពរបាយការណ៍សិក្សា</h2>
       <button class="btn btn-primary" @click="handlePrint" :disabled="loading">
         <PrinterIcon class="w-4 h-4" />
-        {{ loading ? 'កំពុងផ្ទុក...' : 'បោះពុម្ព / Print' }}
+        {{ loading ? 'កំពុងផ្ទុក...' : 'បោះពុម្ព' }}
       </button>
     </div>
 
