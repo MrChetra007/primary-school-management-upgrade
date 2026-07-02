@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Management System — Digital School Management for Cambodian Primary Schools</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { 50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#1e5fa5',600:'#1a5394',700:'#184d8a',800:'#144070',900:'#0f3358' },
+            emerald: { 500:'#16a34a',600:'#15803d' },
+            amber: { 500:'#f59e0b',600:'#d97706' },
+          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --primary-500: #1e5fa5;
+      --primary-700: #184d8a;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+      --bg-light: #f8fafc;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; color: var(--text-primary); background: #ffffff; overflow-x: hidden; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: var(--primary-500); border-radius: 4px; }
+
+    /* Glassmorphism Nav */
+    .nav-glass { background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(30,95,165,0.08); }
+    .nav-scrolled { box-shadow: 0 4px 30px rgba(30,95,165,0.08); }
+
+    /* Nav link underline */
+    .nav-link { position: relative; }
+    .nav-link::after { content:''; position:absolute; bottom:-2px; left:0; width:0; height:2px; background:var(--primary-500); transition: width 0.3s ease; border-radius:1px; }
+    .nav-link:hover::after { width:100%; }
+
+    /* Hero animations */
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeInRight { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-12px); } }
+    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 40px rgba(30,95,165,0.2); } 50% { box-shadow: 0 0 80px rgba(30,95,165,0.35); } }
+    @keyframes drawLine { from { width:0; } to { width:100%; } }
+    @keyframes countPulse { 0% { transform:scale(1); } 50% { transform:scale(1.05); } 100% { transform:scale(1); } }
+    @keyframes subtlePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(30,95,165,0.4); } 50% { box-shadow: 0 0 0 12px rgba(30,95,165,0); } }
+    @keyframes floatShape { 0% { transform:translate(0,0) rotate(0deg); } 33% { transform:translate(10px,-15px) rotate(5deg); } 66% { transform:translate(-8px,8px) rotate(-3deg); } 100% { transform:translate(0,0) rotate(0deg); } }
+    @keyframes slideInRight { from { transform:translateX(100%); } to { transform:translateX(0); } }
+
+    .hero-fade-1 { animation: fadeInUp 0.8s ease-out 0.1s both; }
+    .hero-fade-2 { animation: fadeInUp 0.8s ease-out 0.3s both; }
+    .hero-fade-3 { animation: fadeInUp 0.8s ease-out 0.5s both; }
+    .hero-fade-4 { animation: fadeInRight 1s ease-out 0.4s both; }
+    .hero-float { animation: float 4s ease-in-out infinite; }
+    .hero-glow { animation: pulseGlow 3s ease-in-out infinite; }
+    .cta-pulse { animation: subtlePulse 2s ease-in-out infinite; }
+
+    /* Scroll reveal */
+    .reveal { opacity:0; transform:translateY(30px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* Card hover */
+    .feature-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(30,95,165,0.12); }
+    .feature-card .icon-wrap { transition: transform 0.3s ease; }
+    .feature-card:hover .icon-wrap { transform: scale(1.1); }
+
+    /* Role card */
+    .role-card { transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; border-top: 3px solid transparent; }
+    .role-card:hover { transform: scale(1.02); box-shadow: 0 8px 30px rgba(30,95,165,0.1); }
+    .role-card[data-role="admin"]:hover { border-top-color: var(--primary-500); }
+    .role-card[data-role="teacher"]:hover { border-top-color: var(--success); }
+    .role-card[data-role="librarian"]:hover { border-top-color: #8b5cf6; }
+    .role-card[data-role="parent"]:hover { border-top-color: #ec4899; }
+
+    /* Timeline */
+    .timeline-line { height: 2px; background: repeating-linear-gradient(90deg, var(--primary-500) 0, var(--primary-500) 8px, transparent 8px, transparent 16px); }
+    .timeline-line-animated { animation: drawLine 1.5s ease-out forwards; width: 0; }
+
+    /* Testimonial carousel */
+    .carousel-track { display: flex; transition: transform 0.5s ease; }
+    .carousel-dot { width:10px; height:10px; border-radius:50%; background:#cbd5e1; transition: all 0.3s ease; cursor:pointer; }
+    .carousel-dot.active { background:var(--primary-500); width:28px; border-radius:5px; }
+
+    /* Mobile menu */
+    .mobile-overlay { opacity:0; pointer-events:none; transition: opacity 0.3s ease; }
+    .mobile-overlay.open { opacity:1; pointer-events:all; }
+    .mobile-drawer { transform:translateX(100%); transition: transform 0.3s ease; }
+    .mobile-drawer.open { transform:translateX(0); }
+
+    /* Floating shapes */
+    .float-shape { position:absolute; border-radius:50%; opacity:0.08; }
+    .float-shape-1 { width:120px; height:120px; background:var(--primary-500); top:20%; left:10%; animation: floatShape 8s ease-in-out infinite; }
+    .float-shape-2 { width:80px; height:80px; background:var(--success); top:60%; right:15%; animation: floatShape 10s ease-in-out infinite 2s; }
+    .float-shape-3 { width:60px; height:60px; background:var(--warning); bottom:20%; left:30%; animation: floatShape 12s ease-in-out infinite 4s; }
+    .float-shape-4 { width:100px; height:100px; background:var(--primary-500); top:30%; right:25%; animation: floatShape 9s ease-in-out infinite 1s; border-radius:20%; }
+
+    /* Stats wave bg */
+    .stats-bg { background: linear-gradient(135deg, #1e5fa5 0%, #184d8a 50%, #144070 100%); position:relative; overflow:hidden; }
+    .stats-bg::before { content:''; position:absolute; inset:0; background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 24px 24px; }
+
+    /* Dashboard mockup styles */
+    .dash-sidebar { background: linear-gradient(180deg, #1e5fa5, #144070); }
+    .dash-chart-bar { transition: height 0.6s ease; }
+
+    /* Button styles */
+    .btn-primary { background: var(--primary-500); color:#fff; transition: all 0.3s ease; }
+    .btn-primary:hover { background: var(--primary-700); transform: scale(1.03); box-shadow: 0 6px 20px rgba(30,95,165,0.3); }
+    .btn-ghost { border: 2px solid var(--primary-500); color: var(--primary-500); transition: all 0.3s ease; }
+    .btn-ghost:hover { background: rgba(30,95,165,0.05); transform: scale(1.03); }
+
+    /* Wave separator */
+    .wave-separator { position:relative; }
+    .wave-separator::after { content:''; position:absolute; bottom:-2px; left:0; width:100%; height:60px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 60'%3E%3Cpath fill='%23ffffff' d='M0,30 C360,60 720,0 1080,30 C1260,45 1380,40 1440,30 L1440,60 L0,60 Z'/%3E%3C/svg%3E") no-repeat center; background-size:cover; }
+
+    /* Avatar stack */
+    .avatar-stack img { margin-left:-8px; border:2px solid #fff; }
+    .avatar-stack img:first-child { margin-left:0; }
+
+    /* Grade badges */
+    .grade-a { background:#dcfce7; color:#16a34a; }
+    .grade-b { background:#dbeafe; color:#1e5fa5; }
+    .grade-c { background:#fef9c3; color:#a16207; }
+    .grade-d { background:#fee2e2; color:#dc2626; }
+    .grade-f { background:#f1f5f9; color:#64748b; }
+
+    @media (max-width:767px) {
+      .hero-fade-4 { animation: fadeInUp 1s ease-out 0.6s both; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== NAVIGATION ==================== -->
+<nav id="navbar" class="nav-glass fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16 lg:h-18">
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-2.5 group">
+        <div class="w-9 h-9 rounded-lg bg-primary-500 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/>
+            <path d="M2 10v6c0 2 3 3 6 3"/>
+          </svg>
+        </div>
+        <div>
+          <span class="font-bold text-primary-500 text-sm leading-none block">SMS</span>
+          <span class="text-[10px] text-slate-400 leading-none">School Management</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav -->
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#features" class="nav-link text-sm font-medium text-slate-600 hover:text-primary-500 transition-colors">Features</a>
+        <a href="#how-it-works" class="nav-link text-sm font-medium text-slate-600 hover:text-primary-500 transition-colors">Solutions</a>
+        <a href="#roles" class="nav-link text-sm font-medium text-slate-600 hover:text-primary-500 transition-colors">Pricing</a>
+        <a href="#contact" class="nav-link text-sm font-medium text-slate-600 hover:text-primary-500 transition-colors">Contact</a>
+      </div>
+
+      <!-- Desktop CTA -->
+      <div class="hidden md:flex items-center gap-3">
+        <a href="#cta" class="btn-primary px-5 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2">
+          ចាប់ផ្តើមប្រើប្រាស់
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </div>
+
+      <!-- Mobile Hamburger -->
+      <button id="menuBtn" class="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label="Open menu">
+        <i data-lucide="menu" class="w-5 h-5 text-slate-700"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Menu Overlay -->
+<div id="mobileOverlay" class="mobile-overlay fixed inset-0 bg-black/30 backdrop-blur-sm z-50"></div>
+<!-- Mobile Drawer -->
+<div id="mobileDrawer" class="mobile-drawer fixed top-0 right-0 bottom-0 w-72 bg-white z-50 shadow-2xl">
+  <div class="flex items-center justify-between p-4 border-b border-slate-100">
+    <span class="font-bold text-primary-500">Menu</span>
+    <button id="closeMenu" class="p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label="Close menu">
+      <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
+    </button>
+  </div>
+  <div class="p-4 flex flex-col gap-1">
+    <a href="#features" class="mobile-link block px-4 py-3 rounded-lg text-sm font-medium text-slate-600 hover:bg-primary-50 hover:text-primary-500 transition-colors">Features</a>
+    <a href="#how-it-works" class="mobile-link block px-4 py-3 rounded-lg text-sm font-medium text-slate-600 hover:bg-primary-50 hover:text-primary-500 transition-colors">Solutions</a>
+    <a href="#roles" class="mobile-link block px-4 py-3 rounded-lg text-sm font-medium text-slate-600 hover:bg-primary-50 hover:text-primary-500 transition-colors">Pricing</a>
+    <a href="#contact" class="mobile-link block px-4 py-3 rounded-lg text-sm font-medium text-slate-600 hover:bg-primary-50 hover:text-primary-500 transition-colors">Contact</a>
+    <div class="mt-4 pt-4 border-t border-slate-100">
+      <a href="#cta" class="mobile-link btn-primary block text-center px-5 py-3 rounded-lg text-sm font-semibold">ចាប់ផ្តើមប្រើប្រាស់</a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== HERO SECTION ==================== -->
+<section class="relative min-h-screen flex items-center pt-16 lg:pt-0 overflow-hidden" style="background: radial-gradient(ellipse at 70% 50%, rgba(30,95,165,0.06) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(22,163,74,0.04) 0%, transparent 50%), #ffffff;">
+  <!-- Background grid pattern -->
+  <div class="absolute inset-0" style="background-image: radial-gradient(rgba(30,95,165,0.03) 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-12 lg:py-0">
+    <div class="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+      <!-- Left Content -->
+      <div class="max-w-xl">
+        <div class="hero-fade-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100 mb-6">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-xs font-medium text-primary-500">All-in-one digital school management</span>
+        </div>
+
+        <h1 class="hero-fade-2 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-slate-900">
+          Digital School<br>
+          <span class="text-primary-500">Management,</span><br>
+          Made Simple
+        </h1>
+
+        <p class="hero-fade-2 mt-6 text-lg text-slate-500 leading-relaxed max-w-md">
+          From attendance to report cards, manage your entire school in one platform. Built for Cambodian primary schools.
+        </p>
+
+        <div class="hero-fade-3 mt-8 flex flex-wrap gap-3">
+          <a href="#cta" class="btn-primary px-6 py-3.5 rounded-xl text-sm font-semibold inline-flex items-center gap-2 shadow-lg">
+            ចាប់ផ្តើមឥឡូវនេះ
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </a>
+          <button class="btn-ghost px-6 py-3.5 rounded-xl text-sm font-semibold inline-flex items-center gap-2">
+            <i data-lucide="play-circle" class="w-4 h-4"></i>
+            មើលវីដេអូ
+          </button>
+        </div>
+
+        <div class="hero-fade-3 mt-8 flex items-center gap-3">
+          <div class="avatar-stack flex items-center">
+            <img src="https://picsum.photos/seed/avatar1/40/40.jpg" class="w-8 h-8 rounded-full object-cover" alt="">
+            <img src="https://picsum.photos/seed/avatar2/40/40.jpg" class="w-8 h-8 rounded-full object-cover" alt="">
+            <img src="https://picsum.photos/seed/avatar3/40/40.jpg" class="w-8 h-8 rounded-full object-cover" alt="">
+            <img src="https://picsum.photos/seed/avatar4/40/40.jpg" class="w-8 h-8 rounded-full object-cover" alt="">
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-slate-700">50+ schools</p>
+            <p class="text-xs text-slate-400">actively using SMS</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Dashboard Mockup -->
+      <div class="hero-fade-4 relative flex justify-center lg:justify-end">
+        <!-- Glow orb -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full hero-glow" style="background: radial-gradient(circle, rgba(30,95,165,0.15) 0%, transparent 70%);"></div>
+
+        <div class="hero-float relative z-10 w-full max-w-lg">
+          <!-- Browser frame -->
+          <div class="bg-white rounded-2xl shadow-2xl border border-slate-200/60 overflow-hidden">
+            <!-- Browser bar -->
+            <div class="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-100">
+              <div class="flex gap-1.5">
+                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+              </div>
+              <div class="flex-1 mx-4">
+                <div class="bg-white rounded-md px-3 py-1 text-[10px] text-slate-400 text-center border border-slate-200">sms.edu.kh/dashboard</div>
+              </div>
+            </div>
+
+            <!-- Dashboard content -->
+            <div class="flex min-h-[320px] sm:min-h-[380px]">
+              <!-- Sidebar -->
+              <div class="dash-sidebar w-14 sm:w-16 flex-shrink-0 hidden sm:flex flex-col items-center py-4 gap-4">
+                <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <i data-lucide="layout-dashboard" class="w-4 h-4 text-white/80"></i>
+                </div>
+                <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                  <i data-lucide="users" class="w-4 h-4 text-white/50"></i>
+                </div>
+                <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                  <i data-lucide="bar-chart-3" class="w-4 h-4 text-white/50"></i>
+                </div>
+                <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                  <i data-lucide="calendar" class="w-4 h-4 text-white/50"></i>
+                </div>
+                <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                  <i data-lucide="book-open" class="w-4 h-4 text-white/50"></i>
+                </div>
+                <div class="mt-auto w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                  <i data-lucide="settings" class="w-4 h-4 text-white/50"></i>
+                </div>
+              </div>
+
+              <!-- Main area -->
+              <div class="flex-1 p-3 sm:p-4 bg-slate-50/50 overflow-hidden">
+                <!-- Top stats row -->
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                  <div class="bg-white rounded-lg p-2 sm:p-2.5 border border-slate-100">
+                    <p class="text-[9px] sm:text-[10px] text-slate-400">Students</p>
+                    <p class="text-sm sm:text-base font-bold text-slate-800">486</p>
+                  </div>
+                  <div class="bg-white rounded-lg p-2 sm:p-2.5 border border-slate-100">
+                    <p class="text-[9px] sm:text-[10px] text-slate-400">Present</p>
+                    <p class="text-sm sm:text-base font-bold text-emerald-600">95.2%</p>
+                  </div>
+                  <div class="bg-white rounded-lg p-2 sm:p-2.5 border border-slate-100">
+                    <p class="text-[9px] sm:text-[10px] text-slate-400">Avg Score</p>
+                    <p class="text-sm sm:text-base font-bold text-primary-500">7.8</p>
+                  </div>
+                </div>
+
+                <!-- Chart area -->
+                <div class="bg-white rounded-lg p-2.5 sm:p-3 border border-slate-100 mb-3">
+                  <p class="text-[9px] sm:text-[10px] font-semibold text-slate-500 mb-2">Monthly Attendance</p>
+                  <div class="flex items-end gap-1.5 h-16 sm:h-20">
+                    <div class="flex-1 bg-primary-200 rounded-t dash-chart-bar" style="height:60%"></div>
+                    <div class="flex-1 bg-primary-300 rounded-t dash-chart-bar" style="height:75%"></div>
+                    <div class="flex-1 bg-primary-400 rounded-t dash-chart-bar" style="height:85%"></div>
+                    <div class="flex-1 bg-primary-500 rounded-t dash-chart-bar" style="height:92%"></div>
+                    <div class="flex-1 bg-emerald-400 rounded-t dash-chart-bar" style="height:88%"></div>
+                    <div class="flex-1 bg-primary-400 rounded-t dash-chart-bar" style="height:78%"></div>
+                    <div class="flex-1 bg-primary-500 rounded-t dash-chart-bar" style="height:95%"></div>
+                    <div class="flex-1 bg-emerald-500 rounded-t dash-chart-bar" style="height:90%"></div>
+                  </div>
+                  <div class="flex gap-1.5 mt-1">
+                    <div class="flex-1 text-center text-[7px] text-slate-400">Oct</div>
+                    <div class="flex-1 text-center text-[7px] text-slate-400">Nov</div>
+                    <div class="flex-1 text-center text-[7px] text-slate-400">Dec</div>
+                    <div class="flex-1 text-center text-[7px] text-slate-400">Jan</div>
+                    <div class="flex-1 text-center text-[7px] text-slate-400">Feb</div>
+                    <div class="flex-1 text-center text-[7px] text-slate-400">Mar</div>
+                    <div class="flex-1 text-center text-[7px] text-slate-400">Apr</div>
+                    <div class="flex-1 text-center text-[7px] text-slate-400">May</div>
+                  </div>
+                </div>
+
+                <!-- Score table -->
+                <div class="bg-white rounded-lg border border-slate-100 overflow-hidden">
+                  <div class="flex items-center justify-between px-2.5 py-2 border-b border-slate-50">
+                    <p class="text-[9px] sm:text-[10px] font-semibold text-slate-500">Recent Scores</p>
+                    <span class="text-[8px] text-primary-500 font-medium">View All</span>
+                  </div>
+                  <div class="divide-y divide-slate-50">
+                    <div class="flex items-center justify-between px-2.5 py-1.5">
+                      <div class="flex items-center gap-2">
+                        <div class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-[8px] font-bold text-blue-600">S</div>
+                        <span class="text-[10px] text-slate-600">Sokha P.</span>
+                      </div>
+                      <span class="grade-a text-[9px] font-bold px-1.5 py-0.5 rounded">A</span>
+                    </div>
+                    <div class="flex items-center justify-between px-2.5 py-1.5">
+                      <div class="flex items-center gap-2">
+                        <div class="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-[8px] font-bold text-emerald-600">V</div>
+                        <span class="text-[10px] text-slate-600">Vannak M.</span>
+                      </div>
+                      <span class="grade-b text-[9px] font-bold px-1.5 py-0.5 rounded">B+</span>
+                    </div>
+                    <div class="flex items-center justify-between px-2.5 py-1.5">
+                      <div class="flex items-center gap-2">
+                        <div class="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center text-[8px] font-bold text-amber-600">C</div>
+                        <span class="text-[10px] text-slate-600">Channra K.</span>
+                      </div>
+                      <span class="grade-c text-[9px] font-bold px-1.5 py-0.5 rounded">C</span>
+                    </div>
+                    <div class="flex items-center justify-between px-2.5 py-1.5">
+                      <div class="flex items-center gap-2">
+                        <div class="w-5 h-5 rounded-full bg-pink-100 flex items-center justify-center text-[8px] font-bold text-pink-600">D</div>
+                        <span class="text-[10px] text-slate-600">Dara L.</span>
+                      </div>
+                      <span class="grade-a text-[9px] font-bold px-1.5 py-0.5 rounded">A</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 hero-fade-3">
+    <span class="text-[10px] text-slate-400 uppercase tracking-widest">Scroll</span>
+    <div class="w-5 h-8 rounded-full border-2 border-slate-300 flex justify-center pt-1.5">
+      <div class="w-1 h-2 rounded-full bg-slate-400 animate-bounce"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FEATURES SECTION ==================== -->
+<section id="features" class="py-20 lg:py-28 bg-white relative">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Section header -->
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+      <span class="inline-block text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">What We Offer</span>
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+        Everything Your School Needs
+      </h2>
+      <p class="text-lg text-slate-500 leading-relaxed">
+        Six powerful modules designed to handle every aspect of school administration — from student enrollment to parent communication.
+      </p>
+    </div>
+
+    <!-- Feature cards grid -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Card 1: Student Management -->
+      <div class="feature-card reveal reveal-delay-1 bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+        <div class="icon-wrap w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
+          <i data-lucide="users" class="w-6 h-6 text-primary-500"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 mb-2">Student Management</h3>
+        <p class="text-sm text-slate-500 leading-relaxed">Register, track, and manage student profiles, health records, and growth charts — all in one place.</p>
+      </div>
+
+      <!-- Card 2: Score & Ranking -->
+      <div class="feature-card reveal reveal-delay-2 bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+        <div class="icon-wrap w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-4">
+          <i data-lucide="bar-chart-3" class="w-6 h-6 text-emerald-500"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 mb-2">Score & Ranking</h3>
+        <p class="text-sm text-slate-500 leading-relaxed">Monthly & semester score entry with auto-ranking and PDF report cards ready to print or share.</p>
+      </div>
+
+      <!-- Card 3: Attendance Tracking -->
+      <div class="feature-card reveal reveal-delay-3 bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+        <div class="icon-wrap w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
+          <i data-lucide="calendar-check" class="w-6 h-6 text-amber-500"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 mb-2">Attendance Tracking</h3>
+        <p class="text-sm text-slate-500 leading-relaxed">Daily attendance marking with real-time stats and auto-calculated attendance rates per student.</p>
+      </div>
+
+      <!-- Card 4: Library Management -->
+      <div class="feature-card reveal reveal-delay-1 bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+        <div class="icon-wrap w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center mb-4">
+          <i data-lucide="book-open" class="w-6 h-6 text-purple-500"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 mb-2">Library Management</h3>
+        <p class="text-sm text-slate-500 leading-relaxed">Book catalog, borrow/return tracking, and automatic overdue alerts to keep your library organized.</p>
+      </div>
+
+      <!-- Card 5: Budget & Inventory -->
+      <div class="feature-card reveal reveal-delay-2 bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+        <div class="icon-wrap w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center mb-4">
+          <i data-lucide="shield-check" class="w-6 h-6 text-teal-500"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 mb-2">Budget & Inventory</h3>
+        <p class="text-sm text-slate-500 leading-relaxed">Track school finances and inventory with running balance, expense categories, and audit trails.</p>
+      </div>
+
+      <!-- Card 6: Parent Reports -->
+      <div class="feature-card reveal reveal-delay-3 bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+        <div class="icon-wrap w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center mb-4">
+          <i data-lucide="graduation-cap" class="w-6 h-6 text-pink-500"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 mb-2">Parent Reports</h3>
+        <p class="text-sm text-slate-500 leading-relaxed">Share report cards via link — no login needed. Includes principal approval workflow for quality control.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== HOW IT WORKS ==================== -->
+<section id="how-it-works" class="py-20 lg:py-28 relative" style="background: var(--bg-light);">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Section header -->
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+      <span class="inline-block text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">How It Works</span>
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+        Up and Running in 4 Steps
+      </h2>
+      <p class="text-lg text-slate-500 leading-relaxed">
+        No complex setup. Get your school digitized in under a day with our guided onboarding process.
+      </p>
+    </div>
+
+    <!-- Timeline -->
+    <div class="relative">
+      <!-- Horizontal line (desktop) -->
+      <div class="hidden md:block absolute top-12 left-[12.5%] right-[12.5%] timeline-line reveal"></div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-6 relative">
+        <!-- Step 1 -->
+        <div class="reveal reveal-delay-1 flex flex-col items-center text-center">
+          <div class="w-24 h-24 rounded-2xl bg-white border-2 border-primary-100 shadow-md flex items-center justify-center mb-5 relative z-10">
+            <i data-lucide="calendar-plus" class="w-10 h-10 text-primary-500"></i>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-primary-500 text-white text-sm font-bold flex items-center justify-center mb-3 -mt-9 relative z-20 border-4 border-white">1</div>
+          <h3 class="text-base font-bold text-slate-900 mb-2">Create Academic Year</h3>
+          <p class="text-sm text-slate-500 leading-relaxed">Set up your school year, define classes, subjects, and grading structure.</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="reveal reveal-delay-2 flex flex-col items-center text-center">
+          <div class="w-24 h-24 rounded-2xl bg-white border-2 border-emerald-100 shadow-md flex items-center justify-center mb-5 relative z-10">
+            <i data-lucide="user-plus" class="w-10 h-10 text-emerald-500"></i>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-emerald-500 text-white text-sm font-bold flex items-center justify-center mb-3 -mt-9 relative z-20 border-4 border-white">2</div>
+          <h3 class="text-base font-bold text-slate-900 mb-2">Add Students & Teachers</h3>
+          <p class="text-sm text-slate-500 leading-relaxed">Import from Excel or add manually. Assign to classes in bulk.</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="reveal reveal-delay-3 flex flex-col items-center text-center">
+          <div class="w-24 h-24 rounded-2xl bg-white border-2 border-amber-100 shadow-md flex items-center justify-center mb-5 relative z-10">
+            <i data-lucide="clipboard-check" class="w-10 h-10 text-amber-500"></i>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold flex items-center justify-center mb-3 -mt-9 relative z-20 border-4 border-white">3</div>
+          <h3 class="text-base font-bold text-slate-900 mb-2">Track Daily Activities</h3>
+          <p class="text-sm text-slate-500 leading-relaxed">Mark attendance, enter scores, manage library books — all from one dashboard.</p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="reveal reveal-delay-4 flex flex-col items-center text-center">
+          <div class="w-24 h-24 rounded-2xl bg-white border-2 border-pink-100 shadow-md flex items-center justify-center mb-5 relative z-10">
+            <i data-lucide="file-text" class="w-10 h-10 text-pink-500"></i>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-pink-500 text-white text-sm font-bold flex items-center justify-center mb-3 -mt-9 relative z-20 border-4 border-white">4</div>
+          <h3 class="text-base font-bold text-slate-900 mb-2">Generate Reports</h3>
+          <p class="text-sm text-slate-500 leading-relaxed">Print report cards, share parent links, and export PDFs with one click.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ROLE-BASED FEATURES ==================== -->
+<section id="roles" class="py-20 lg:py-28 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Section header -->
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+      <span class="inline-block text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Who Is It For?</span>
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+        Designed for Every Role
+      </h2>
+      <p class="text-lg text-slate-500 leading-relaxed">
+        Each user sees exactly what they need — no clutter, no confusion.
+      </p>
+    </div>
+
+    <!-- Role cards -->
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Admin -->
+      <div class="role-card reveal reveal-delay-1 bg-white rounded-xl p-6 border border-slate-100 shadow-sm" data-role="admin">
+        <div class="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mb-4 text-2xl">👨‍💼</div>
+        <h3 class="text-lg font-bold text-slate-900 mb-1">Admin / Director</h3>
+        <p class="text-xs text-primary-500 font-medium mb-3">Full Control</p>
+        <ul class="space-y-2">
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0"></i>User management</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0"></i>Class & budget control</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0"></i>Approval workflows</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0"></i>School-wide reports</li>
+        </ul>
+      </div>
+
+      <!-- Teacher -->
+      <div class="role-card reveal reveal-delay-2 bg-white rounded-xl p-6 border border-slate-100 shadow-sm" data-role="teacher">
+        <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4 text-2xl">👩‍🏫</div>
+        <h3 class="text-lg font-bold text-slate-900 mb-1">Teacher</h3>
+        <p class="text-xs text-emerald-500 font-medium mb-3">Classroom Focus</p>
+        <ul class="space-y-2">
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0"></i>Score entry</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0"></i>Daily attendance</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0"></i>Health records</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0"></i>Student messaging</li>
+        </ul>
+      </div>
+
+      <!-- Librarian -->
+      <div class="role-card reveal reveal-delay-3 bg-white rounded-xl p-6 border border-slate-100 shadow-sm" data-role="librarian">
+        <div class="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center mb-4 text-2xl">📚</div>
+        <h3 class="text-lg font-bold text-slate-900 mb-1">Librarian</h3>
+        <p class="text-xs text-purple-500 font-medium mb-3">Library Focus</p>
+        <ul class="space-y-2">
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0"></i>Book cataloging</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0"></i>Borrow/return tracking</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0"></i>Overdue alerts</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0"></i>Inventory reports</li>
+        </ul>
+      </div>
+
+      <!-- Parent -->
+      <div class="role-card reveal reveal-delay-4 bg-white rounded-xl p-6 border border-slate-100 shadow-sm" data-role="parent">
+        <div class="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center mb-4 text-2xl">👨‍👩‍👧</div>
+        <h3 class="text-lg font-bold text-slate-900 mb-1">Parent</h3>
+        <p class="text-xs text-pink-500 font-medium mb-3">No Login Required</p>
+        <ul class="space-y-2">
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-pink-500 mt-0.5 flex-shrink-0"></i>View report cards</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-pink-500 mt-0.5 flex-shrink-0"></i>Voice messages</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-pink-500 mt-0.5 flex-shrink-0"></i>Teacher replies</li>
+          <li class="flex items-start gap-2 text-sm text-slate-500"><i data-lucide="check" class="w-4 h-4 text-pink-500 mt-0.5 flex-shrink-0"></i>Accessible via link</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== STATS SECTION ==================== -->
+<section class="stats-bg wave-separator py-20 lg:py-28 relative">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="text-center mb-14 reveal">
+      <span class="inline-block text-xs font-semibold text-blue-200 uppercase tracking-widest mb-3">By the Numbers</span>
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
+        Trusted Across Cambodia
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
+      <!-- Stat 1 -->
+      <div class="reveal reveal-delay-1 text-center">
+        <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="school" class="w-6 h-6 text-blue-200"></i>
+        </div>
+        <div class="text-4xl sm:text-5xl font-extrabold text-white mb-1">
+          <span class="counter" data-target="50" data-suffix="+">0</span>
+        </div>
+        <p class="text-blue-200 text-sm font-medium">Schools</p>
+      </div>
+
+      <!-- Stat 2 -->
+      <div class="reveal reveal-delay-2 text-center">
+        <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="chalkboard-teacher" class="w-6 h-6 text-blue-200"></i>
+        </div>
+        <div class="text-4xl sm:text-5xl font-extrabold text-white mb-1">
+          <span class="counter" data-target="500" data-suffix="+">0</span>
+        </div>
+        <p class="text-blue-200 text-sm font-medium">Teachers</p>
+      </div>
+
+      <!-- Stat 3 -->
+      <div class="reveal reveal-delay-3 text-center">
+        <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="user-check" class="w-6 h-6 text-blue-200"></i>
+        </div>
+        <div class="text-4xl sm:text-5xl font-extrabold text-white mb-1">
+          <span class="counter" data-target="10000" data-suffix="+" data-comma="true">0</span>
+        </div>
+        <p class="text-blue-200 text-sm font-medium">Students</p>
+      </div>
+
+      <!-- Stat 4 -->
+      <div class="reveal reveal-delay-4 text-center">
+        <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="server" class="w-6 h-6 text-blue-200"></i>
+        </div>
+        <div class="text-4xl sm:text-5xl font-extrabold text-white mb-1">
+          <span class="counter" data-target="99.9" data-suffix="%" data-decimal="true">0</span>
+        </div>
+        <p class="text-blue-200 text-sm font-medium">Uptime</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TESTIMONIALS ==================== -->
+<section class="py-20 lg:py-28 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Section header -->
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+      <span class="inline-block text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">What Clients Say</span>
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+        Real Stories from Schools
+      </h2>
+      <p class="text-lg text-slate-500 leading-relaxed">
+        Hear from directors and teachers who transformed their school operations with SMS.
+      </p>
+    </div>
+
+    <!-- Carousel -->
+    <div class="reveal max-w-4xl mx-auto">
+      <div class="overflow-hidden rounded-2xl">
+        <div id="carouselTrack" class="carousel-track">
+          <!-- Testimonial 1 -->
+          <div class="w-full flex-shrink-0 px-2">
+            <div class="bg-slate-50 rounded-2xl p-8 sm:p-10 text-center border border-slate-100">
+              <div class="flex justify-center mb-4">
+                <i data-lucide="quote" class="w-8 h-8 text-primary-200"></i>
+              </div>
+              <p class="text-lg sm:text-xl text-slate-700 leading-relaxed mb-8 max-w-2xl mx-auto">
+                "This system has transformed how we manage our school. Score entry that used to take days now takes hours. The parent link feature alone saved us hundreds of printed pages each semester."
+              </p>
+              <div class="flex items-center justify-center gap-4">
+                <img src="https://picsum.photos/seed/testimonial1/80/80.jpg" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow" alt="">
+                <div class="text-left">
+                  <p class="font-bold text-slate-900">Mr. Chea Vannak</p>
+                  <p class="text-sm text-slate-500">Director, Phnom Penh Primary School</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Testimonial 2 -->
+          <div class="w-full flex-shrink-0 px-2">
+            <div class="bg-slate-50 rounded-2xl p-8 sm:p-10 text-center border border-slate-100">
+              <div class="flex justify-center mb-4">
+                <i data-lucide="quote" class="w-8 h-8 text-primary-200"></i>
+              </div>
+              <p class="text-lg sm:text-xl text-slate-700 leading-relaxed mb-8 max-w-2xl mx-auto">
+                "As a teacher with 45 students, tracking attendance and scores was a nightmare. SMS made it so simple that I can focus on what matters — teaching. The mobile-friendly interface is a bonus."
+              </p>
+              <div class="flex items-center justify-center gap-4">
+                <img src="https://picsum.photos/seed/testimonial2/80/80.jpg" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow" alt="">
+                <div class="text-left">
+                  <p class="font-bold text-slate-900">Ms. Sok Sreyneath</p>
+                  <p class="text-sm text-slate-500">Teacher, Siem Reap Provincial School</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Testimonial 3 -->
+          <div class="w-full flex-shrink-0 px-2">
+            <div class="bg-slate-50 rounded-2xl p-8 sm:p-10 text-center border border-slate-100">
+              <div class="flex justify-center mb-4">
+                <i data-lucide="quote" class="w-8 h-8 text-primary-200"></i>
+              </div>
+              <p class="text-lg sm:text-xl text-slate-700 leading-relaxed mb-8 max-w-2xl mx-auto">
+                "The budget tracking module gave us transparency we never had before. I can see exactly where funds go, and the monthly reports make board meetings so much easier to prepare for."
+              </p>
+              <div class="flex items-center justify-center gap-4">
+                <img src="https://picsum.photos/seed/testimonial3/80/80.jpg" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow" alt="">
+                <div class="text-left">
+                  <p class="font-bold text-slate-900">Mr. Ly Bora</p>
+                  <p class="text-sm text-slate-500">Deputy Director, Battambang Primary School</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dots -->
+      <div class="flex items-center justify-center gap-2 mt-8">
+        <button class="carousel-dot active" data-slide="0" aria-label="Testimonial 1"></button>
+        <button class="carousel-dot" data-slide="1" aria-label="Testimonial 2"></button>
+        <button class="carousel-dot" data-slide="2" aria-label="Testimonial 3"></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CTA SECTION ==================== -->
+<section id="cta" class="py-20 lg:py-28 relative overflow-hidden" style="background: var(--bg-light);">
+  <!-- Floating shapes -->
+  <div class="float-shape float-shape-1"></div>
+  <div class="float-shape float-shape-2"></div>
+  <div class="float-shape float-shape-3"></div>
+  <div class="float-shape float-shape-4"></div>
+
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center reveal">
+    <span class="inline-block text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Get Started Today</span>
+    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+      Ready to Get Started?
+    </h2>
+    <p class="text-lg text-slate-500 leading-relaxed mb-10 max-w-xl mx-auto">
+      Try SMS free for your school. No credit card required, and our team will help you set up everything.
+    </p>
+    <a href="#" class="cta-pulse btn-primary inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold shadow-xl">
+      ចុះឈ្មោះប្រើប្រាស់
+      <i data-lucide="arrow-right" class="w-5 h-5"></i>
+    </a>
+    <p class="mt-5 text-xs text-slate-400">No credit card required · Free setup support · Cancel anytime</p>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer id="contact" class="bg-slate-900 text-white pt-16 pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+      <!-- Column 1: Brand -->
+      <div>
+        <div class="flex items-center gap-2.5 mb-4">
+          <div class="w-9 h-9 rounded-lg bg-primary-500 flex items-center justify-center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/>
+              <path d="M2 10v6c0 2 3 3 6 3"/>
+            </svg>
+          </div>
+          <div>
+            <span class="font-bold text-white text-sm leading-none block">SMS</span>
+            <span class="text-[10px] text-slate-400 leading-none">School Management System</span>
+          </div>
+        </div>
+        <p class="text-sm text-slate-400 leading-relaxed mb-5">
+          All-in-one digital school management platform built specifically for Cambodian primary schools.
+        </p>
+        <div class="flex items-center gap-3">
+          <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-primary-500 flex items-center justify-center transition-colors" aria-label="Facebook">
+            <i data-lucide="facebook" class="w-4 h-4"></i>
+          </a>
+          <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-primary-500 flex items-center justify-center transition-colors" aria-label="Telegram">
+            <i data-lucide="send" class="w-4 h-4"></i>
+          </a>
+          <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-primary-500 flex items-center justify-center transition-colors" aria-label="YouTube">
+            <i data-lucide="youtube" class="w-4 h-4"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Column 2: Product -->
+      <div>
+        <h4 class="font-bold text-sm mb-4 text-white">Product</h4>
+        <ul class="space-y-2.5">
+          <li><a href="#features" class="text-sm text-slate-400 hover:text-white transition-colors">Features</a></li>
+          <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">Pricing</a></li>
+          <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">FAQ</a></li>
+          <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">Changelog</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 3: Support -->
+      <div>
+        <h4 class="font-bold text-sm mb-4 text-white">Support</h4>
+        <ul class="space-y-2.5">
+          <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">Contact Us</a></li>
+          <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">Help Center</a></li>
+          <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">Privacy Policy</a></li>
+          <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">Terms of Service</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 4: Contact -->
+      <div>
+        <h4 class="font-bold text-sm mb-4 text-white">Contact</h4>
+        <ul class="space-y-3">
+          <li class="flex items-start gap-2.5">
+            <i data-lucide="mail" class="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm text-slate-400">info@sms.edu.kh</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <i data-lucide="phone" class="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm text-slate-400">+855 12 345 678</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <i data-lucide="map-pin" class="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm text-slate-400">Phnom Penh, Cambodia</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p class="text-xs text-slate-500">&copy; 2026 School Management System. All rights reserved.</p>
+      <p class="text-xs text-slate-600">Built with care for Cambodian education</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+  // Initialize Lucide icons
+  lucide.createIcons();
+
+  // ====== NAVBAR SCROLL EFFECT ======
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 20) {
+      navbar.classList.add('nav-scrolled');
+    } else {
+      navbar.classList.remove('nav-scrolled');
+    }
+  });
+
+  // ====== MOBILE MENU ======
+  const menuBtn = document.getElementById('menuBtn');
+  const closeMenuBtn = document.getElementById('closeMenu');
+  const mobileOverlay = document.getElementById('mobileOverlay');
+  const mobileDrawer = document.getElementById('mobileDrawer');
+  const mobileLinks = document.querySelectorAll('.mobile-link');
+
+  function openMenu() {
+    mobileOverlay.classList.add('open');
+    mobileDrawer.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    mobileOverlay.classList.remove('open');
+    mobileDrawer.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  menuBtn.addEventListener('click', openMenu);
+  closeMenuBtn.addEventListener('click', closeMenu);
+  mobileOverlay.addEventListener('click', closeMenu);
+  mobileLinks.forEach(link => link.addEventListener('click', closeMenu));
+
+  // ====== SCROLL REVEAL (Intersection Observer) ======
+  const revealElements = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+  revealElements.forEach(el => revealObserver.observe(el));
+
+  // ====== COUNTER ANIMATION ======
+  const counters = document.querySelectorAll('.counter');
+  let countersAnimated = false;
+
+  function animateCounter(el) {
+    const target = parseFloat(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const isDecimal = el.dataset.decimal === 'true';
+    const useComma = el.dataset.comma === 'true';
+    const duration = 2000;
+    const start = performance.now();
+
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      let current = eased * target;
+
+      if (isDecimal) {
+        el.textContent = current.toFixed(1) + suffix;
+      } else {
+        let val = Math.round(current);
+        if (useComma) {
+          el.textContent = val.toLocaleString() + suffix;
+        } else {
+          el.textContent = val + suffix;
+        }
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  const counterSection = document.querySelector('.stats-bg');
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !countersAnimated) {
+        countersAnimated = true;
+        counters.forEach((c, i) => {
+          setTimeout(() => animateCounter(c), i * 200);
+        });
+        counterObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  counterObserver.observe(counterSection);
+
+  // ====== TESTIMONIAL CAROUSEL ======
+  const track = document.getElementById('carouselTrack');
+  const dots = document.querySelectorAll('.carousel-dot');
+  let currentSlide = 0;
+  const totalSlides = 3;
+  let autoplayInterval;
+
+  function goToSlide(index) {
+    currentSlide = index;
+    track.style.transform = `translateX(-${index * 100}%)`;
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+    });
+  }
+
+  function nextSlide() {
+    goToSlide((currentSlide + 1) % totalSlides);
+  }
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      goToSlide(parseInt(dot.dataset.slide));
+      resetAutoplay();
+    });
+  });
+
+  function startAutoplay() {
+    autoplayInterval = setInterval(nextSlide, 4000);
+  }
+
+  function resetAutoplay() {
+    clearInterval(autoplayInterval);
+    startAutoplay();
+  }
+
+  // Pause on hover
+  const carouselContainer = track.closest('.max-w-4xl');
+  carouselContainer.addEventListener('mouseenter', () => clearInterval(autoplayInterval));
+  carouselContainer.addEventListener('mouseleave', startAutoplay);
+
+  startAutoplay();
+
+  // ====== SMOOTH SCROLL for anchor links ======
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        const offset = 80;
+        const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

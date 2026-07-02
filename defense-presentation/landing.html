@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SchoolPulse — Primary School Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+              400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+              800: '#115e59', 900: '#134e4a',
+            },
+            accent: {
+              400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    /* Progressive enhancement: only hide elements when JS is confirmed */
+    .js-enabled .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.55s ease-out, transform 0.55s ease-out;
+    }
+    .js-enabled .reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .js-enabled .reveal-left {
+      opacity: 0;
+      transform: translateX(-32px);
+      transition: opacity 0.55s ease-out, transform 0.55s ease-out;
+    }
+    .js-enabled .reveal-left.revealed {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .js-enabled .reveal-right {
+      opacity: 0;
+      transform: translateX(32px);
+      transition: opacity 0.55s ease-out, transform 0.55s ease-out;
+    }
+    .js-enabled .reveal-right.revealed {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .js-enabled .reveal-scale {
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity 0.55s ease-out, transform 0.55s ease-out;
+    }
+    .js-enabled .reveal-scale.revealed {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .js-enabled .reveal,
+      .js-enabled .reveal-left,
+      .js-enabled .reveal-right,
+      .js-enabled .reveal-scale {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+      .float-animation, .pulse-path, .pulse-dot { animation: none !important; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(2deg); }
+      50% { transform: translateY(-12px) rotate(2deg); }
+    }
+    .float-animation { animation: float 6s ease-in-out infinite; }
+
+    @keyframes pulse-travel {
+      0% { offset-distance: 0%; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { offset-distance: 100%; opacity: 0; }
+    }
+    .pulse-dot {
+      offset-path: path('M 60,40 C 120,40 140,40 200,40 C 260,40 280,40 340,40 C 400,40 420,40 480,40');
+      animation: pulse-travel 3s ease-in-out infinite;
+    }
+    .pulse-dot:nth-child(2) { animation-delay: 1s; }
+    .pulse-dot:nth-child(3) { animation-delay: 2s; }
+
+    @keyframes dash-flow {
+      to { stroke-dashoffset: -20; }
+    }
+    .dash-animated { animation: dash-flow 1s linear infinite; }
+
+    .hero-gradient {
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(13,148,136,0.12) 0%, transparent 70%),
+                  radial-gradient(ellipse 50% 40% at 80% 50%, rgba(245,158,11,0.06) 0%, transparent 60%);
+    }
+
+    .pattern-dots {
+      background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    .feature-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .carousel-track {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+    }
+
+    /* Focus styles for accessibility */
+    a:focus-visible, button:focus-visible, input:focus-visible {
+      outline: 2px solid #0d9488;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+  </style>
+</head>
+<body class="bg-white text-slate-800 antialiased">
+
+  <!-- ========== NAVBAR ========== -->
+  <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" role="navigation" aria-label="Main navigation">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 lg:h-20">
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-2.5 group" aria-label="SchoolPulse home">
+          <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center shadow-md shadow-brand-600/20 group-hover:shadow-brand-600/40 transition-shadow">
+            <iconify-icon icon="lucide:graduation-cap" class="text-white text-lg"></iconify-icon>
+          </div>
+          <span class="font-heading font-800 text-xl text-slate-900 tracking-tight">School<span class="text-brand-600">Pulse</span></span>
+        </a>
+
+        <!-- Desktop Links -->
+        <div class="hidden lg:flex items-center gap-8">
+          <a href="#features" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition-colors">Features</a>
+          <a href="#how-it-works" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition-colors">How It Works</a>
+          <a href="#roles" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition-colors">Roles</a>
+          <a href="#offline" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition-colors">Offline-First</a>
+          <a href="#cta" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition-colors">Contact</a>
+        </div>
+
+        <!-- CTA + Mobile Toggle -->
+        <div class="flex items-center gap-3">
+          <a href="#cta" class="hidden sm:inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95 shadow-md shadow-brand-600/20">
+            Get Started
+            <iconify-icon icon="lucide:arrow-right" class="text-sm"></iconify-icon>
+          </a>
+          <button id="mobile-toggle" class="lg:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label="Toggle menu" aria-expanded="false">
+            <iconify-icon icon="lucide:menu" class="text-xl text-slate-700" id="menu-icon-open"></iconify-icon>
+            <iconify-icon icon="lucide:x" class="text-xl text-slate-700 hidden" id="menu-icon-close"></iconify-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="lg:hidden hidden border-t border-slate-100 bg-white/95 backdrop-blur-xl">
+      <div class="px-4 py-4 space-y-1">
+        <a href="#features" class="mobile-link block px-4 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors">Features</a>
+        <a href="#how-it-works" class="mobile-link block px-4 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors">How It Works</a>
+        <a href="#roles" class="mobile-link block px-4 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors">Roles</a>
+        <a href="#offline" class="mobile-link block px-4 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors">Offline-First</a>
+        <a href="#cta" class="mobile-link block px-4 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors">Contact</a>
+        <div class="pt-2">
+          <a href="#cta" class="mobile-link block text-center bg-brand-600 text-white text-sm font-semibold px-5 py-3 rounded-xl">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- ========== HERO ========== -->
+    <section id="hero" class="relative min-h-screen flex items-center hero-gradient overflow-hidden pt-20">
+      <!-- Background pattern -->
+      <div class="absolute inset-0 pattern-dots opacity-30 pointer-events-none"></div>
+
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-12 md:py-20">
+        <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <!-- Left: Copy -->
+          <div class="max-w-xl">
+            <div class="reveal" style="transition-delay: 0ms">
+              <span class="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 text-brand-700 text-xs font-semibold uppercase tracking-wider px-3.5 py-1.5 rounded-full mb-6">
+                <iconify-icon icon="lucide:sparkles" class="text-sm"></iconify-icon>
+                Built for Primary Schools
+              </span>
+            </div>
+
+            <h1 class="reveal font-heading font-800 text-4xl sm:text-5xl lg:text-[3.5rem] leading-[1.1] tracking-tight text-slate-900 mb-6" style="transition-delay: 100ms">
+              Replace Paper Records.<br>
+              <span class="text-brand-600">Keep Your School Running</span> — Even Offline.
+            </h1>
+
+            <p class="reveal text-lg text-slate-600 leading-relaxed mb-8 max-w-md" style="transition-delay: 200ms">
+              A complete school management platform with offline score entry, parent messaging, and auto-generated report cards that work in any classroom.
+            </p>
+
+            <div class="reveal flex flex-wrap gap-3" style="transition-delay: 300ms">
+              <a href="#cta" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-7 py-3.5 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95 shadow-lg shadow-brand-600/25 text-sm">
+                Request a Demo
+                <iconify-icon icon="lucide:arrow-right"></iconify-icon>
+              </a>
+              <a href="#how-it-works" class="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold px-7 py-3.5 rounded-xl border border-slate-200 transition-all duration-150 hover:scale-105 active:scale-95 text-sm">
+                <iconify-icon icon="lucide:play-circle" class="text-brand-600"></iconify-icon>
+                See How It Works
+              </a>
+            </div>
+          </div>
+
+          <!-- Right: Dashboard Mockup -->
+          <div class="reveal-scale relative" style="transition-delay: 400ms">
+            <div class="float-animation relative">
+              <!-- Browser chrome -->
+              <div class="bg-white rounded-2xl shadow-2xl shadow-slate-900/10 border border-slate-200/60 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
+                  <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                  <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                  <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                  <div class="flex-1 mx-4">
+                    <div class="bg-white rounded-md px-3 py-1.5 text-xs text-slate-400 border border-slate-200 max-w-xs">app.schoolpulse.io/dashboard</div>
+                  </div>
+                </div>
+                <!-- Dashboard content -->
+                <div class="flex min-h-[300px] sm:min-h-[360px]">
+                  <!-- Sidebar -->
+                  <div class="hidden sm:flex flex-col w-14 bg-brand-800 py-4 items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
+                      <iconify-icon icon="lucide:layout-dashboard" class="text-white text-sm"></iconify-icon>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg hover:bg-brand-700 flex items-center justify-center cursor-pointer transition-colors">
+                      <iconify-icon icon="lucide:users" class="text-brand-300 text-sm"></iconify-icon>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg hover:bg-brand-700 flex items-center justify-center cursor-pointer transition-colors">
+                      <iconify-icon icon="lucide:file-text" class="text-brand-300 text-sm"></iconify-icon>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg hover:bg-brand-700 flex items-center justify-center cursor-pointer transition-colors">
+                      <iconify-icon icon="lucide:bar-chart-3" class="text-brand-300 text-sm"></iconify-icon>
+                    </div>
+                    <div class="mt-auto w-8 h-8 rounded-lg hover:bg-brand-700 flex items-center justify-center cursor-pointer transition-colors">
+                      <iconify-icon icon="lucide:settings" class="text-brand-300 text-sm"></iconify-icon>
+                    </div>
+                  </div>
+                  <!-- Main area -->
+                  <div class="flex-1 p-4 sm:p-5 space-y-4">
+                    <!-- Stat cards -->
+                    <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                      <div class="bg-brand-50 rounded-xl p-2.5 sm:p-3">
+                        <div class="text-[10px] sm:text-xs text-brand-600 font-medium">Students</div>
+                        <div class="text-lg sm:text-xl font-heading font-700 text-brand-800">486</div>
+                      </div>
+                      <div class="bg-amber-50 rounded-xl p-2.5 sm:p-3">
+                        <div class="text-[10px] sm:text-xs text-amber-600 font-medium">Teachers</div>
+                        <div class="text-lg sm:text-xl font-heading font-700 text-amber-800">24</div>
+                      </div>
+                      <div class="bg-emerald-50 rounded-xl p-2.5 sm:p-3">
+                        <div class="text-[10px] sm:text-xs text-emerald-600 font-medium">Attendance</div>
+                        <div class="text-lg sm:text-xl font-heading font-700 text-emerald-800">94%</div>
+                      </div>
+                    </div>
+                    <!-- Chart placeholder -->
+                    <div class="bg-slate-50 rounded-xl p-3 sm:p-4">
+                      <div class="text-[10px] sm:text-xs font-semibold text-slate-500 mb-3">Monthly Score Overview</div>
+                      <div class="flex items-end gap-1.5 h-16 sm:h-20">
+                        <div class="flex-1 bg-brand-200 rounded-t-md" style="height:60%"></div>
+                        <div class="flex-1 bg-brand-300 rounded-t-md" style="height:75%"></div>
+                        <div class="flex-1 bg-brand-400 rounded-t-md" style="height:55%"></div>
+                        <div class="flex-1 bg-brand-500 rounded-t-md" style="height:85%"></div>
+                        <div class="flex-1 bg-brand-600 rounded-t-md" style="height:70%"></div>
+                        <div class="flex-1 bg-brand-400 rounded-t-md" style="height:90%"></div>
+                        <div class="flex-1 bg-accent-400 rounded-t-md" style="height:100%"></div>
+                      </div>
+                      <div class="flex gap-1.5 mt-1.5">
+                        <div class="flex-1 text-center text-[8px] text-slate-400">Sep</div>
+                        <div class="flex-1 text-center text-[8px] text-slate-400">Oct</div>
+                        <div class="flex-1 text-center text-[8px] text-slate-400">Nov</div>
+                        <div class="flex-1 text-center text-[8px] text-slate-400">Dec</div>
+                        <div class="flex-1 text-center text-[8px] text-slate-400">Jan</div>
+                        <div class="flex-1 text-center text-[8px] text-slate-400">Feb</div>
+                        <div class="flex-1 text-center text-[8px] text-slate-400">Mar</div>
+                      </div>
+                    </div>
+                    <!-- Table rows -->
+                    <div class="space-y-1.5">
+                      <div class="flex items-center gap-2 text-[10px] sm:text-xs">
+                        <div class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-semibold">S</div>
+                        <span class="flex-1 text-slate-600">Sokha Chann</span>
+                        <span class="text-brand-600 font-semibold">Rank #3</span>
+                        <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="w-4/5 h-full bg-brand-500 rounded-full"></div></div>
+                      </div>
+                      <div class="flex items-center gap-2 text-[10px] sm:text-xs">
+                        <div class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-semibold">V</div>
+                        <span class="flex-1 text-slate-600">Vichea Lim</span>
+                        <span class="text-amber-600 font-semibold">Rank #7</span>
+                        <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="w-3/5 h-full bg-amber-500 rounded-full"></div></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Floating badge -->
+              <div class="absolute -bottom-3 -left-3 sm:-bottom-4 sm:-left-4 bg-white rounded-xl shadow-lg shadow-slate-900/10 border border-slate-100 px-3 py-2 flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                  <iconify-icon icon="lucide:wifi-off" class="text-emerald-600 text-sm"></iconify-icon>
+                </div>
+                <div>
+                  <div class="text-[10px] text-slate-400 font-medium">Status</div>
+                  <div class="text-xs font-semibold text-emerald-700">Offline Ready</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scroll indicator -->
+      <div class="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-2 text-slate-400">
+        <span class="text-xs font-medium">Scroll to explore</span>
+        <div class="w-5 h-8 rounded-full border-2 border-slate-300 flex items-start justify-center p-1">
+          <div class="w-1 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== TRUST BAR ========== -->
+    <section id="trust-bar" class="bg-slate-50 border-y border-slate-100">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
+          <div class="reveal flex items-center gap-2 text-sm text-slate-500 font-medium">
+            <iconify-icon icon="lucide:map-pin" class="text-brand-600"></iconify-icon>
+            Piloted in Battambang, Cambodia
+          </div>
+          <div class="hidden md:block w-px h-8 bg-slate-200"></div>
+          <div class="reveal flex items-center gap-6 sm:gap-10" style="transition-delay: 100ms">
+            <div class="text-center">
+              <div class="font-heading font-800 text-2xl text-slate-900"><span class="count-up" data-target="5">0</span></div>
+              <div class="text-xs text-slate-500 mt-0.5">Role Dashboards</div>
+            </div>
+            <div class="text-center">
+              <div class="font-heading font-800 text-2xl text-slate-900"><span class="count-up" data-target="100">0</span>%</div>
+              <div class="text-xs text-slate-500 mt-0.5">Offline Capable</div>
+            </div>
+            <div class="text-center">
+              <div class="font-heading font-800 text-2xl text-slate-900">PWA</div>
+              <div class="text-xs text-slate-500 mt-0.5">Installable App</div>
+            </div>
+            <div class="text-center">
+              <div class="font-heading font-800 text-2xl text-slate-900">PDF</div>
+              <div class="text-xs text-slate-500 mt-0.5">Report Cards</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== PROBLEM → SOLUTION ========== -->
+    <section class="py-20 sm:py-28 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="reveal font-heading font-700 text-3xl sm:text-4xl tracking-tight text-slate-900 mb-4">Paper Records Are Holding Your School Back</h2>
+          <p class="reveal text-slate-500 max-w-2xl mx-auto" style="transition-delay: 100ms">Schools across the region still rely on handwritten ledgers. Here's what that really costs — and how SchoolPulse fixes it.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 lg:gap-16 items-start">
+          <!-- Problems -->
+          <div class="space-y-5">
+            <div class="reveal-left flex gap-4 p-4 rounded-xl bg-red-50/60 border border-red-100" style="transition-delay: 0ms">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center mt-0.5">
+                <iconify-icon icon="lucide:file-x" class="text-red-500 text-lg"></iconify-icon>
+              </div>
+              <div>
+                <h3 class="font-heading font-600 text-sm text-slate-900 mb-1">Lost or Damaged Records</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">Floods, fires, or simple misplacement can erase years of student data with no backup.</p>
+              </div>
+            </div>
+            <div class="reveal-left flex gap-4 p-4 rounded-xl bg-red-50/60 border border-red-100" style="transition-delay: 80ms">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center mt-0.5">
+                <iconify-icon icon="lucide:calculator" class="text-red-500 text-lg"></iconify-icon>
+              </div>
+              <div>
+                <h3 class="font-heading font-600 text-sm text-slate-900 mb-1">Manual Rank Calculation</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">Teachers spend hours hand-calculating averages, ranks, and semester grades — prone to errors.</p>
+              </div>
+            </div>
+            <div class="reveal-left flex gap-4 p-4 rounded-xl bg-red-50/60 border border-red-100" style="transition-delay: 160ms">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center mt-0.5">
+                <iconify-icon icon="lucide:wifi-off" class="text-red-500 text-lg"></iconify-icon>
+              </div>
+              <div>
+                <h3 class="font-heading font-600 text-sm text-slate-900 mb-1">Internet Dependency</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">Most digital tools stop working the moment connectivity drops — a daily reality in rural areas.</p>
+              </div>
+            </div>
+            <div class="reveal-left flex gap-4 p-4 rounded-xl bg-red-50/60 border border-red-100" style="transition-delay: 240ms">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center mt-0.5">
+                <iconify-icon icon="lucide:send" class="text-red-500 text-lg"></iconify-icon>
+              </div>
+              <div>
+                <h3 class="font-heading font-600 text-sm text-slate-900 mb-1">No Parent Communication</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">Parents rarely see their child's progress until report card day — too late to intervene.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connector arrow (desktop only) -->
+          <div class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+          </div>
+
+          <!-- Solutions -->
+          <div class="space-y-5">
+            <div class="reveal-right flex gap-4 p-4 rounded-xl bg-emerald-50/60 border border-emerald-100" style="transition-delay: 0ms">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mt-0.5">
+                <iconify-icon icon="lucide:cloud" class="text-emerald-600 text-lg"></iconify-icon>
+              </div>
+              <div>
+                <h3 class="font-heading font-600 text-sm text-slate-900 mb-1">Secure, Backed-Up Storage</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">All student data stored securely with automatic backups — no more lost records, ever.</p>
+              </div>
+            </div>
+            <div class="reveal-right flex gap-4 p-4 rounded-xl bg-emerald-50/60 border border-emerald-100" style="transition-delay: 80ms">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mt-0.5">
+                <iconify-icon icon="lucide:bar-chart-3" class="text-emerald-600 text-lg"></iconify-icon>
+              </div>
+              <div>
+                <h3 class="font-heading font-600 text-sm text-slate-900 mb-1">Auto-Calculated Ranks & Averages</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">Enter scores once — ranks, semester grades, and radar charts generate instantly.</p>
+              </div>
+            </div>
+            <div class="reveal-right flex gap-4 p-4 rounded-xl bg-emerald-50/60 border border-emerald-100" style="transition-delay: 160ms">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mt-0.5">
+                <iconify-icon icon="lucide:hard-drive" class="text-emerald-600 text-lg"></iconify-icon>
+              </div>
+              <div>
+                <h3 class="font-heading font-600 text-sm text-slate-900 mb-1">Offline-First Architecture</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">Keep entering data without internet. It queues locally and syncs automatically when connected.</p>
+              </div>
+            </div>
+            <div class="reveal-right flex gap-4 p-4 rounded-xl bg-emerald-50/60 border border-emerald-100" style="transition-delay: 240ms">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mt-0.5">
+                <iconify-icon icon="lucide:message-circle" class="text-emerald-600 text-lg"></iconify-icon>
+              </div>
+              <div>
+                <h3 class="font-heading font-600 text-sm text-slate-900 mb-1">Direct Parent Messaging</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">Parents view reports via a simple link and exchange text or voice messages with teachers.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== CORE FEATURES GRID ========== -->
+    <section id="features" class="py-20 sm:py-28 bg-slate-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="reveal font-heading font-700 text-3xl sm:text-4xl tracking-tight text-slate-900 mb-4">Everything Your School Needs — In One Place</h2>
+          <p class="reveal text-slate-500 max-w-2xl mx-auto" style="transition-delay: 100ms">Six core modules designed around how primary schools actually work, not how software companies think they should.</p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          <!-- Feature 1 -->
+          <div class="reveal feature-card bg-white rounded-2xl p-6 sm:p-7 border border-slate-100 shadow-sm" style="transition-delay: 0ms">
+            <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mb-5">
+              <iconify-icon icon="lucide:layout-dashboard" class="text-brand-600 text-xl"></iconify-icon>
+            </div>
+            <h3 class="font-heading font-700 text-lg text-slate-900 mb-2">Role-Based Dashboards</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">Admin, Teacher, Librarian, and Super Admin each see a tailored workspace with relevant tools and data — nothing more, nothing less.</p>
+          </div>
+
+          <!-- Feature 2 -->
+          <div class="reveal feature-card bg-white rounded-2xl p-6 sm:p-7 border border-slate-100 shadow-sm" style="transition-delay: 100ms">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mb-5">
+              <iconify-icon icon="lucide:trophy" class="text-amber-600 text-xl"></iconify-icon>
+            </div>
+            <h3 class="font-heading font-700 text-lg text-slate-900 mb-2">Score Entry & Auto-Ranking</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">Enter monthly and semester scores with automatic rank calculation, radar-chart performance summaries, and instant grade overviews per student.</p>
+          </div>
+
+          <!-- Feature 3 -->
+          <div class="reveal feature-card bg-white rounded-2xl p-6 sm:p-7 border border-slate-100 shadow-sm" style="transition-delay: 200ms">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-5">
+              <iconify-icon icon="lucide:wifi-off" class="text-emerald-600 text-xl"></iconify-icon>
+            </div>
+            <h3 class="font-heading font-700 text-lg text-slate-900 mb-2">Offline-First Data Entry</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">Works without internet in rural classrooms. Data queues locally and syncs seamlessly the moment connectivity returns — zero data loss.</p>
+          </div>
+
+          <!-- Feature 4 -->
+          <div class="reveal feature-card bg-white rounded-2xl p-6 sm:p-7 border border-slate-100 shadow-sm" style="transition-delay: 100ms">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-5">
+              <iconify-icon icon="lucide:link" class="text-blue-600 text-xl"></iconify-icon>
+            </div>
+            <h3 class="font-heading font-700 text-lg text-slate-900 mb-2">Parent Portal (No Login)</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">Share a secure link per class and month. Parents pick their child from a dropdown, view scores and attendance, and send text or voice messages.</p>
+          </div>
+
+          <!-- Feature 5 -->
+          <div class="reveal feature-card bg-white rounded-2xl p-6 sm:p-7 border border-slate-100 shadow-sm" style="transition-delay: 200ms">
+            <div class="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center mb-5">
+              <iconify-icon icon="lucide:heart-pulse" class="text-rose-500 text-xl"></iconify-icon>
+            </div>
+            <h3 class="font-heading font-700 text-lg text-slate-900 mb-2">Health & Growth Tracking</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">Log vaccinations, sick days, and physical growth metrics in one place — with visual timelines and alerts per student.</p>
+          </div>
+
+          <!-- Feature 6 -->
+          <div class="reveal feature-card bg-white rounded-2xl p-6 sm:p-7 border border-slate-100 shadow-sm" style="transition-delay: 300ms">
+            <div class="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center mb-5">
+              <iconify-icon icon="lucide:file-badge" class="text-violet-600 text-xl"></iconify-icon>
+            </div>
+            <h3 class="font-heading font-700 text-lg text-slate-900 mb-2">PDF Report Cards & Certificates</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">Generate polished report cards with digital principal signatures and school stamps — ready to print or share digitally in one click.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== BUILT FOR EVERY ROLE ========== -->
+    <section id="roles" class="py-20 sm:py-28 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="reveal font-heading font-700 text-3xl sm:text-4xl tracking-tight text-slate-900 mb-4">Built for Every Role in Your School</h2>
+          <p class="reveal text-slate-500 max-w-2xl mx-auto" style="transition-delay: 100ms">Every staff member is a teacher at their core — with additional permissions based on their responsibility.</p>
+        </div>
+
+        <!-- Tab buttons -->
+        <div class="reveal flex flex-wrap justify-center gap-2 mb-10" style="transition-delay: 150ms" role="tablist" aria-label="Role tabs">
+          <button class="role-tab active px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 bg-brand-600 text-white shadow-md shadow-brand-600/20" data-role="admin" role="tab" aria-selected="true" aria-controls="panel-admin">
+            <iconify-icon icon="lucide:shield-check" class="mr-1.5 align-[-2px]"></iconify-icon>Admin / Director
+          </button>
+          <button class="role-tab px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 bg-slate-100 text-slate-600 hover:bg-slate-200" data-role="teacher" role="tab" aria-selected="false" aria-controls="panel-teacher">
+            <iconify-icon icon="lucide:book-open" class="mr-1.5 align-[-2px]"></iconify-icon>Teacher
+          </button>
+          <button class="role-tab px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 bg-slate-100 text-slate-600 hover:bg-slate-200" data-role="librarian" role="tab" aria-selected="false" aria-controls="panel-librarian">
+            <iconify-icon icon="lucide:library" class="mr-1.5 align-[-2px]"></iconify-icon>Librarian
+          </button>
+          <button class="role-tab px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 bg-slate-100 text-slate-600 hover:bg-slate-200" data-role="parent" role="tab" aria-selected="false" aria-controls="panel-parent">
+            <iconify-icon icon="lucide:users" class="mr-1.5 align-[-2px]"></iconify-icon>Parent
+          </button>
+        </div>
+
+        <!-- Tab panels -->
+        <div class="reveal-scale" style="transition-delay: 250ms">
+          <!-- Admin -->
+          <div id="panel-admin" class="tab-content active" role="tabpanel">
+            <div class="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
+              <div>
+                <h3 class="font-heading font-700 text-2xl text-slate-900 mb-4">Full School Oversight, Zero Paper</h3>
+                <p class="text-slate-500 leading-relaxed mb-6">As a director, you see the complete picture — approve teacher report requests, manage staff roles, track budgets and inventory, and monitor attendance trends across every class. All from one dashboard.</p>
+                <ul class="space-y-3">
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>Approve or reject parent report link requests with one click</li>
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>Real-time attendance and score summaries across grades</li>
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>Budget tracking and inventory management in one view</li>
+                </ul>
+              </div>
+              <div class="rounded-2xl overflow-hidden shadow-xl shadow-slate-900/10 border border-slate-100">
+                <img src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=700&h=460&fit=crop" alt="School administrator reviewing student records on a digital dashboard in a school office" class="w-full h-64 sm:h-80 object-cover" loading="lazy">
+              </div>
+            </div>
+          </div>
+
+          <!-- Teacher -->
+          <div id="panel-teacher" class="tab-content" role="tabpanel">
+            <div class="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
+              <div>
+                <h3 class="font-heading font-700 text-2xl text-slate-900 mb-4">Teach, Don't Do Paperwork</h3>
+                <p class="text-slate-500 leading-relaxed mb-6">Enter scores and attendance in minutes — even without internet. Request approval to share reports with parents, then communicate directly via text or voice messages. Your focus stays on the classroom.</p>
+                <ul class="space-y-3">
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>Fast score entry with auto-calculated ranks and averages</li>
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>Offline-ready — works in classrooms with no connectivity</li>
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>Send text or voice messages directly to parents</li>
+                </ul>
+              </div>
+              <div class="rounded-2xl overflow-hidden shadow-xl shadow-slate-900/10 border border-slate-100">
+                <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=700&h=460&fit=crop" alt="Teacher entering student scores on a tablet in a primary school classroom" class="w-full h-64 sm:h-80 object-cover" loading="lazy">
+              </div>
+            </div>
+          </div>
+
+          <!-- Librarian -->
+          <div id="panel-librarian" class="tab-content" role="tabpanel">
+            <div class="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
+              <div>
+                <h3 class="font-heading font-700 text-2xl text-slate-900 mb-4">Your Library, Digitized</h3>
+                <p class="text-slate-500 leading-relaxed mb-6">Manage book inventory, track checkouts and returns, and generate reading reports by class or student. Know exactly which books are popular, which are overdue, and what needs restocking.</p>
+                <ul class="space-y-3">
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>Complete book catalog with barcode/ID lookup</li>
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>Checkout and return tracking per student</li>
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>Reading activity reports by class or individual student</li>
+                </ul>
+              </div>
+              <div class="rounded-2xl overflow-hidden shadow-xl shadow-slate-900/10 border border-slate-100">
+                <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=700&h=460&fit=crop" alt="School library with organized bookshelves and a librarian managing inventory" class="w-full h-64 sm:h-80 object-cover" loading="lazy">
+              </div>
+            </div>
+          </div>
+
+          <!-- Parent -->
+          <div id="panel-parent" class="tab-content" role="tabpanel">
+            <div class="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
+              <div>
+                <h3 class="font-heading font-700 text-2xl text-slate-900 mb-4">See Your Child's Progress — Instantly</h3>
+                <p class="text-slate-500 leading-relaxed mb-6">No app to download. No account to create. Parents receive a secure link, pick their child's name, and immediately see scores, attendance, and teacher messages. It just works.</p>
+                <ul class="space-y-3">
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>Access via a simple link — no login or app required</li>
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>View monthly scores, attendance records, and class ranking</li>
+                  <li class="flex items-start gap-3 text-sm text-slate-600"><iconify-icon icon="lucide:check-circle-2" class="text-brand-600 text-lg mt-0.5 flex-shrink-0"></iconify-icon>Send text or voice messages directly to the teacher</li>
+                </ul>
+              </div>
+              <div class="rounded-2xl overflow-hidden shadow-xl shadow-slate-900/10 border border-slate-100">
+                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=700&h=460&fit=crop" alt="Parent viewing their child's school report on a smartphone at home" class="w-full h-64 sm:h-80 object-cover" loading="lazy">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== OFFLINE-FIRST HIGHLIGHT ========== -->
+    <section id="offline" class="py-20 sm:py-28 bg-slate-900 text-white overflow-hidden">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div>
+            <div class="reveal">
+              <span class="inline-flex items-center gap-2 bg-white/10 border border-white/10 text-brand-300 text-xs font-semibold uppercase tracking-wider px-3.5 py-1.5 rounded-full mb-6">
+                <iconify-icon icon="lucide:hard-drive" class="text-sm"></iconify-icon>
+                Offline-First
+              </span>
+            </div>
+            <h2 class="reveal font-heading font-700 text-3xl sm:text-4xl tracking-tight mb-6" style="transition-delay: 100ms">Designed for<br>Real-World Connectivity</h2>
+            <p class="reveal text-slate-400 leading-relaxed mb-8" style="transition-delay: 200ms">Many schools face unreliable or nonexistent internet. Our offline queue captures every entry locally on the device, then syncs seamlessly when you're back online. No data lost. No extra steps. No stress.</p>
+            <div class="reveal space-y-4" style="transition-delay: 300ms">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-brand-600/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <iconify-icon icon="lucide:check" class="text-brand-400 text-sm"></iconify-icon>
+                </div>
+                <div>
+                  <div class="font-semibold text-sm text-white">Automatic Queue & Sync</div>
+                  <div class="text-sm text-slate-400">Data saves locally first, uploads when connection is detected — fully hands-free.</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-brand-600/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <iconify-icon icon="lucide:check" class="text-brand-400 text-sm"></iconify-icon>
+                </div>
+                <div>
+                  <div class="font-semibold text-sm text-white">Conflict Resolution Built In</div>
+                  <div class="text-sm text-slate-400">If two teachers edit the same record offline, the system merges intelligently — no overwritten data.</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-brand-600/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <iconify-icon icon="lucide:check" class="text-brand-400 text-sm"></iconify-icon>
+                </div>
+                <div>
+                  <div class="font-semibold text-sm text-white">PWA — Installable as a Native App</div>
+                  <div class="text-sm text-slate-400">Add to home screen on any phone or tablet. Works like a real app, even offline.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Animated Diagram -->
+          <div class="reveal-scale flex justify-center" style="transition-delay: 200ms">
+            <div class="relative w-full max-w-lg">
+              <svg viewBox="0 0 540 160" class="w-full" aria-label="Offline sync diagram: Device saves to local queue, then syncs to cloud when online">
+                <!-- Connection line -->
+                <path d="M 60,80 C 120,80 140,80 200,80 C 260,80 280,80 340,80 C 400,80 420,80 480,80" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="8,6" class="dash-animated" id="sync-path"/>
+
+                <!-- Device -->
+                <rect x="15" y="45" width="90" height="70" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+                <rect x="25" y="55" width="70" height="40" rx="4" fill="#0f172a"/>
+                <text x="60" y="78" text-anchor="middle" fill="#14b8a6" font-size="10" font-family="Inter" font-weight="600">Scores</text>
+                <text x="60" y="105" text-anchor="middle" fill="#64748b" font-size="8" font-family="Inter">Your Device</text>
+
+                <!-- Queue box -->
+                <rect x="165" y="40" width="70" height="80" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+                <text x="200" y="68" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="Inter" font-weight="600">OFFLINE</text>
+                <text x="200" y="82" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="Inter" font-weight="600">QUEUE</text>
+                <rect x="180" y="90" width="12" height="6" rx="2" fill="#0d9488" opacity="0.7"/>
+                <rect x="196" y="90" width="12" height="6" rx="2" fill="#0d9488" opacity="0.5"/>
+                <rect x="212" y="90" width="12" height="6" rx="2" fill="#0d9488" opacity="0.3"/>
+                <text x="200" y="110" text-anchor="middle" fill="#475569" font-size="7" font-family="Inter">3 pending</text>
+
+                <!-- Sync icon -->
+                <circle cx="340" cy="80" r="24" fill="#1e293b" stroke="#0d9488" stroke-width="2"/>
+                <path d="M 332,74 A 10,10 0 0,1 348,74" fill="none" stroke="#14b8a6" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 348,86 A 10,10 0 0,1 332,86" fill="none" stroke="#14b8a6" stroke-width="2" stroke-linecap="round"/>
+                <polygon points="348,71 352,76 344,76" fill="#14b8a6"/>
+                <polygon points="332,89 328,84 336,84" fill="#14b8a6"/>
+                <text x="340" y="120" text-anchor="middle" fill="#64748b" font-size="8" font-family="Inter">Auto-Sync</text>
+
+                <!-- Cloud -->
+                <path d="M 455,95 Q 445,95 445,85 Q 445,75 455,72 Q 458,62 470,62 Q 482,62 485,72 Q 495,72 495,82 Q 495,95 485,95 Z" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+                <text x="470" y="84" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter" font-weight="600">☁</text>
+                <text x="470" y="115" text-anchor="middle" fill="#64748b" font-size="8" font-family="Inter">Cloud Server</text>
+
+                <!-- Animated pulse dots -->
+                <circle r="5" fill="#14b8a6" class="pulse-dot" opacity="0"/>
+                <circle r="4" fill="#f59e0b" class="pulse-dot" opacity="0"/>
+                <circle r="5" fill="#14b8a6" class="pulse-dot" opacity="0"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== HOW IT WORKS ========== -->
+    <section id="how-it-works" class="py-20 sm:py-28 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="reveal font-heading font-700 text-3xl sm:text-4xl tracking-tight text-slate-900 mb-4">Up and Running in Four Steps</h2>
+          <p class="reveal text-slate-500 max-w-2xl mx-auto" style="transition-delay: 100ms">From zero to a fully digital school — no IT team required. We handle setup so you can focus on what matters.</p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 relative">
+          <!-- Connecting line (desktop) -->
+          <div class="hidden lg:block absolute top-16 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-brand-200 via-brand-400 to-brand-200" aria-hidden="true"></div>
+
+          <!-- Step 1 -->
+          <div class="reveal text-center relative" style="transition-delay: 0ms">
+            <div class="relative z-10 w-14 h-14 rounded-2xl bg-brand-600 text-white font-heading font-800 text-xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-brand-600/20">1</div>
+            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+              <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mx-auto mb-4">
+                <iconify-icon icon="lucide:school" class="text-brand-600 text-xl"></iconify-icon>
+              </div>
+              <h3 class="font-heading font-700 text-base text-slate-900 mb-2">Set Up Your School</h3>
+              <p class="text-sm text-slate-500 leading-relaxed">Create your school profile, configure classes, academic periods, and grading scales.</p>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="reveal text-center relative" style="transition-delay: 120ms">
+            <div class="relative z-10 w-14 h-14 rounded-2xl bg-brand-600 text-white font-heading font-800 text-xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-brand-600/20">2</div>
+            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+              <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mx-auto mb-4">
+                <iconify-icon icon="lucide:user-plus" class="text-brand-600 text-xl"></iconify-icon>
+              </div>
+              <h3 class="font-heading font-700 text-base text-slate-900 mb-2">Add Teachers & Students</h3>
+              <p class="text-sm text-slate-500 leading-relaxed">Import staff and student rosters. Every teacher gets their role-based dashboard instantly.</p>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="reveal text-center relative" style="transition-delay: 240ms">
+            <div class="relative z-10 w-14 h-14 rounded-2xl bg-brand-600 text-white font-heading font-800 text-xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-brand-600/20">3</div>
+            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+              <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mx-auto mb-4">
+                <iconify-icon icon="lucide:pencil-line" class="text-brand-600 text-xl"></iconify-icon>
+              </div>
+              <h3 class="font-heading font-700 text-base text-slate-900 mb-2">Enter Scores & Attendance</h3>
+              <p class="text-sm text-slate-500 leading-relaxed">Teachers log data daily — offline or online. Ranks and grades calculate automatically.</p>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="reveal text-center relative" style="transition-delay: 360ms">
+            <div class="relative z-10 w-14 h-14 rounded-2xl bg-accent-500 text-white font-heading font-800 text-xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-accent-500/20">4</div>
+            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+              <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mx-auto mb-4">
+                <iconify-icon icon="lucide:send" class="text-amber-600 text-xl"></iconify-icon>
+              </div>
+              <h3 class="font-heading font-700 text-base text-slate-900 mb-2">Share Reports with Parents</h3>
+              <p class="text-sm text-slate-500 leading-relaxed">Admins approve, parents receive a secure link. Scores, attendance, and messaging — all in one place.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SCREENSHOTS / PRODUCT SHOWCASE ========== -->
+    <section id="showcase" class="py-20 sm:py-28 bg-slate-50 overflow-hidden">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="reveal font-heading font-700 text-3xl sm:text-4xl tracking-tight text-slate-900 mb-4">See It in Action</h2>
+          <p class="reveal text-slate-500 max-w-2xl mx-auto" style="transition-delay: 100ms">A glimpse inside the platform — from dashboards to report cards to the parent view.</p>
+        </div>
+      </div>
+
+      <!-- Carousel -->
+      <div class="reveal-scale relative" style="transition-delay: 200ms">
+        <div class="overflow-hidden" id="carousel-viewport">
+          <div class="carousel-track" id="carousel-track">
+            <div class="flex-shrink-0 w-full px-4 sm:px-8">
+              <div class="max-w-4xl mx-auto">
+                <div class="rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/10 border border-slate-200">
+                  <img src="https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=900&h=520&fit=crop" alt="Student using a tablet for digital learning in a modern classroom" class="w-full h-56 sm:h-80 lg:h-[420px] object-cover" loading="lazy">
+                </div>
+                <p class="text-center text-sm text-slate-500 mt-4 font-medium">Student Dashboard — Score Overview</p>
+              </div>
+            </div>
+            <div class="flex-shrink-0 w-full px-4 sm:px-8">
+              <div class="max-w-4xl mx-auto">
+                <div class="rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/10 border border-slate-200">
+                  <img src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=900&h=520&fit=crop" alt="Organized school supplies and notebooks representing well-kept student records" class="w-full h-56 sm:h-80 lg:h-[420px] object-cover" loading="lazy">
+                </div>
+                <p class="text-center text-sm text-slate-500 mt-4 font-medium">Report Card Generation — PDF with Digital Signature</p>
+              </div>
+            </div>
+            <div class="flex-shrink-0 w-full px-4 sm:px-8">
+              <div class="max-w-4xl mx-auto">
+                <div class="rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/10 border border-slate-200">
+                  <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=900&h=520&fit=crop" alt="Children engaged in learning activities at a primary school" class="w-full h-56 sm:h-80 lg:h-[420px] object-cover" loading="lazy">
+                </div>
+                <p class="text-center text-sm text-slate-500 mt-4 font-medium">Parent Portal — View Scores & Send Messages</p>
+              </div>
+            </div>
+            <div class="flex-shrink-0 w-full px-4 sm:px-8">
+              <div class="max-w-4xl mx-auto">
+                <div class="rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/10 border border-slate-200">
+                  <img src="https://images.unsplash.com/photo-1588072432836-e10032774350?w=900&h=520&fit=crop" alt="School hallway showing a well-organized primary school environment" class="w-full h-56 sm:h-80 lg:h-[420px] object-cover" loading="lazy">
+                </div>
+                <p class="text-center text-sm text-slate-500 mt-4 font-medium">Admin Dashboard — Attendance & Budget Tracking</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carousel controls -->
+        <div class="flex items-center justify-center gap-3 mt-8">
+          <button id="carousel-prev" class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm" aria-label="Previous slide">
+            <iconify-icon icon="lucide:chevron-left" class="text-slate-600"></iconify-icon>
+          </button>
+          <div class="flex gap-2" id="carousel-dots" role="tablist" aria-label="Carousel navigation"></div>
+          <button id="carousel-next" class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm" aria-label="Next slide">
+            <iconify-icon icon="lucide:chevron-right" class="text-slate-600"></iconify-icon>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== TESTIMONIAL ========== -->
+    <section class="py-20 sm:py-28 bg-white">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="reveal-scale bg-gradient-to-br from-brand-50 to-slate-50 rounded-3xl p-8 sm:p-12 border border-brand-100/50 relative overflow-hidden">
+          <!-- Decorative quote mark -->
+          <div class="absolute top-4 right-6 sm:top-6 sm:right-10 text-brand-100 font-heading text-[120px] leading-none select-none" aria-hidden="true">"</div>
+
+          <div class="relative">
+            <iconify-icon icon="lucide:quote" class="text-brand-400 text-2xl mb-4 block"></iconify-icon>
+            <blockquote class="text-lg sm:text-xl text-slate-700 leading-relaxed mb-8 font-medium">
+              Our teachers used to spend weeks hand-writing report cards. Now they enter scores in minutes and parents see results the same day. The offline feature is a game-changer for our rural campus — we don't worry about connectivity anymore.
+            </blockquote>
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-brand-600 flex items-center justify-center text-white font-heading font-700 text-lg">S</div>
+              <div>
+                <div class="font-heading font-700 text-sm text-slate-900">School Director</div>
+                <div class="text-sm text-slate-500">Battambang Pilot School, Cambodia</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== FINAL CTA ========== -->
+    <section id="cta" class="py-20 sm:py-28 bg-gradient-to-br from-brand-700 via-brand-800 to-brand-900 relative overflow-hidden">
+      <!-- Background decoration -->
+      <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-brand-400 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/4 w-72 h-72 bg-accent-500 rounded-full blur-3xl"></div>
+      </div>
+
+      <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="reveal font-heading font-700 text-3xl sm:text-4xl lg:text-5xl tracking-tight text-white mb-5">Ready to Modernize<br class="hidden sm:block"> Your School?</h2>
+        <p class="reveal text-brand-200 text-lg mb-10 max-w-xl mx-auto" style="transition-delay: 100ms">Join schools already moving from paper to digital. Request early access and we'll set up your school profile — no commitment required.</p>
+
+        <div class="reveal flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto" style="transition-delay: 200ms">
+          <label for="cta-email" class="sr-only">Your email address</label>
+          <input
+            id="cta-email"
+            type="email"
+            placeholder="your@email.com"
+            class="w-full sm:flex-1 px-5 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent backdrop-blur-sm"
+          >
+          <button id="cta-submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-7 py-3.5 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95 shadow-lg shadow-accent-500/25 text-sm whitespace-nowrap">
+            Request Access
+            <iconify-icon icon="lucide:arrow-right"></iconify-icon>
+          </button>
+        </div>
+        <div id="cta-message" class="mt-4 text-sm text-brand-200 hidden"></div>
+        <p class="reveal text-brand-300/60 text-xs mt-6" style="transition-delay: 300ms">Free for pilot schools. No credit card needed.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="bg-slate-900 text-slate-400 pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8 mb-12">
+        <!-- Brand -->
+        <div class="sm:col-span-2 lg:col-span-1">
+          <a href="#" class="flex items-center gap-2.5 mb-4" aria-label="SchoolPulse home">
+            <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
+              <iconify-icon icon="lucide:graduation-cap" class="text-white text-sm"></iconify-icon>
+            </div>
+            <span class="font-heading font-800 text-lg text-white tracking-tight">School<span class="text-brand-400">Pulse</span></span>
+          </a>
+          <p class="text-sm leading-relaxed max-w-xs">A complete primary school management platform — built for real schools, with real connectivity challenges.</p>
+        </div>
+
+        <!-- Product -->
+        <div>
+          <h4 class="font-heading font-700 text-sm text-white uppercase tracking-wider mb-4">Product</h4>
+          <ul class="space-y-2.5">
+            <li><a href="#features" class="text-sm hover:text-brand-400 transition-colors">Features</a></li>
+            <li><a href="#how-it-works" class="text-sm hover:text-brand-400 transition-colors">How It Works</a></li>
+            <li><a href="#offline" class="text-sm hover:text-brand-400 transition-colors">Offline-First</a></li>
+            <li><a href="#showcase" class="text-sm hover:text-brand-400 transition-colors">Screenshots</a></li>
+          </ul>
+        </div>
+
+        <!-- Roles -->
+        <div>
+          <h4 class="font-heading font-700 text-sm text-white uppercase tracking-wider mb-4">Roles</h4>
+          <ul class="space-y-2.5">
+            <li><a href="#roles" class="text-sm hover:text-brand-400 transition-colors">Admin / Director</a></li>
+            <li><a href="#roles" class="text-sm hover:text-brand-400 transition-colors">Teacher</a></li>
+            <li><a href="#roles" class="text-sm hover:text-brand-400 transition-colors">Librarian</a></li>
+            <li><a href="#roles" class="text-sm hover:text-brand-400 transition-colors">Parent Portal</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact -->
+        <div>
+          <h4 class="font-heading font-700 text-sm text-white uppercase tracking-wider mb-4">Contact</h4>
+          <ul class="space-y-2.5">
+            <li><a href="#cta" class="text-sm hover:text-brand-400 transition-colors">Request a Demo</a></li>
+            <li><a href="mailto:hello@schoolpulse.io" class="text-sm hover:text-brand-400 transition-colors">hello@schoolpulse.io</a></li>
+            <li class="flex gap-3 pt-2">
+              <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-brand-600 flex items-center justify-center transition-colors" aria-label="Facebook">
+                <iconify-icon icon="lucide:facebook" class="text-sm"></iconify-icon>
+              </a>
+              <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-brand-600 flex items-center justify-center transition-colors" aria-label="Twitter">
+                <iconify-icon icon="lucide:twitter" class="text-sm"></iconify-icon>
+              </a>
+              <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-brand-600 flex items-center justify-center transition-colors" aria-label="GitHub">
+                <iconify-icon icon="lucide:github" class="text-sm"></iconify-icon>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="border-t border-slate-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-slate-500">&copy; 2025 SchoolPulse. All rights reserved.</p>
+        <div class="flex gap-6">
+          <a href="#" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">Privacy Policy</a>
+          <a href="#" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== JAVASCRIPT ========== -->
+  <script>
+    // Mark JS as enabled for progressive enhancement
+    document.body.classList.add('js-enabled');
+
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ===== SCROLL REVEAL OBSERVER =====
+    if (!prefersReducedMotion) {
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+      document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+        revealObserver.observe(el);
+      });
+    } else {
+      // If reduced motion, make everything visible immediately
+      document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+        el.classList.add('revealed');
+      });
+    }
+
+    // ===== COUNT-UP ANIMATION =====
+    const countUpObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const target = parseInt(el.dataset.target, 10);
+          const duration = 1200;
+          const startTime = performance.now();
+
+          function updateCount(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(eased * target);
+            if (progress < 1) {
+              requestAnimationFrame(updateCount);
+            }
+          }
+
+          if (prefersReducedMotion) {
+            el.textContent = target;
+          } else {
+            requestAnimationFrame(updateCount);
+          }
+          countUpObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.count-up').forEach(el => countUpObserver.observe(el));
+
+    // ===== NAVBAR SCROLL EFFECT =====
+    const navbar = document.getElementById('navbar');
+    let lastScroll = 0;
+
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY;
+      if (scrollY > 50) {
+        navbar.classList.add('bg-white/90', 'backdrop-blur-xl', 'shadow-sm', 'border-b', 'border-slate-100');
+      } else {
+        navbar.classList.remove('bg-white/90', 'backdrop-blur-xl', 'shadow-sm', 'border-b', 'border-slate-100');
+      }
+      lastScroll = scrollY;
+    }, { passive: true });
+
+    // ===== MOBILE MENU =====
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIconOpen = document.getElementById('menu-icon-open');
+    const menuIconClose = document.getElementById('menu-icon-close');
+    let menuOpen = false;
+
+    mobileToggle.addEventListener('click', () => {
+      menuOpen = !menuOpen;
+      mobileMenu.classList.toggle('hidden', !menuOpen);
+      menuIconOpen.classList.toggle('hidden', menuOpen);
+      menuIconClose.classList.toggle('hidden', !menuOpen);
+      mobileToggle.setAttribute('aria-expanded', menuOpen);
+    });
+
+    // Close mobile menu on link click
+    document.querySelectorAll('.mobile-link').forEach(link => {
+      link.addEventListener('click', () => {
+        menuOpen = false;
+        mobileMenu.classList.add('hidden');
+        menuIconOpen.classList.remove('hidden');
+        menuIconClose.classList.add('hidden');
+        mobileToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // ===== ROLE TABS =====
+    const roleTabs = document.querySelectorAll('.role-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    roleTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const role = tab.dataset.role;
+
+        // Update tab styles
+        roleTabs.forEach(t => {
+          t.classList.remove('bg-brand-600', 'text-white', 'shadow-md', 'shadow-brand-600/20');
+          t.classList.add('bg-slate-100', 'text-slate-600');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('bg-brand-600', 'text-white', 'shadow-md', 'shadow-brand-600/20');
+        tab.classList.remove('bg-slate-100', 'text-slate-600');
+        tab.setAttribute('aria-selected', 'true');
+
+        // Crossfade content
+        tabContents.forEach(panel => {
+          if (panel.id === `panel-${role}`) {
+            panel.classList.add('active');
+            panel.style.opacity = '0';
+            panel.style.transform = 'translateY(8px)';
+            requestAnimationFrame(() => {
+              panel.style.transition = 'opacity 0.35s ease-out, transform 0.35s ease-out';
+              panel.style.opacity = '1';
+              panel.style.transform = 'translateY(0)';
+            });
+          } else {
+            panel.classList.remove('active');
+          }
+        });
+      });
+    });
+
+    // ===== IMAGE CAROUSEL =====
+    const carouselTrack = document.getElementById('carousel-track');
+    const carouselDots = document.getElementById('carousel-dots');
+    const prevBtn = document.getElementById('carousel-prev');
+    const nextBtn = document.getElementById('carousel-next');
+    const slides = carouselTrack.children;
+    const totalSlides = slides.length;
+    let currentSlide = 0;
+    let autoplayTimer = null;
+
+    // Create dots
+    for (let i = 0; i < totalSlides; i++) {
+      const dot = document.createElement('button');
+      dot.className = `w-2.5 h-2.5 rounded-full transition-all duration-200 ${i === 0 ? 'bg-brand-600 w-8' : 'bg-slate-300'}`;
+      dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+      dot.setAttribute('role', 'tab');
+      dot.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+      dot.addEventListener('click', () => goToSlide(i));
+      carouselDots.appendChild(dot);
+    }
+
+    function goToSlide(index) {
+      currentSlide = index;
+      carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+      // Update dots
+      Array.from(carouselDots.children).forEach((dot, i) => {
+        if (i === currentSlide) {
+          dot.classList.add('bg-brand-600', 'w-8');
+          dot.classList.remove('bg-slate-300');
+          dot.setAttribute('aria-selected', 'true');
+        } else {
+          dot.classList.remove('bg-brand-600', 'w-8');
+          dot.classList.add('bg-slate-300');
+          dot.setAttribute('aria-selected', 'false');
+        }
+      });
+
+      resetAutoplay();
+    }
+
+    function nextSlide() {
+      goToSlide((currentSlide + 1) % totalSlides);
+    }
+
+    function prevSlide() {
+      goToSlide((currentSlide - 1 + totalSlides) % totalSlides);
+    }
+
+    function resetAutoplay() {
+      if (autoplayTimer) clearInterval(autoplayTimer);
+      if (!prefersReducedMotion) {
+        autoplayTimer = setInterval(nextSlide, 5000);
+      }
+    }
+
+    prevBtn.addEventListener('click', prevSlide);
+    nextBtn.addEventListener('click', nextSlide);
+
+    // Pause autoplay on hover
+    const carouselViewport = document.getElementById('carousel-viewport');
+    carouselViewport.addEventListener('mouseenter', () => { if (autoplayTimer) clearInterval(autoplayTimer); });
+    carouselViewport.addEventListener('mouseleave', resetAutoplay);
+
+    // Start autoplay
+    resetAutoplay();
+
+    // ===== CTA FORM =====
+    const ctaSubmit = document.getElementById('cta-submit');
+    const ctaEmail = document.getElementById('cta-email');
+    const ctaMessage = document.getElementById('cta-message');
+
+    ctaSubmit.addEventListener('click', (e) => {
+      e.preventDefault();
+      const email = ctaEmail.value.trim();
+
+      if (!email) {
+        showCtaMessage('Please enter your email address.', false);
+        return;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showCtaMessage('Please enter a valid email address.', false);
+        return;
+      }
+
+      // Simulate submission
+      ctaSubmit.disabled = true;
+      ctaSubmit.innerHTML = '<iconify-icon icon="lucide:loader-2" class="animate-spin"></iconify-icon> Sending...';
+
+      setTimeout(() => {
+        showCtaMessage('Thank you! We\'ll be in touch soon to set up your school.', true);
+        ctaEmail.value = '';
+        ctaSubmit.disabled = false;
+        ctaSubmit.innerHTML = 'Request Access <iconify-icon icon="lucide:arrow-right"></iconify-icon>';
+      }, 1500);
+    });
+
+    function showCtaMessage(text, isSuccess) {
+      ctaMessage.textContent = text;
+      ctaMessage.classList.remove('hidden', 'text-red-300', 'text-brand-200');
+      ctaMessage.classList.add(isSuccess ? 'text-brand-200' : 'text-red-300');
+      setTimeout(() => ctaMessage.classList.add('hidden'), 5000);
+    }
+
+    // Enter key on email input
+    ctaEmail.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') ctaSubmit.click();
+    });
+
+    // ===== KEYBOARD SUPPORT FOR CAROUSEL =====
+    carouselViewport.setAttribute('tabindex', '0');
+    carouselViewport.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prevSlide();
+      if (e.key === 'ArrowRight') nextSlide();
+    });
+
+    // ===== SMOOTH SCROLL FOR ANCHOR LINKS =====
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href === '#') return;
+        const target = document.querySelector(href);
+        if (target) {
+          e.preventDefault();
+          const navHeight = navbar.offsetHeight;
+          const targetPosition = target.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+          window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
