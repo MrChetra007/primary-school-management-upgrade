@@ -8,7 +8,7 @@ import { computeMonthlyAverage, computeRank } from '@/utils/scoreCalculator'
 import {
   CheckCircleIcon, XCircleIcon, DocumentDuplicateIcon,
   ChevronLeftIcon, PaperAirplaneIcon, PencilSquareIcon,
-  LinkIcon, LockClosedIcon
+  LinkIcon, LockClosedIcon, PrinterIcon
 } from '@heroicons/vue/24/outline'
 import PhrasePicker from '@/components/report/PhrasePicker.vue'
 import { useRouter } from 'vue-router'
@@ -463,6 +463,13 @@ async function handleCopyLink() {
               >
                 <PaperAirplaneIcon class="w-4 h-4" />
                 {{ currentLink?.status === 'rejected' ? 'ស្នើសុំឡើងវិញ' : 'ផ្ញើសម្រាប់ការអនុម័ត' }}
+              </button>
+              <button
+                class="btn btn-secondary"
+                @click="router.push({ name: 'teacher-scores-report-card-print', query: { classId: classInfo?.id, academicYearId: classInfo?.academic_year_id, scoreType: mode, month: mode === 'monthly' ? selectedMonth : undefined, semester: mode === 'semester' ? selectedSemester : undefined } })"
+              >
+                <PrinterIcon class="w-4 h-4" />
+                បោះពុម្ព
               </button>
               <button
                 v-if="currentLink?.status === 'approved'"

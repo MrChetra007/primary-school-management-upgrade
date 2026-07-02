@@ -104,6 +104,7 @@ const router = createRouter({
         { path: 'scores/certificates', name: 'teacher-scores-certificates', component: () => import('@/views/teacher/CertificateDesignView.vue') },
         { path: 'scores/honor-board-editor', name: 'teacher-honor-board-editor', component: () => import('@/views/teacher/Honorboardeditor.vue') },
         { path: 'scores/report-link',    name: 'teacher-scores-report-link',    component: () => import('@/views/teacher/ReportLinkView.vue') },
+        { path: 'scores/report-card-print', name: 'teacher-scores-report-card-print', component: () => import('@/views/teacher/ReportCardPrintView.vue') },
         { path: 'scores/report-replies', name: 'teacher-scores-report-replies', component: () => import('@/views/teacher/ReportRepliesView.vue') },
         { path: 'scores/summary/:id', name: 'teacher-scores-summary', component: () => import('@/views/teacher/ScoreSummaryView.vue') },
         { path: 'sick-days',       name: 'teacher-sick-days',       component: () => import('@/views/teacher/SickDaysView.vue') },
