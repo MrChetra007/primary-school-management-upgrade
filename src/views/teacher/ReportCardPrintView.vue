@@ -358,9 +358,9 @@ function buildPrintHtml() {
 
     .cut-line {
       text-align: center;
-      font-size: 10px;
+      font-size: 9px;
       color: #94a3b8;
-      padding: 4px 0;
+      padding: 2px 0;
       letter-spacing: 1px;
     }
 
