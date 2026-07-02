@@ -105,11 +105,13 @@ onMounted(async () => {
       subjects.value = csData || []
       allScores.value = scoreData || []
 
-      const year = new Date().getFullYear()
-      const m = scoreType === 'monthly' ? month : new Date().getMonth() + 1
+      const now = new Date()
+      const year = now.getFullYear()
+      const m = scoreType === 'monthly' ? (month || now.getMonth() + 1) : now.getMonth() + 1
       const startDate = `${year}-${String(m).padStart(2, '0')}-01`
       const endMonth = m === 12 ? 1 : m + 1
-      const endDate = `${endMonth === 1 ? year + 1 : year}-${String(endMonth).padStart(2, '0')}-01`
+      const endYear = m === 12 ? year + 1 : year
+      const endDate = `${endYear}-${String(endMonth).padStart(2, '0')}-01`
 
       const [{ data: attData }, { data: msgData }] = await Promise.all([
         supabase.from('attendances').select('*').in('student_id', studentIds).gte('date', startDate).lt('date', endDate),

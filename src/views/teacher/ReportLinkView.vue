@@ -374,6 +374,20 @@ async function handleSendForApproval() {
   }
 }
 
+function navigateToPrint() {
+  const params = {
+    classId: classInfo.value?.id,
+    academicYearId: classInfo.value?.academic_year_id,
+    scoreType: mode.value,
+  }
+  if (mode.value === 'monthly') {
+    params.month = selectedMonth.value
+  } else {
+    params.semester = selectedSemester.value
+  }
+  router.push({ name: 'teacher-scores-report-card-print', query: params })
+}
+
 async function handleCopyLink() {
   if (!currentLink.value || currentLink.value.status !== 'approved') return
   const link = `${window.location.origin}/parent/report/${currentLink.value.id}`
@@ -466,7 +480,7 @@ async function handleCopyLink() {
               </button>
               <button
                 class="btn btn-secondary"
-                @click="router.push({ name: 'teacher-scores-report-card-print', query: { classId: classInfo?.id, academicYearId: classInfo?.academic_year_id, scoreType: mode, month: mode === 'monthly' ? selectedMonth : undefined, semester: mode === 'semester' ? selectedSemester : undefined } })"
+                @click="navigateToPrint"
               >
                 <PrinterIcon class="w-4 h-4" />
                 បោះពុម្ព
