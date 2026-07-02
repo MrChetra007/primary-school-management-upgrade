@@ -717,7 +717,7 @@ function goBack() {
         ត្រឡប់
       </button>
       <h2 class="print-title">បោះពុម្ពរបាយការណ៍សិក្សា</h2>
-      <button class="btn btn-sm" :class="showSignature ? 'btn-secondary' : 'btn-outline'" @click="toggleSignature" style="font-size:12px;">
+      <button class="btn btn-sm" :class="showSignature ? 'btn-secondary' : 'btn-secondary'" @click="toggleSignature" :style="{ fontSize: '12px', fontWeight: 700, background: showSignature ? '' : '#fef3c7', border: showSignature ? '' : '2px solid #d97706', color: showSignature ? '' : '#92400e' }">
         {{ showSignature ? 'ប្រើហត្ថលេខា + ត្រា' : 'ទុកទំនេរ' }}
       </button>
       <button class="btn btn-primary" @click="handlePrint" :disabled="loading">
