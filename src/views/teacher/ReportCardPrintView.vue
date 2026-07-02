@@ -17,6 +17,12 @@ const schoolStore = useSchoolStore()
 const yearStore = useAcademicYearStore()
 const { showToast } = useToast()
 
+const showSignature = ref(localStorage.getItem('reportCardShowSignature') !== 'false')
+function toggleSignature() {
+  showSignature.value = !showSignature.value
+  localStorage.setItem('reportCardShowSignature', showSignature.value)
+}
+
 const loading = ref(true)
 const classInfo = ref(null)
 const students = ref([])
@@ -277,6 +283,7 @@ function buildPrintHtml() {
             </div>
           </div>
 
+          ${showSignature.value ? `
           <div class="signature-block">
             <div class="sig-side">
               <div class="sig-date">ថ្ងៃទី ________ ខែ ________ ឆ្នាំ ________</div>
@@ -291,7 +298,21 @@ function buildPrintHtml() {
               <div class="sig-line"></div>
               <div class="sig-name">${teacherName.value}</div>
             </div>
-          </div>
+          </div>` : `
+          <div class="signature-block signature-blank">
+            <div class="sig-side">
+              <div class="sig-date">ថ្ងៃទី ________ ខែ ________ ឆ្នាំ ________</div>
+              <div class="sig-role">នាយក</div>
+              <div class="sig-line"></div>
+              <div class="sig-name"></div>
+            </div>
+            <div class="sig-side">
+              <div class="sig-date">ថ្ងៃទី ________ ខែ ________ ឆ្នាំ ________</div>
+              <div class="sig-role">គ្រូប្រចាំថ្នាក់</div>
+              <div class="sig-line"></div>
+              <div class="sig-name"></div>
+            </div>
+          </div>`}
         </div>
       </div>`
   }
@@ -629,6 +650,13 @@ function buildPrintHtml() {
       margin-top: 4px;
     }
 
+    .signature-blank {
+      opacity: 0.6;
+    }
+    .signature-blank .sig-line {
+      border-top: 1px dashed #94a3b8;
+    }
+
     @media print {
       @page {
         size: A4;
@@ -689,6 +717,9 @@ function goBack() {
         ត្រឡប់
       </button>
       <h2 class="print-title">បោះពុម្ពរបាយការណ៍សិក្សា</h2>
+      <button class="btn btn-sm" :class="showSignature ? 'btn-secondary' : 'btn-outline'" @click="toggleSignature" style="font-size:12px;">
+        {{ showSignature ? 'ប្រើហត្ថលេខា + ត្រា' : 'ទុកទំនេរ' }}
+      </button>
       <button class="btn btn-primary" @click="handlePrint" :disabled="loading">
         <PrinterIcon class="w-4 h-4" />
         {{ loading ? 'កំពុងផ្ទុក...' : 'បោះពុម្ព' }}
