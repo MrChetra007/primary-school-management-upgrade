@@ -570,3 +570,27 @@ src/
 - Compact mode: horizontal-scrollable subject tabs at top, students listed vertically with fat touch inputs (44px min-height, 18px font)
 - No horizontal scrolling on mobile, one subject at a time
 - Fixed CSS bug: `--primary-color` undefined in global styles → used `--primary-500` instead for active tab background
+
+### Session 3 — PWA Update Flow Fix + UI Improvements (July 2026)
+
+**PWA Update Flow Overhaul:**
+- Fixed `registerType` from `'autoUpdate'` to `'prompt'` in `vite.config.js` — new SW now waits for user approval instead of silently trying to auto-update
+- Rewrote `src/composables/usePwa.js` — added `onNeedRefresh()` callback that sets `showUpdatePrompt` ref, exposed `updateNow()` (calls `updateServiceWorker()` then reloads) and `dismissUpdate()` (hides prompt, SW stays waiting)
+- Moved update banner from `HomeView.vue` to `App.vue` — visible on every page, not just landing page
+- Removed old update toast template, CSS, and unused destructured vars from `HomeView.vue`
+- Added `vercel.json` — `Cache-Control: no-cache, no-store, must-revalidate` for `sw.js`, `workbox-*.js`, and `index.html` to prevent stale service worker delivery
+- Build verified: PWA generates 155 precached entries with `sw.js` + `workbox-*.js`
+
+**Report Card Print View improvements (`ReportCardPrintView.vue`):**
+- Added signature toggle button in toolbar — shows/hides director signature + stamp in printed output, persisted via `localStorage` key `reportCardShowSignature`
+- Fixed navigation loop: `goBack()` changed from `router.push('/teacher/scores/report-link')` to `router.back()`
+- Replaced `window.open` with hidden iframe approach for `handlePrint()` — bypasses mobile popup blockers
+- Replaced minimap (student name list) with inline iframe preview rendering actual report cards
+- Added "⬇ HTML" download button — generates downloadable `.html` file for offline saving
+
+**Report Link View UI improvement (`ReportLinkView.vue`):**
+- Moved "សារទៅកាន់មាតាបិតា" (teacher note) section out of the 2-column grid to span full card width
+- Improved note container styling: white background, blue border card, bigger textarea (90px min-height, 14px font)
+
+**PhrasePicker input visibility fix (`PhrasePicker.vue`):**
+- Added visible white background, solid `#cbd5e1` border, proper padding, and blue focus ring to `.phrase-input` — was nearly invisible against some backgrounds
