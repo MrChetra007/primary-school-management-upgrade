@@ -145,7 +145,12 @@ onMounted(async () => {
 
 const htmlContent = computed(() => {
   if (loading.value || !classInfo.value) return ''
-  return buildPrintHtml()
+  return buildPrintHtml(true)
+})
+
+const previewHtml = computed(() => {
+  if (loading.value || !classInfo.value) return ''
+  return buildPrintHtml(false)
 })
 
 function getStudentScores(studentId) {
@@ -171,7 +176,7 @@ function getAttendance(studentId) {
 // CUT LINE marker, reused between the two halves of a page
 const CUT_LINE = '<div class="cut-line">— — — — — — — — កាត់ត្រង់នេះ — — — — — — — —</div>'
 
-function buildPrintHtml() {
+function buildPrintHtml(includeScript = true) {
   const schoolName = schoolInfo.value?.name_khmer || schoolStore.schoolName || 'សាលាបឋមសិក្សា'
   const schoolAddress = schoolInfo.value?.address || ''
   const logo = schoolInfo.value?.logo_url || schoolStore.logoUrl || ''
@@ -673,6 +678,7 @@ function buildPrintHtml() {
 </head>
 <body>
   ${pagesHtml}
+  ${includeScript ? `
   <script>
     document.fonts.ready.then(function() {
       setTimeout(function() {
@@ -683,7 +689,7 @@ function buildPrintHtml() {
     window.addEventListener('afterprint', function() {
       window.close();
     });
-  <\/script>
+  <\/script>` : ''}
 </body>
 </html>`
 }
@@ -694,18 +700,59 @@ function handlePrint() {
     showToast('គ្មានទិន្នន័យសម្រាប់បោះពុម្ព', 'error')
     return
   }
-  const win = window.open('', '_blank', 'width=900,height=1100,scrollbars=yes')
-  if (!win) {
-    showToast('សូមអនុញ្ញាត Pop-up សម្រាប់គេហទំព័រនេះ', 'error')
+  const iframe = document.createElement('iframe')
+  iframe.style.position = 'fixed'
+  iframe.style.width = '0'
+  iframe.style.height = '0'
+  iframe.style.border = '0'
+  iframe.style.opacity = '0'
+  document.body.appendChild(iframe)
+  const idoc = iframe.contentDocument || iframe.contentWindow.document
+  idoc.open()
+  idoc.write(html)
+  idoc.close()
+  setTimeout(() => {
+    try {
+      iframe.contentWindow.focus()
+      iframe.contentWindow.print()
+    } catch (e) {
+      showToast('មិនអាចបោះពុម្ពបានទេ', 'error')
+    }
+  }, 1000)
+}
+
+function downloadHtml() {
+  const html = htmlContent.value
+  if (!html) {
+    showToast('គ្មានទិន្នន័យ', 'error')
     return
   }
-  win.document.open()
-  win.document.write(html)
-  win.document.close()
+  const blob = new Blob([html], { type: 'text/html' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `report-card-${classInfo?.class_name || 'class'}.html`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+  showToast('បានទាញយកឯកសារ HTML', 'success')
+}
+
+function onPreviewLoad() {
+  // Auto-resize iframe height to fit content
+  const iframe = document.querySelector('.preview-frame')
+  if (!iframe) return
+  try {
+    const idoc = iframe.contentDocument || iframe.contentWindow.document
+    iframe.style.height = idoc.body?.scrollHeight ? (idoc.body.scrollHeight + 40) + 'px' : '500px'
+  } catch (e) {
+    // cross-origin restriction fallback
+  }
 }
 
 function goBack() {
-  router.push('/teacher/scores/report-link')
+  router.back()
 }
 </script>
 
@@ -724,6 +771,9 @@ function goBack() {
         <PrinterIcon class="w-4 h-4" />
         {{ loading ? 'កំពុងផ្ទុក...' : 'បោះពុម្ព' }}
       </button>
+      <button class="btn btn-success btn-sm" @click="downloadHtml" :disabled="loading" style="font-size:12px;">
+        ⬇ HTML
+      </button>
     </div>
 
     <div v-if="loading" class="loading-state">
@@ -741,12 +791,14 @@ function goBack() {
         <p>សិស្សសរុប <strong>{{ rankedList.length }}</strong> នាក់ · មធ្យមភាគថ្នាក់ <strong>{{ (rankedList.reduce((a,b) => a + b.average, 0) / rankedList.length).toFixed(2) }}</strong></p>
       </div>
 
-      <div class="minimap">
-        <div v-for="(student, idx) in rankedList" :key="student.id" class="mini-card" :class="{ 'odd': idx % 2 === 1 }">
-          <div class="mini-rank">{{ idx + 1 }}</div>
-          <div class="mini-name">{{ student.full_name }}</div>
-          <div class="mini-avg">{{ student.average.toFixed(1) }}</div>
-        </div>
+      <div class="preview-frame-wrap">
+        <iframe
+          v-if="previewHtml"
+          class="preview-frame"
+          :srcdoc="previewHtml"
+          title="Preview"
+          @load="onPreviewLoad"
+        ></iframe>
       </div>
     </div>
   </div>
@@ -800,41 +852,18 @@ function goBack() {
   color: var(--text-secondary);
 }
 
-.minimap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.mini-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  background: white;
+.preview-frame-wrap {
   border: 1px solid var(--border-default);
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
 }
 
-.mini-card.odd {
-  border-left: 3px solid var(--primary-300);
-}
-
-.mini-rank {
-  width: 28px;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.mini-name {
-  flex: 1;
-  font-weight: 600;
-}
-
-.mini-avg {
-  font-weight: 700;
-  color: var(--primary-600);
+.preview-frame {
+  width: 100%;
+  border: 0;
+  display: block;
+  min-height: 500px;
 }
 
 
