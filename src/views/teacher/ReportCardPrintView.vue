@@ -232,7 +232,8 @@ function buildPrintHtml(includeScript = true) {
               </div>
             </div>
             <div class="lh-right">
-              <div class="lh-label">សន្លឹកលទ្ធផលសិក្សា</div>
+              <div class="lh-avg">មធ្យមភាគ: ${student.average}</div>
+              <div class="lh-rank">ចំណាត់ថ្នាក់: ${student.rank}</div>
             </div>
           </div>
 
@@ -441,6 +442,19 @@ function buildPrintHtml(includeScript = true) {
       font-size: 12px;
       font-weight: 700;
       color: #1d4ed8;
+    }
+
+    .lh-avg {
+      font-size: 13px;
+      font-weight: 800;
+      color: #16a34a;
+    }
+
+    .lh-rank {
+      font-size: 11px;
+      font-weight: 700;
+      color: #1d4ed8;
+      margin-top: 2px;
     }
 
     .student-info-bar {
