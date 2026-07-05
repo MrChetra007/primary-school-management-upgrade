@@ -633,7 +633,7 @@ function buildPrintHtml(includeScript = true) {
     .sig-approval {
       font-size: 10px;
       font-weight: 700;
-      color: #1d4ed8;
+      color: #1e293b;
       margin-bottom: 4px;
     }
 
