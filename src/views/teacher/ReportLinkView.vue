@@ -32,6 +32,43 @@ const draftMessages = ref({})
 const savingStudentId = ref(null)
 const editingStudentId = ref(null)
 
+function localDraftsKey() {
+  if (!classInfo.value) return null
+  const parts = ['report_drafts', classInfo.value.id, classInfo.value.academic_year_id, mode.value]
+  if (mode.value === 'monthly') parts.push(`m${selectedMonth.value}`)
+  else parts.push(`s${selectedSemester.value}`)
+  return parts.join('_')
+}
+
+function saveLocalDrafts() {
+  const key = localDraftsKey()
+  if (!key) return
+  const toSave = {}
+  for (const sid of Object.keys(draftMessages.value)) {
+    const t = (draftMessages.value[sid] || '').trim()
+    if (t) toSave[sid] = t
+  }
+  if (Object.keys(toSave).length > 0) {
+    localStorage.setItem(key, JSON.stringify(toSave))
+  }
+}
+
+function loadLocalDrafts() {
+  const key = localDraftsKey()
+  if (!key) return {}
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : {}
+  } catch { return {} }
+}
+
+function clearLocalDrafts() {
+  const key = localDraftsKey()
+  if (key) localStorage.removeItem(key)
+}
+
+
+
 const mode = ref('monthly')
 const selectedMonth = ref(new Date().getMonth() + 1)
 const selectedSemester = ref(1)
@@ -84,6 +121,10 @@ async function loadClass() {
     classInfo.value = classData
     await fetchCurrentLink()
     await fetchData()
+    if (currentLink.value) {
+      await loadExistingMessages()
+    }
+    existingMessages.value = { ...loadLocalDrafts(), ...existingMessages.value }
   }
   loading.value = false
 }
@@ -179,6 +220,10 @@ async function fetchData() {
 async function onPeriodChange() {
   await fetchCurrentLink()
   await fetchData()
+  if (currentLink.value) {
+    await loadExistingMessages()
+  }
+  existingMessages.value = { ...loadLocalDrafts(), ...existingMessages.value }
 }
 
 watch([mode, selectedMonth, selectedSemester], onPeriodChange)
@@ -255,12 +300,13 @@ async function saveTeacherMessage(studentId) {
           teacher_text: text
         }, { onConflict: 'report_link_id,student_id' })
       if (error) throw error
+      await loadExistingMessages()
     } else {
       existingMessages.value[studentId] = text
+      saveLocalDrafts()
     }
     showToast('សារត្រូវបានរក្សាទុក')
     editingStudentId.value = null
-    if (currentLink.value) await loadExistingMessages()
   } catch (err) {
     showToast(err.message, 'error')
   } finally {
@@ -366,6 +412,7 @@ async function handleSendForApproval() {
         if (msgError) throw msgError
       }
 
+      clearLocalDrafts()
       await loadExistingMessages()
       showToast('បានផ្ញើសម្រាប់ការអនុម័តដោយជោគជ័យ!')
     }
