@@ -279,7 +279,7 @@ function buildPrintHtml(includeScript = true) {
                   <span class="att-label">សរុប</span>
                 </div>
               </div>
-              <div class="att-rate">${att.rate}%</div>
+              
             </div>
             <div class="note-block">
               <div class="note-title">សារគ្រូ</div>
@@ -292,6 +292,7 @@ function buildPrintHtml(includeScript = true) {
           ${showSignature.value ? `
           <div class="signature-block">
             <div class="sig-side">
+              <div class="sig-approval">បានឃើញ និង ឯកភាព</div>
               <div class="sig-date">ថ្ងៃទី ________ ខែ ________ ឆ្នាំ ________</div>
               <div class="sig-role">នាយក</div>
               <div class="sig-line"></div>
@@ -307,6 +308,7 @@ function buildPrintHtml(includeScript = true) {
           </div>` : `
           <div class="signature-block signature-blank">
             <div class="sig-side">
+              <div class="sig-approval">បានឃើញ និង ឯកភាព</div>
               <div class="sig-date">ថ្ងៃទី ________ ខែ ________ ឆ្នាំ ________</div>
               <div class="sig-role">នាយក</div>
               <div class="sig-line"></div>
@@ -579,14 +581,6 @@ function buildPrintHtml(includeScript = true) {
       color: #64748b;
     }
 
-    .att-rate {
-      text-align: center;
-      font-size: 18px;
-      font-weight: 800;
-      color: #16a34a;
-      margin-top: 6px;
-    }
-
     .note-block {
       flex: 1;
       padding: 8px 12px;
@@ -634,6 +628,13 @@ function buildPrintHtml(includeScript = true) {
       font-size: 10px;
       color: #6b7280;
       margin-bottom: 6px;
+    }
+
+    .sig-approval {
+      font-size: 10px;
+      font-weight: 700;
+      color: #1d4ed8;
+      margin-bottom: 4px;
     }
 
     .sig-role {
