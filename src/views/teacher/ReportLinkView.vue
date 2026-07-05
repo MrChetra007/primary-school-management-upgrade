@@ -242,23 +242,25 @@ function handlePhrasePick(phrase) {
 
 async function saveTeacherMessage(studentId) {
   const text = (draftMessages.value[studentId] || '').trim()
-  if (!text || !currentLink.value) return
+  if (!text) return
   savingStudentId.value = studentId
   try {
-    const { error } = await supabase
-      .from('report_messages')
-      .upsert({
-        school_id: schoolStore.schoolId,
-        report_link_id: currentLink.value.id,
-        student_id: studentId,
-        teacher_text: text
-      }, { onConflict: 'report_link_id,student_id' })
-
-    if (error) throw error
-
+    if (currentLink.value) {
+      const { error } = await supabase
+        .from('report_messages')
+        .upsert({
+          school_id: schoolStore.schoolId,
+          report_link_id: currentLink.value.id,
+          student_id: studentId,
+          teacher_text: text
+        }, { onConflict: 'report_link_id,student_id' })
+      if (error) throw error
+    } else {
+      existingMessages.value[studentId] = text
+    }
     showToast('សារត្រូវបានរក្សាទុក')
     editingStudentId.value = null
-    await loadExistingMessages()
+    if (currentLink.value) await loadExistingMessages()
   } catch (err) {
     showToast(err.message, 'error')
   } finally {
