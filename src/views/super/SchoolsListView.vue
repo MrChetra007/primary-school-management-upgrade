@@ -19,6 +19,15 @@ const schools = ref([])
 const loading = ref(true)
 const searchQuery = ref('')
 const filterStatus = ref('all')
+const openMenuId = ref(null)
+
+function toggleMenu(id) {
+  openMenuId.value = openMenuId.value === id ? null : id
+}
+
+function closeMenu() {
+  openMenuId.value = null
+}
 
 async function fetchSchools() {
   try {
@@ -64,7 +73,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="space-y-8" @click="closeMenu">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
       <div>
@@ -134,9 +143,21 @@ onMounted(() => {
               >
                 {{ school.status }}
               </span>
-              <button class="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
-                <MoreVertical class="w-5 h-5" />
-              </button>
+              <div class="relative">
+                <button @click.stop="toggleMenu(school.id)" class="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
+                  <MoreVertical class="w-5 h-5" />
+                </button>
+                <div v-if="openMenuId === school.id" @click.stop class="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50">
+                  <router-link
+                    :to="`/super/schools/${school.id}`"
+                    @click="closeMenu"
+                    class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                  >
+                    <Edit2 class="w-4 h-4" />
+                    កែសម្រួល
+                  </router-link>
+                </div>
+              </div>
             </div>
           </div>
 

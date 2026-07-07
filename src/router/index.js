@@ -41,6 +41,7 @@ const router = createRouter({
         { path: 'dashboard', name: 'super-dashboard', component: () => import('@/views/super/DashboardView.vue') },
         { path: 'schools',   name: 'super-schools',   component: () => import('@/views/super/SchoolsListView.vue') },
         { path: 'schools/new', name: 'super-schools-new', component: () => import('@/views/super/NewSchoolView.vue') },
+        { path: 'schools/:id', name: 'super-schools-edit', component: () => import('@/views/super/SchoolEditView.vue') },
         { path: 'users',     name: 'super-users',     component: () => import('@/views/admin/UsersView.vue') }, // Reuse admin users view for now
         { path: 'settings',  name: 'super-settings',  component: () => import('@/views/admin/SettingsView.vue') }, // Reuse settings view
       ],
