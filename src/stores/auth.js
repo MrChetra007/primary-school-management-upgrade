@@ -60,11 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function handleAuthEvent(event, newSession) {
-    // Called from main.js listener (registered ONCE)
-    if (event === 'INITIAL_SESSION') {
-      // Supabase fires this synchronously on registration.
-      // Profile is already loaded by init() — skip to avoid
-      // a duplicate fetchProfile() that races the first one.
+    if (event === 'INITIAL_SESSION' && session.value) {
       return
     }
     session.value = newSession
@@ -78,6 +74,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function init() {
     console.log('AuthStore: Initializing...')
+    if (session.value) return
     const { data } = await supabase.auth.getSession()
     session.value = data.session
     if (session.value) {
