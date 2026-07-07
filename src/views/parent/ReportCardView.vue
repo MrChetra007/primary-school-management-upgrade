@@ -7,6 +7,7 @@ import { useVoiceRecorder } from '@/composables/useVoiceRecorder'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
 import { useToast } from '@/composables/useToast'
+import { genderLabel } from '@/utils/gender'
 
 const route = useRoute()
 const reportLinkId = route.params.report_link_id
@@ -611,7 +612,7 @@ async function submitParentReply() {
                   </div>
                   <div class="cert-body">
                     <p>សូមធ្វើការសរសើរចំពោះសិស្សឈ្មោះ <span class="text-red font-muol">{{ student?.full_name }}</span></p>
-                    <p>ភេទ <span class="text-red">{{ student?.gender === 'female' ? 'ស្រី' : 'ប្រុស' }}</span></p>
+                    <p>ភេទ <span class="text-red">{{ genderLabel(student?.gender) }}</span></p>
                     <p>ដែលទទួលបានលទ្ធផលល្អក្នុងការសិក្សា {{ contextPeriodLabel() }}</p>
                     <p>និងទទួលបានចំណាត់ថ្នាក់លេខ <span class="text-red font-muol">{{ toKhmerNum(studentRank?.rank) }}</span></p>
                     <p>ក្នុងចំណោមសិស្សសរុប <span class="text-red font-muol">{{ toKhmerNum(classStats?.total || 0) }}</span> នាក់</p>

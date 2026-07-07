@@ -15,6 +15,7 @@ import {
 import { useRoute, useRouter } from 'vue-router'
 import { generateMonthlyScorePDF, generateSemesterScorePDF } from '@/utils/exportPdf'
 import { useToast } from '@/composables/useToast'
+import { isFemale, genderLabel, genderColor } from '@/utils/gender'
 
 const route = useRoute()
 const router = useRouter()
@@ -205,14 +206,14 @@ function calculateStats() {
 
   const s = {
     total: list.length,
-    female: list.filter(p => (p.gender || '').toLowerCase() === 'female').length,
-    male: list.filter(p => (p.gender || '').toLowerCase() === 'male').length,
+    female: list.filter(p => isFemale(p.gender)).length,
+    male: list.filter(p => !isFemale(p.gender)).length,
     passed: list.filter(p => p.average >= 5).length,
-    femalePassed: list.filter(p => (p.gender || '').toLowerCase() === 'female' && p.average >= 5).length,
-    malePassed: list.filter(p => (p.gender || '').toLowerCase() === 'male' && p.average >= 5).length,
+    femalePassed: list.filter(p => isFemale(p.gender) && p.average >= 5).length,
+    malePassed: list.filter(p => !isFemale(p.gender) && p.average >= 5).length,
     failed: list.filter(p => p.average < 5).length,
-    femaleFailed: list.filter(p => (p.gender || '').toLowerCase() === 'female' && p.average < 5).length,
-    maleFailed: list.filter(p => (p.gender || '').toLowerCase() === 'male' && p.average < 5).length,
+    femaleFailed: list.filter(p => isFemale(p.gender) && p.average < 5).length,
+    maleFailed: list.filter(p => !isFemale(p.gender) && p.average < 5).length,
     classAverage: list.reduce((a, b) => a + b.average, 0) / list.length,
     highestAverage: Math.max(...list.map(p => p.average)),
     lowestAverage: Math.min(...list.map(p => p.average)),
@@ -232,11 +233,11 @@ function calculateStats() {
     const g = getGrade(avg)
     s.gradeCounts[g]++
 
-    if (avg >= 9.5) { s.ranges['9.5-10'].total++; if(p.gender === 'female') s.ranges['9.5-10'].female++; else s.ranges['9.5-10'].male++ }
-    else if (avg >= 8.0) { s.ranges['8.0-9.49'].total++; if(p.gender === 'female') s.ranges['8.0-9.49'].female++; else s.ranges['8.0-9.49'].male++ }
-    else if (avg >= 6.5) { s.ranges['6.50-7.99'].total++; if(p.gender === 'female') s.ranges['6.50-7.99'].female++; else s.ranges['6.50-7.99'].male++ }
-    else if (avg >= 5.0) { s.ranges['5.00-6.49'].total++; if(p.gender === 'female') s.ranges['5.00-6.49'].female++; else s.ranges['5.00-6.49'].male++ }
-    else { s.ranges['below-5'].total++; if(p.gender === 'female') s.ranges['below-5'].female++; else s.ranges['below-5'].male++ }
+    if (avg >= 9.5) { s.ranges['9.5-10'].total++; if(isFemale(p.gender)) s.ranges['9.5-10'].female++; else s.ranges['9.5-10'].male++ }
+    else if (avg >= 8.0) { s.ranges['8.0-9.49'].total++; if(isFemale(p.gender)) s.ranges['8.0-9.49'].female++; else s.ranges['8.0-9.49'].male++ }
+    else if (avg >= 6.5) { s.ranges['6.50-7.99'].total++; if(isFemale(p.gender)) s.ranges['6.50-7.99'].female++; else s.ranges['6.50-7.99'].male++ }
+    else if (avg >= 5.0) { s.ranges['5.00-6.49'].total++; if(isFemale(p.gender)) s.ranges['5.00-6.49'].female++; else s.ranges['5.00-6.49'].male++ }
+    else { s.ranges['below-5'].total++; if(isFemale(p.gender)) s.ranges['below-5'].female++; else s.ranges['below-5'].male++ }
   })
 
   Object.keys(s.ranges).forEach(k => s.ranges[k].percent = Math.round((s.ranges[k].total / s.total) * 100))
@@ -546,7 +547,7 @@ function toKhmerNum(num) {
                 <td style="text-align:center; font-weight:700;">{{ idx + 1 }}</td>
                 <td>
                   <div style="display:flex; align-items:center; gap:12px;">
-                    <div class="mini-avatar" :style="{ background: student.gender === 'female' ? '#ec4899' : '#3b82f6' }">
+                    <div class="mini-avatar" :style="{ background: genderColor(student.gender) }">
                       {{ initials(student.full_name) }}
                     </div>
                     <span style="font-weight:700;">{{ student.full_name }}</span>
@@ -554,7 +555,7 @@ function toKhmerNum(num) {
                 </td>
                 <td style="text-align:center;">
                   <span class="gender-badge" :class="student.gender">
-                    {{ student.gender === 'female' ? 'ស្រី' : 'ប្រុស' }}
+                    {{ genderLabel(student.gender) }}
                   </span>
                 </td>
                 <td>

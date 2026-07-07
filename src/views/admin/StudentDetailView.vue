@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { HeartIcon, PlusCircleIcon, ArrowsUpDownIcon, BeakerIcon, FaceFrownIcon, ArrowDownTrayIcon, CheckIcon, XCircleIcon, ClockIcon, CalendarIcon, ArrowsRightLeftIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
+import { isFemale, genderLabel } from '@/utils/gender'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -235,7 +236,7 @@ function initials(name) {
           <div style="flex:1;">
             <h2 style="font-size:22px;font-weight:700;margin-bottom:4px;">{{ student.full_name }}</h2>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <span class="badge" :class="student.gender === 'Male' ? 'badge-blue' : 'badge-red'">{{ student.gender === 'Male' ? 'ប្រុស' : (student.gender === 'Female' ? 'ស្រី' : '—') }}</span>
+              <span class="badge" :class="isFemale(student.gender) ? 'badge-red' : 'badge-blue'">{{ genderLabel(student.gender) }}</span>
               <span class="badge badge-gray">{{ formatDate(student.dob) }}</span>
               <span class="badge badge-purple">{{ student.classes?.class_name || 'គ្មានថ្នាក់' }}</span>
               <span v-if="student.is_scholarship" class="badge badge-green">អាហារូបករណ៍</span>

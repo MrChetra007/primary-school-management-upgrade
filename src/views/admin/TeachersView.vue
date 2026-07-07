@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { useToast } from '@/composables/useToast'
+import { isFemale, genderLabel } from '@/utils/gender'
 
 const auth = useAuthStore()
 const { showToast } = useToast()
@@ -138,7 +139,7 @@ function initials(name) {
                   </div>
                 </div>
               </td>
-              <td><span class="badge" :class="t.gender === 'Male' ? 'badge-blue' : 'badge-red'">{{ t.gender === 'Male' ? 'ប្រុស' : (t.gender === 'Female' ? 'ស្រី' : '—') }}</span></td>
+              <td><span class="badge" :class="isFemale(t.gender) ? 'badge-red' : 'badge-blue'">{{ genderLabel(t.gender) }}</span></td>
               <td style="font-size:13px;">{{ t.phone_number || '—' }}</td>
               <td style="font-size:13px;">{{ t.degree || '—' }}</td>
               <td style="font-size:13px;">{{ t.email || '—' }}</td>

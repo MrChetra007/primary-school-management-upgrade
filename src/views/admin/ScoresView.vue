@@ -6,6 +6,7 @@ import { computeMonthlyAverage, computeSemesterAverage, computeRank } from '@/ut
 import { generateMonthlyScorePDF, generateSemesterScorePDF } from '@/utils/exportPdf'
 import { BuildingOfficeIcon, DocumentIcon } from '@heroicons/vue/24/outline'
 import { useRouter } from 'vue-router'
+import { isFemale } from '@/utils/gender'
 
 const router = useRouter()
 const yearStore = useAcademicYearStore()
@@ -225,14 +226,14 @@ function calculateStats() {
 
   const s = {
     total:        list.length,
-    female:       list.filter(p => p.gender === 'female').length,
-    male:         list.filter(p => p.gender !== 'female').length,
+    female:       list.filter(p => isFemale(p.gender)).length,
+    male:         list.filter(p => !isFemale(p.gender)).length,
     passed:       list.filter(p => p.average >= 5).length,
-    femalePassed: list.filter(p => p.gender === 'female' && p.average >= 5).length,
-    malePassed:   list.filter(p => p.gender !== 'female' && p.average >= 5).length,
+    femalePassed: list.filter(p => isFemale(p.gender) && p.average >= 5).length,
+    malePassed:   list.filter(p => !isFemale(p.gender) && p.average >= 5).length,
     failed:       list.filter(p => p.average < 5).length,
-    femaleFailed: list.filter(p => p.gender === 'female' && p.average < 5).length,
-    maleFailed:   list.filter(p => p.gender !== 'female' && p.average < 5).length,
+    femaleFailed: list.filter(p => isFemale(p.gender) && p.average < 5).length,
+    maleFailed:   list.filter(p => !isFemale(p.gender) && p.average < 5).length,
     classAverage:    list.reduce((a, b) => a + b.average, 0) / list.length,
     highestAverage:  Math.max(...list.map(p => p.average)),
     lowestAverage:   Math.min(...list.map(p => p.average)),
@@ -251,12 +252,12 @@ function calculateStats() {
     const avg = p.average
     s.gradeCounts[getGrade(avg)]++
 
-    const isFemale = p.gender === 'female'
-    if      (avg >= 9.5) { s.ranges['9.5-10'].total++;    isFemale ? s.ranges['9.5-10'].female++    : s.ranges['9.5-10'].male++ }
-    else if (avg >= 8.0) { s.ranges['8.0-9.49'].total++;  isFemale ? s.ranges['8.0-9.49'].female++  : s.ranges['8.0-9.49'].male++ }
-    else if (avg >= 6.5) { s.ranges['6.50-7.99'].total++; isFemale ? s.ranges['6.50-7.99'].female++ : s.ranges['6.50-7.99'].male++ }
-    else if (avg >= 5.0) { s.ranges['5.00-6.49'].total++; isFemale ? s.ranges['5.00-6.49'].female++ : s.ranges['5.00-6.49'].male++ }
-    else                 { s.ranges['below-5'].total++;   isFemale ? s.ranges['below-5'].female++   : s.ranges['below-5'].male++ }
+    const isF = isFemale(p.gender)
+    if      (avg >= 9.5) { s.ranges['9.5-10'].total++;    isF ? s.ranges['9.5-10'].female++    : s.ranges['9.5-10'].male++ }
+    else if (avg >= 8.0) { s.ranges['8.0-9.49'].total++;  isF ? s.ranges['8.0-9.49'].female++  : s.ranges['8.0-9.49'].male++ }
+    else if (avg >= 6.5) { s.ranges['6.50-7.99'].total++; isF ? s.ranges['6.50-7.99'].female++ : s.ranges['6.50-7.99'].male++ }
+    else if (avg >= 5.0) { s.ranges['5.00-6.49'].total++; isF ? s.ranges['5.00-6.49'].female++ : s.ranges['5.00-6.49'].male++ }
+    else                 { s.ranges['below-5'].total++;   isF ? s.ranges['below-5'].female++   : s.ranges['below-5'].male++ }
   })
 
   Object.keys(s.ranges).forEach(k => {

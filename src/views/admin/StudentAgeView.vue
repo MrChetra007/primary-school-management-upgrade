@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { formatDate } from '@/utils/formatDate'
 import { UserGroupIcon, AcademicCapIcon } from '@heroicons/vue/24/outline'
+import { isFemale, genderLabel, genderColor } from '@/utils/gender'
 
 const yearStore = useAcademicYearStore()
 
@@ -102,8 +103,8 @@ const stats = computed(() => {
   }
 
   const ages = list.map(s => s.age).filter(a => a !== null)
-  const female = list.filter(s => (s.gender || '').toLowerCase() === 'female').length
-  const male = list.filter(s => (s.gender || '').toLowerCase() === 'male').length
+const female = list.filter(s => isFemale(s.gender)).length
+const male = list.filter(s => !isFemale(s.gender)).length
 
   const dist = {}
   for (let i = 5; i <= 15; i++) dist[String(i)] = 0
@@ -257,15 +258,15 @@ watch(selectedClassId, fetchData)
                 <td style="text-align:center;">{{ idx + 1 }}</td>
                 <td>
                   <div style="display:flex; align-items:center; gap:10px;">
-                    <div class="mini-avatar" :style="{ background: (s.gender || '').toLowerCase() === 'female' ? '#ec4899' : '#3b82f6' }">
+                    <div class="mini-avatar" :style="{ background: genderColor(s.gender) }">
                       {{ initials(s.full_name) }}
                     </div>
                     <span style="font-weight:600;">{{ s.full_name }}</span>
                   </div>
                 </td>
                 <td style="text-align:center;">
-                  <span class="badge" :class="(s.gender || '').toLowerCase() === 'female' ? 'badge-red' : 'badge-blue'">
-                    {{ (s.gender || '').toLowerCase() === 'female' ? 'ស្រី' : 'ប្រុស' }}
+                  <span class="badge" :class="isFemale(s.gender) ? 'badge-red' : 'badge-blue'">
+                    {{ genderLabel(s.gender) }}
                   </span>
                 </td>
                 <td style="text-align:center; font-size:13px;">{{ formatDate(s.dob) }}</td>

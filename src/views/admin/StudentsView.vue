@@ -13,6 +13,7 @@ import {
   TrashIcon,
 } from "@heroicons/vue/24/outline";
 import { useToast } from "@/composables/useToast";
+import { isFemale } from "@/utils/gender";
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -659,7 +660,7 @@ async function doImport() {
                   {{
                     s.gender === "Male"
                       ? "ប្រុស"
-                      : s.gender === "Female"
+                      : isFemale(s.gender)
                         ? "ស្រី"
                         : "—"
                   }}

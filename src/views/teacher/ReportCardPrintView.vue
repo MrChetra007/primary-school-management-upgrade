@@ -9,6 +9,7 @@ import { useAcademicYearStore } from '@/stores/academicYear'
 import { useToast } from '@/composables/useToast'
 import { PrinterIcon, ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import symbol from '@/assets/symbol.png'
+import { genderLabel } from '@/utils/gender'
 
 const route = useRoute()
 const router = useRouter()
@@ -246,7 +247,7 @@ function buildPrintHtml(includeScript = true) {
               <span class="si-label">ថ្នាក់:</span>
               <span class="si-value">${className}</span>
               <span class="si-label" style="margin-left:24px;">ភេទ:</span>
-              <span class="si-value">${(student.gender || '').toLowerCase() === 'female' ? 'ស្រី' : 'ប្រុស'}</span>
+              <span class="si-value">${genderLabel(student.gender)}</span>
             </div>
             <div class="si-row">
               <span class="si-label">កាលបរិច្ឆេទ:</span>

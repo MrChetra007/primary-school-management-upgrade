@@ -594,3 +594,12 @@ src/
 
 **PhrasePicker input visibility fix (`PhrasePicker.vue`):**
 - Added visible white background, solid `#cbd5e1` border, proper padding, and blue focus ring to `.phrase-input` — was nearly invisible against some backgrounds
+
+### Session 4 — Auth Session Persistence Fix (July 2026)
+
+**Problem:** PWA users had to re-login after closing and reopening the app. The `INITIAL_SESSION` auth event (fired on startup to restore the session from localStorage) was completely skipped by `handleAuthEvent`, relying solely on `init()` in the router guard. Async timing gaps could leave `session.value` null.
+
+**Fix in `src/stores/auth.js`:**
+- `handleAuthEvent` no longer skips `INITIAL_SESSION` — sets `session.value` and calls `fetchProfile()` immediately when the listener fires, instead of deferring to `init()`
+- `init()` now bails early with `if (session.value) return` — avoids duplicate `fetchProfile()` if `handleAuthEvent` already restored the session
+- Two redundant session-restore paths ensure the user stays logged in across PWA restarts

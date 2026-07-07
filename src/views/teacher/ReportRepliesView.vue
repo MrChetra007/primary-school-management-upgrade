@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
 import { ChevronLeftIcon, CheckCircleIcon, XCircleIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline'
 import { useRouter } from 'vue-router'
+import { genderLabel, genderColor } from '@/utils/gender'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -203,7 +204,7 @@ watch(selectedLinkId, onLinkSelected)
               <td style="text-align:center;">{{ idx + 1 }}</td>
               <td>
                 <div style="display:flex; align-items:center; gap:10px;">
-                  <div class="mini-avatar" :style="{ background: item.gender === 'female' ? '#ec4899' : '#3b82f6' }">
+                  <div class="mini-avatar" :style="{ background: genderColor(item.gender) }">
                     {{ (item.full_name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??' }}
                   </div>
                   <span style="font-weight:600;">{{ item.full_name }}</span>
@@ -211,7 +212,7 @@ watch(selectedLinkId, onLinkSelected)
               </td>
               <td style="text-align:center;">
                 <span class="gender-badge" :class="(item.gender || '').toLowerCase()">
-                  {{ item.gender === 'female' ? 'ស្រី' : 'ប្រុស' }}
+                  {{ genderLabel(item.gender) }}
                 </span>
               </td>
               <td style="text-align:center;">

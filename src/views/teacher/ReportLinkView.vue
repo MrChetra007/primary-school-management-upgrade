@@ -12,6 +12,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import PhrasePicker from '@/components/report/PhrasePicker.vue'
 import { useRouter } from 'vue-router'
+import { genderColor } from '@/utils/gender'
 import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
@@ -606,7 +607,7 @@ async function handleCopyLink() {
           <!-- Student Header -->
           <div class="card-header student-card-header">
             <div class="student-card-info">
-              <div class="student-card-avatar" :style="{ background: student.gender === 'female' ? '#ec4899' : '#3b82f6' }">
+              <div class="student-card-avatar" :style="{ background: genderColor(student.gender) }">
                 {{ (student.full_name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??' }}
               </div>
               <div>

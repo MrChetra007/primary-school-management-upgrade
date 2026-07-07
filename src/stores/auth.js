@@ -59,12 +59,69 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  function backupSession(s) {
+    if (s) {
+      localStorage.setItem('auth_backup', JSON.stringify({ session: s, time: Date.now() }))
+    }
+  }
+
+  function restoreBackup() {
+    try {
+      const raw = localStorage.getItem('auth_backup')
+      if (!raw) return null
+      const parsed = JSON.parse(raw)
+      if (Date.now() - parsed.time > 7 * 24 * 60 * 60 * 1000) {
+        localStorage.removeItem('auth_backup')
+        return null
+      }
+      return parsed.session
+    } catch {
+      localStorage.removeItem('auth_backup')
+      return null
+    }
+  }
+
+  function clearBackup() {
+    localStorage.removeItem('auth_backup')
+  }
+
   function handleAuthEvent(event, newSession) {
-    if (event === 'INITIAL_SESSION' && session.value) {
+    if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
+      if (newSession) {
+        session.value = newSession
+        backupSession(newSession)
+        fetchProfile(newSession.user.id)
+      }
       return
     }
+
+    if (event === 'SIGNED_OUT') {
+      const backup = restoreBackup()
+      if (backup) {
+        supabase.auth.setSession({ access_token: backup.access_token, refresh_token: backup.refresh_token })
+          .then(({ data, error }) => {
+            if (data.session) {
+              session.value = data.session
+              backupSession(data.session)
+              fetchProfile(data.session.user.id)
+              return
+            }
+            clearBackup()
+            session.value = null
+            profile.value = null
+            teacherProfile.value = null
+          })
+        return
+      }
+      session.value = null
+      profile.value = null
+      teacherProfile.value = null
+      return
+    }
+
     session.value = newSession
     if (newSession) {
+      backupSession(newSession)
       fetchProfile(newSession.user.id)
     } else {
       profile.value = null
@@ -79,8 +136,24 @@ export const useAuthStore = defineStore('auth', () => {
     session.value = data.session
     if (session.value) {
       console.log('AuthStore: Session found for', session.value.user.email)
+      backupSession(session.value)
       await fetchProfile(session.value.user.id)
     } else {
+      const backup = restoreBackup()
+      if (backup) {
+        console.log('AuthStore: Restoring from backup')
+        const { data: restored, error } = await supabase.auth.setSession({
+          access_token: backup.access_token,
+          refresh_token: backup.refresh_token
+        })
+        if (restored?.session) {
+          session.value = restored.session
+          backupSession(restored.session)
+          await fetchProfile(restored.session.user.id)
+          return
+        }
+        clearBackup()
+      }
       console.log('AuthStore: No session found')
     }
   }
@@ -89,6 +162,7 @@ export const useAuthStore = defineStore('auth', () => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
     session.value = data.session
+    backupSession(data.session)
     await fetchProfile(data.user.id)
     return profile.value?.role
   }
@@ -98,6 +172,7 @@ export const useAuthStore = defineStore('auth', () => {
     session.value = null
     profile.value = null
     teacherProfile.value = null
+    clearBackup()
     
     // Clear school info
     const schoolStore = useSchoolStore()

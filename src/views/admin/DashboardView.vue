@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'vue-router'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { AcademicCapIcon, UserGroupIcon, BuildingOfficeIcon, BookOpenIcon, CurrencyDollarIcon, CheckCircleIcon, ClipboardDocumentListIcon, PlusIcon, PrinterIcon } from '@heroicons/vue/24/outline'
+import { isFemale } from '@/utils/gender'
 
 const router = useRouter()
 const yearStore = useAcademicYearStore()
@@ -79,7 +80,7 @@ function getGenderLabel(gender) {
   if (!gender) return '—'
   const g = gender.toString().trim().toLowerCase()
   if (g === 'male' || g === 'm') return 'ប្រុស'
-  if (g === 'female' || g === 'f') return 'ស្រី'
+  if (isFemale(g)) return 'ស្រី'
   return '—'
 }
 

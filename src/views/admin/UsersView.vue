@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { CheckIcon, XCircleIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
+import { isFemale } from '@/utils/gender'
 
 const authStore = useAuthStore()
 
@@ -329,7 +330,7 @@ async function uploadAvatar() {
                   <div v-else class="avatar" :class="user.role">{{ (user.teachers?.[0]?.full_name || user.email).charAt(0).toUpperCase() }}</div>
                   <div>
                     <div class="user-name">{{ user.teachers?.[0]?.full_name || user.email }}</div>
-                    <div class="user-sub">{{ user.teachers?.[0]?.gender === 'M' ? 'ប្រុស (Male)' : 'ស្រី (Female)' }}</div>
+                    <div class="user-sub">{{ isFemale(user.teachers?.[0]?.gender) ? 'ស្រី (Female)' : 'ប្រុស (Male)' }}</div>
                   </div>
                 </div>
               </td>

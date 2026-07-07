@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
+import { genderLabel } from '@/utils/gender'
 
 const route = useRoute()
 const router = useRouter()
@@ -92,7 +93,7 @@ function goToReport() {
             <select class="form-select" v-model="selectedStudent">
               <option value="" disabled>-- សូមជ្រើសរើស --</option>
               <option v-for="s in students" :key="s.id" :value="s.id">
-                {{ s.full_name }} ({{ s.gender === 'female' ? 'ស្រី' : 'ប្រុស' }})
+                {{ s.full_name }} ({{ genderLabel(s.gender) }})
               </option>
             </select>
           </div>

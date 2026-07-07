@@ -13,6 +13,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
+import { genderLabel } from '@/utils/gender'
 import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
@@ -283,7 +284,7 @@ const contextName = computed(() => {
 
               <!-- Body Text -->
               <div class="cert-body-text">
-                <p>សូមធ្វើការសរសើរចំពោះសិស្សឈ្មោះ <span class="highlight-red font-muol">{{ student.full_name }}</span> ភេទ <span class="highlight-red">{{ student.gender === 'female' ? 'ស្រី' : 'ប្រុស' }}</span></p>
+                <p>សូមធ្វើការសរសើរចំពោះសិស្សឈ្មោះ <span class="highlight-red font-muol">{{ student.full_name }}</span> ភេទ <span class="highlight-red">{{ genderLabel(student.gender) }}</span></p>
                 <p>ជាសិស្សថ្នាក់ទី <span class="highlight-red">{{ toKhmerNum(classInfo.class_name) }}</span> នៃឆ្នាំសិក្សា <span class="highlight-red">{{ toKhmerNum(classInfo.academic_years?.year_name) }}</span></p>
                 <p>ដែលទទួលបានលទ្ធផលល្អក្នុងសិក្សា និងទទួលបានចំណាត់ថ្នាក់លេខ <span class="highlight-red font-muol">{{ toKhmerNum(student.rank) }}</span> {{ contextName }}</p>
                 <p class="cert-closing-text">ប័ណ្ណសរសើរនេះប្រគល់ជូនសាមីខ្លួនប្រើប្រាស់តាមការដែលអាចប្រើប្រាស់បាន។</p>

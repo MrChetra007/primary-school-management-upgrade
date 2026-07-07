@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
 import { computeRank } from '@/utils/scoreCalculator'
 import { useToast } from '@/composables/useToast'
+import { genderColor } from '@/utils/gender'
 
 const route = useRoute()
 const router = useRouter()
@@ -310,7 +311,7 @@ async function handleReject() {
           <!-- Student Header -->
           <div class="card-header student-card-header">
             <div class="student-card-info">
-              <div class="student-card-avatar" :style="{ background: student.gender === 'female' ? '#ec4899' : '#3b82f6' }">
+              <div class="student-card-avatar" :style="{ background: genderColor(student.gender) }">
                 {{ (student.full_name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??' }}
               </div>
               <div>

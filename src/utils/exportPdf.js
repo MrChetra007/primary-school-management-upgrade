@@ -8,6 +8,7 @@
  */
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+import { isFemale, genderLabel } from "@/utils/gender";
 import symbol from "@/assets/symbol.png";
 /** Convert any digit characters in a string to Khmer numerals */
 function toKhmerNum(str) {
@@ -15,9 +16,7 @@ function toKhmerNum(str) {
   return String(str).replace(/\d/g, d => k[+d])
 }
 
-function genderLabel(gender) {
-  return (gender || '').toLowerCase() === 'female' ? 'ស្រី' : 'ប្រុស'
-}
+
 
 function fmtAvg(val) {
   const n = Number(val)
@@ -48,11 +47,11 @@ function buildRankingHtml({ rankedList, metadata, mode, filename }) {
 
   // ── Summary counts ────────────────────────────────────────────────────────
   const total        = sorted.length
-  const female       = sorted.filter(s => (s.gender || '').toLowerCase() === 'female').length
+  const female       = sorted.filter(s => isFemale(s.gender)).length
   const passed       = sorted.filter(s => s.average >= 5).length
-  const femalePassed = sorted.filter(s => (s.gender || '').toLowerCase() === 'female' && s.average >= 5).length
+  const femalePassed = sorted.filter(s => isFemale(s.gender) && s.average >= 5).length
   const failed       = total - passed
-  const femaleFailed = sorted.filter(s => (s.gender || '').toLowerCase() === 'female' && s.average < 5).length
+  const femaleFailed = sorted.filter(s => isFemale(s.gender) && s.average < 5).length
 
   // ── Report title ──────────────────────────────────────────────────────────
   const reportTitle = mode === 'monthly'
