@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import authBg from '@/assets/authPage_bg.jpg'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -36,12 +37,6 @@ async function handleLogin() {
 
 <template>
   <div class="login-page">
-    <!-- Background decoration -->
-    <div class="login-bg">
-      <div class="login-blob blob-1"></div>
-      <div class="login-blob blob-2"></div>
-    </div>
-
     <!-- Card -->
     <div class="login-card">
       <!-- Logo / brand -->
@@ -149,39 +144,18 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+  background: url('@/assets/authPage_bg.jpg') center/cover no-repeat fixed;
   padding: 20px;
   position: relative;
   overflow: hidden;
 }
 
-.login-bg {
+.login-page::before {
+  content: '';
   position: absolute;
   inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   pointer-events: none;
-}
-
-.login-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.25;
-}
-
-.blob-1 {
-  width: 500px;
-  height: 500px;
-  background: #3b82f6;
-  top: -150px;
-  right: -100px;
-}
-
-.blob-2 {
-  width: 400px;
-  height: 400px;
-  background: #8b5cf6;
-  bottom: -100px;
-  left: -100px;
 }
 
 .login-card {
