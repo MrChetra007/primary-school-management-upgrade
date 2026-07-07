@@ -1840,6 +1840,14 @@ create policy "classes: anon read via report link"
     id in (select class_id from report_links)
   );
 
+-- class_subjects: anon read via report link
+-- Needed for: subjects anon policy subquery
+create policy "class_subjects: anon read via report link"
+  on class_subjects for select to anon
+  using (
+    class_id in (select class_id from report_links)
+  );
+
 -- subjects: anon read via report link
 -- Needed for: ReportCardView scores query with subjects(subject_name)
 create policy "subjects: anon read via report link"

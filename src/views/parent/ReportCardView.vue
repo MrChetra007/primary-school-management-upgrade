@@ -72,7 +72,7 @@ onMounted(async () => {
 
   const scoreQuery = supabase
     .from('scores')
-    .select('*, subjects(subject_name)')
+    .select('*')
     .eq('student_id', studentId)
     .eq('academic_year_id', linkData.academic_year_id)
     .eq('score_type', linkData.score_type)
@@ -83,6 +83,21 @@ onMounted(async () => {
 
   const { data: scoreData } = await scoreQuery
   scores.value = scoreData || []
+
+  if (scores.value.length > 0) {
+    const subjIds = [...new Set(scores.value.map(s => s.subject_id))]
+    const { data: subjData } = await supabase
+      .from('subjects')
+      .select('id, subject_name')
+      .in('id', subjIds)
+    if (subjData?.length) {
+      const subjMap = Object.fromEntries(subjData.map(s => [s.id, s.subject_name]))
+      scores.value = scores.value.map(s => ({
+        ...s,
+        subject_name: subjMap[s.subject_id] || '—'
+      }))
+    }
+  }
 
   const now = new Date()
   const year = now.getFullYear()
@@ -393,7 +408,7 @@ async function submitParentReply() {
             </thead>
             <tbody>
               <tr v-for="s in scores" :key="s.id">
-                <td>{{ s.subjects?.subject_name }}</td>
+                <td>{{ s.subject_name }}</td>
                 <td style="text-align: center; font-weight: 700;">{{ s.score ?? '-' }}</td>
                 <td style="text-align: center;">
                   <span class="grade-chip" :class="'chip-' + getGrade(s.score)">{{ getGrade(s.score) }}</span>
