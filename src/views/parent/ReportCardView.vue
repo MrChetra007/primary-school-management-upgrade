@@ -658,12 +658,23 @@ async function submitParentReply() {
 
 <style scoped>
 .report-card-page {
-  max-width: 640px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .report-card-page {
+    grid-template-columns: 1fr 1fr;
+  }
+  .report-card-page > :nth-child(1),
+  .report-card-page > :nth-child(6),
+  .report-card-page > :nth-child(7) {
+    grid-column: 1 / -1;
+  }
 }
 
 .spinner {
