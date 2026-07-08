@@ -23,6 +23,14 @@ dist-ssr
 *.sln
 *.sw?
 
+# Windows reserved names
+nul
+NUL
+con
+CON
+prn
+PRN
+
 #env
 .env
 .env.local

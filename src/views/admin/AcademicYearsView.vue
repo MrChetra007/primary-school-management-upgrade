@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { toInputDate, formatDate } from '@/utils/formatDate'
+import KhmerDatePicker from '@/components/shared/KhmerDatePicker.vue'
 import { 
   CheckIcon, 
   XCircleIcon, 
@@ -288,11 +289,11 @@ async function executeRollup() {
           </div>
           <div class="form-group">
             <label class="form-label">ថ្ងៃចាប់ផ្តើម *</label>
-            <input class="form-input" type="date" v-model="form.start_date" />
+            <KhmerDatePicker v-model="form.start_date" />
           </div>
           <div class="form-group">
             <label class="form-label">ថ្ងៃបញ្ចប់ *</label>
-            <input class="form-input" type="date" v-model="form.end_date" />
+            <KhmerDatePicker v-model="form.end_date" />
           </div>
           <div class="form-group">
             <label class="form-label">ស្ថានភាព</label>

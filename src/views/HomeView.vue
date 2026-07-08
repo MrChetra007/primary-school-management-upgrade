@@ -21,6 +21,8 @@ import {
   Globe,
   ChevronUp,
   Menu,
+  Play,
+  Quote,
   X,
 } from "lucide-vue-next";
 
@@ -41,11 +43,51 @@ const {
 onMounted(() => {
   setTimeout(() => (visible.value = true), 100);
   window.addEventListener("scroll", onScroll);
+  initReveal();
+  startCarousel();
 });
-onUnmounted(() => window.removeEventListener("scroll", onScroll));
+onUnmounted(() => {
+  window.removeEventListener("scroll", onScroll);
+  stopCarousel();
+});
 
 function onScroll() {
   scrolled.value = window.scrollY > 40;
+}
+
+function initReveal() {
+  const els = document.querySelectorAll(".reveal");
+  const obs = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add("visible");
+          obs.unobserve(e.target);
+        }
+      });
+    },
+    { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
+  );
+  els.forEach((el) => obs.observe(el));
+}
+
+function startCarousel() {
+  slideTimer.value = setInterval(() => {
+    currentSlide.value = (currentSlide.value + 1) % testimonials.length;
+  }, 5000);
+}
+
+function stopCarousel() {
+  if (slideTimer.value) {
+    clearInterval(slideTimer.value);
+    slideTimer.value = null;
+  }
+}
+
+function goToSlide(i) {
+  currentSlide.value = i;
+  stopCarousel();
+  startCarousel();
 }
 
 function toggleFaq(i) {
@@ -180,7 +222,68 @@ const stats = [
   { num: "២ វេន", label: "ព្រឹក និង រសៀល" },
   { num: "២៤/៧", label: "សុវត្ថិភាពទិន្នន័យ" },
 ];
-</script>
+
+const currentSlide = ref(0);
+const slideTimer = ref(null);
+
+const roles = [
+  {
+    emoji: "👨‍💼",
+    name: "អ្នកគ្រប់គ្រង",
+    subtitle: "គ្រប់គ្រងទូទៅ",
+    accent: "#1e5fa5",
+    items: ["គ្រប់គ្រងអ្នកប្រើ", "ថ្នាក់ និងថវិកា", "លំហូរការយល់ព្រម", "របាយការណ៍ទូទៅ"],
+  },
+  {
+    emoji: "👩‍🏫",
+    name: "គ្រូបង្រៀន",
+    subtitle: "ផ្ដោតលើថ្នាក់",
+    accent: "#16a34a",
+    items: ["បញ្ចូលពិន្ទុ", "វត្តមានប្រចាំថ្ងៃ", "កំណត់ត្រាសុខភាព", "ទំនាក់ទំនងសិស្ស"],
+  },
+  {
+    emoji: "📚",
+    name: "បណ្ណារក្ស",
+    subtitle: "គ្រប់គ្រងបណ្ណាល័យ",
+    accent: "#8b5cf6",
+    items: ["ចុះបញ្ជីសៀវភៅ", "ខ្ចី-សង", "ជូនដំណឹងហួសកាល", "របាយការណ៍ស្តុក"],
+  },
+  {
+    emoji: "👨‍👩‍👧",
+    name: "អាណាព្យាបាល",
+    subtitle: "មិនត្រូវការ Login",
+    accent: "#ec4899",
+    items: ["មើលរបាយការណ៍", "សារជាសំឡេង", "ការឆ្លើយតបគ្រូ", "ចូលតាម Link"],
+  },
+];
+
+const statsData = [
+  { num: 50, suffix: "+", label: "សាលារៀន", icon: School },
+  { num: 500, suffix: "+", label: "គ្រូបង្រៀន", icon: Users },
+  { num: 10000, suffix: "+", label: "សិស្សានុសិស្ស", icon: GraduationCap },
+  { num: 99.9, suffix: "%", label: "ដំណើរការ", icon: Zap },
+];
+
+const testimonials = [
+  {
+    text: "ប្រព័ន្ធនេះ ជួយសន្សំពេលវេលាបានច្រើន ។ មុននេះ ខ្ញុំត្រូវចំណាយពេល ២-៣ ម៉ោង ដើម្បីបញ្ចូលពិន្ទុ ។ ឥឡូវ គ្រូបញ្ចូលហើយ PDF ចេញស្រេច ។ ភាសាខ្មែរ ១០០% ធ្វើឲ្យគ្រូទាំងអស់ ងាយស្រួលប្រើ ។",
+    name: "នាយក នៃ​ សាលាបឋមសិក្សាស្វាយជាតិ",
+    school: "ខេត្តបាត់ដំបង",
+    avatar: "ន",
+  },
+  {
+    text: "ការ Mark វត្តមាន និងបញ្ចូលពិន្ទុដែលធ្លាប់ចំណាយពេលរាប់ម៉ោង ឥឡូវធ្វើបានក្នុងរយៈពេលប៉ុន្មាននាទីប៉ុណ្ណោះ ។ សូមអរគុណចំពោះប្រព័ន្ធដ៏ល្អនេះ!",
+    name: "អ្នកគ្រូ សុខ ស្រីនាង",
+    school: "សាលាបឋមសិក្សាទួលគោក",
+    avatar: "ស",
+  },
+  {
+    text: "មុខងារតាមដានថវិកាធ្វើឲ្យយើងមើលឃើញចំណូល-ចំណាយថ្លាថ្លៃ ។ របាយការណ៍ប្រចាំខែងាយស្រួលរៀបចំសម្រាប់កិច្ចប្រជុំក្រុមប្រឹក្សា ។",
+    name: "នាយក លី បូរ៉ា",
+    school: "ខេត្តបាត់ដំបង",
+    avatar: "ល",
+  },
+];</script>
 
 <template>
   <div class="landing font-khmer" :class="{ visible }">
@@ -271,6 +374,18 @@ const stats = [
               <path d="M12 18h.01M9 10a3 3 0 017 0c0 1.7-1.7 2.3-2.5 3.2A1 1 0 0013 15h-2a1 1 0 00-.5-.8C9.7 13.3 8 12.7 8 11a4 4 0 018 0"/>
             </svg>
             <span>ប៉ះ <strong>Share</strong> → <strong>Add to Home Screen</strong> ដើម្បីដំឡើងកម្មវិធី</span>
+          </div>
+          <div class="social-proof">
+            <div class="avatar-stack">
+              <span class="avatar-circle">ន</span>
+              <span class="avatar-circle">ស</span>
+              <span class="avatar-circle">ល</span>
+              <span class="avatar-circle">ច</span>
+            </div>
+            <div>
+              <p class="social-proof-num">៥០+ សាលារៀន</p>
+              <p class="social-proof-label">កំពុងប្រើប្រាស់ SMS</p>
+            </div>
           </div>
           <div class="stats-row">
             <div v-for="s in stats" :key="s.label" class="stat-item">
@@ -651,6 +766,36 @@ const stats = [
       </div>
     </section>
 
+    <!-- ══ ROLE-BASED CARDS ══════════════════════════════════════════ -->
+    <section id="roles" class="section roles-section">
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <div class="section-tag">តួនាទីនីមួយៗ</div>
+          <h2 class="section-title">រចនាឡើងសម្រាប់គ្រប់តួនាទី</h2>
+          <p class="section-desc">អ្នកប្រើម្នាក់ៗមើលឃើញតែអ្វីដែលខ្លួនត្រូវការ — មិនរញ៉េរញ៉ៃ មិនច្រឡំ</p>
+        </div>
+        <div class="roles-grid">
+          <div
+            v-for="(r, i) in roles"
+            :key="r.name"
+            class="role-card reveal"
+            :class="'reveal-delay-' + (i + 1)"
+            :style="{ '--role-accent': r.accent }"
+          >
+            <div class="role-emoji">{{ r.emoji }}</div>
+            <h3 class="role-name">{{ r.name }}</h3>
+            <p class="role-subtitle" :style="{ color: r.accent }">{{ r.subtitle }}</p>
+            <ul class="role-items">
+              <li v-for="item in r.items" :key="item" class="role-item">
+                <CheckCircle2 :size="14" :color="r.accent" />
+                {{ item }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ══ MOBILE PREVIEW ════════════════════════════════════════════ -->
     <section class="section mobile-section">
       <div class="section-inner mobile-layout">
@@ -723,33 +868,61 @@ const stats = [
       </div>
     </section>
 
-    <!-- ══ TESTIMONIAL ═══════════════════════════════════════════════ -->
+    <!-- ══ TESTIMONIAL CAROUSEL ══════════════════════════════════════ -->
     <section class="section testimonial-section">
       <div class="section-inner">
-        <div class="testimonial-card">
-          <div class="testimonial-quote">"</div>
-          <p class="testimonial-text">
-            ប្រព័ន្ធនេះ ជួយសន្សំពេលវេលាបានច្រើន ។ មុននេះ ខ្ញុំត្រូវចំណាយពេល ២-៣
-            ម៉ោង ដើម្បីបញ្ចូលពិន្ទុ ។ ឥឡូវ គ្រួ បញ្ចូលហើយ PDF ចេញស្រេច ។
-            ភាសាខ្មែរ ១០០% ធ្វើឲ្យគ្រូ ទាំងអស់ ងាយស្រួលប្រើ ។
+        <div class="section-header reveal">
+          <div class="section-tag">អតិថិជន</div>
+          <h2 class="section-title">រឿងពិតពីសាលារៀន</h2>
+          <p class="section-desc">
+            ស្តាប់ពីនាយក និងគ្រូបង្រៀនដែលបានផ្លាស់ប្តូរការងារសាលាជាមួយ SMS
           </p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar">ន</div>
-            <div>
-              <div class="testimonial-name">
-                នាយក នៃ​ សាលាបឋមសិក្សាស្វាយជាតិ
-              </div>
-              <div class="testimonial-school">ខេត្តបាត់ដំបង · ២០២៤</div>
-            </div>
-            <div style="margin-left: auto">
-              <Star
-                v-for="i in 5"
+        </div>
+        <div class="carousel-wrap reveal">
+          <div class="carousel-viewport">
+            <div
+              class="carousel-track"
+              :style="{ transform: 'translateX(-' + currentSlide * 100 + '%)' }"
+            >
+              <div
+                v-for="(t, i) in testimonials"
                 :key="i"
-                :size="16"
-                color="#854f0b"
-                fill="#854f0b"
-              />
+                class="carousel-slide"
+              >
+                <div class="testimonial-card">
+                  <div class="quote-icon">
+                    <Quote :size="32" />
+                  </div>
+                  <p class="testimonial-text">{{ t.text }}</p>
+                  <div class="testimonial-author">
+                    <div class="testimonial-avatar">{{ t.avatar }}</div>
+                    <div>
+                      <div class="testimonial-name">{{ t.name }}</div>
+                      <div class="testimonial-school">{{ t.school }}</div>
+                    </div>
+                    <div class="testimonial-stars">
+                      <Star
+                        v-for="j in 5"
+                        :key="j"
+                        :size="14"
+                        color="#f59e0b"
+                        fill="#f59e0b"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+          <div class="carousel-dots">
+            <button
+              v-for="(t, i) in testimonials"
+              :key="i"
+              class="carousel-dot"
+              :class="{ active: currentSlide === i }"
+              @click="goToSlide(i)"
+              :aria-label="'ស្លាយ ' + (i + 1)"
+            ></button>
           </div>
         </div>
       </div>
@@ -781,6 +954,10 @@ const stats = [
 
     <!-- ══ CONTACT ════════════════════════════════════════════════════ -->
     <section id="contact" class="section contact-section">
+      <div class="float-shape float-shape-1"></div>
+      <div class="float-shape float-shape-2"></div>
+      <div class="float-shape float-shape-3"></div>
+      <div class="float-shape float-shape-4"></div>
       <div class="section-inner">
         <div class="section-header">
           <div class="section-tag light">ទំនាក់ទំនង</div>
@@ -2186,6 +2363,298 @@ const stats = [
   color: #94a3b8;
 }
 
+/* ── Social Proof ──────────────────────────────────────────── */
+.social-proof {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  margin-top: -8px;
+}
+.avatar-stack {
+  display: flex;
+}
+.avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e6f1fb;
+  color: #1e5fa5;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  margin-left: -8px;
+}
+.avatar-circle:first-child {
+  margin-left: 0;
+}
+.social-proof-num {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+.social-proof-label {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ── Roles Section ─────────────────────────────────────────── */
+.roles-section {
+  background: #f8faff;
+}
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.role-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 28px 22px;
+  border-top: 3px solid transparent;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-top-color 0.3s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+.role-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(30, 95, 165, 0.10);
+  border-top-color: var(--role-accent, #1e5fa5);
+}
+.role-emoji {
+  font-size: 32px;
+  margin-bottom: 14px;
+}
+.role-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+.role-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.role-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.role-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+}
+
+/* ── Stats Section ─────────────────────────────────────────── */
+.stats-section {
+  background: linear-gradient(135deg, #1e5fa5 0%, #184d8a 50%, #144070 100%);
+  position: relative;
+  overflow: hidden;
+}
+.stats-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+.stats-card {
+  text-align: center;
+}
+.stats-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+.stats-number {
+  font-size: 40px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stats-label {
+  font-size: 14px;
+  color: #93c5fd;
+  font-weight: 500;
+}
+
+/* ── Testimonial Carousel ──────────────────────────────────── */
+.carousel-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.carousel-viewport {
+  overflow: hidden;
+  border-radius: 16px;
+}
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+.carousel-slide {
+  min-width: 100%;
+  padding: 0 4px;
+}
+.testimonial-section .testimonial-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 44px 40px;
+  margin: 0;
+}
+.quote-icon {
+  color: #1e5fa5;
+  opacity: 0.35;
+  margin-bottom: 16px;
+}
+.testimonial-section .testimonial-text {
+  font-size: 17px;
+  color: #e2e8f0;
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+.testimonial-section .testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.testimonial-section .testimonial-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #1e5fa5;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.testimonial-section .testimonial-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+.testimonial-section .testimonial-school {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+.testimonial-stars {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+.carousel-dot.active {
+  background: #1e5fa5;
+  width: 28px;
+  border-radius: 5px;
+}
+
+/* ── Floating Shapes (CTA) ─────────────────────────────────── */
+.float-shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.07;
+  pointer-events: none;
+}
+.float-shape-1 {
+  width: 120px;
+  height: 120px;
+  background: #fff;
+  top: 15%;
+  left: 8%;
+  animation: floatShapeAnim 8s ease-in-out infinite;
+}
+.float-shape-2 {
+  width: 80px;
+  height: 80px;
+  background: #16a34a;
+  top: 65%;
+  right: 12%;
+  animation: floatShapeAnim 10s ease-in-out infinite 2s;
+}
+.float-shape-3 {
+  width: 60px;
+  height: 60px;
+  background: #f59e0b;
+  bottom: 20%;
+  left: 28%;
+  animation: floatShapeAnim 12s ease-in-out infinite 4s;
+}
+.float-shape-4 {
+  width: 100px;
+  height: 100px;
+  background: #fff;
+  top: 25%;
+  right: 22%;
+  animation: floatShapeAnim 9s ease-in-out infinite 1s;
+  border-radius: 20%;
+}
+
+@keyframes floatShapeAnim {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(12px, -18px) rotate(5deg); }
+  66% { transform: translate(-10px, 10px) rotate(-3deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* ── Scroll Reveal ─────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .hero-inner {
@@ -2202,6 +2671,13 @@ const stats = [
   }
   .how-layout {
     grid-template-columns: 1fr;
+  }
+  .roles-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
   }
   .mobile-layout {
     grid-template-columns: 1fr;
@@ -2223,17 +2699,34 @@ const stats = [
   .features-grid {
     grid-template-columns: 1fr;
   }
+  .roles-grid {
+    grid-template-columns: 1fr;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .stats-number {
+    font-size: 32px;
+  }
   .hero-title {
     font-size: 30px;
   }
   .section {
     padding: 60px 16px;
   }
-  .testimonial-card {
+  .testimonial-section .testimonial-card {
     padding: 28px 20px;
   }
-  .testimonial-text {
+  .testimonial-section .testimonial-text {
     font-size: 15px;
+  }
+  .social-proof {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .float-shape {
+    display: none;
   }
 }
 </style>
