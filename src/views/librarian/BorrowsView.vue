@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate } from '@/utils/formatDate'
+import KhmerDatePicker from '@/components/shared/KhmerDatePicker.vue'
 import { CheckIcon, XCircleIcon, ClipboardDocumentListIcon, ArrowUpTrayIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
 
@@ -277,11 +278,11 @@ async function returnBook(record) {
           </div>
           <div class="form-group">
             <label class="form-label">ថ្ងៃចេញ</label>
-            <input class="form-input" type="date" v-model="borrowForm.borrow_date" />
+            <KhmerDatePicker v-model="borrowForm.borrow_date" />
           </div>
           <div class="form-group">
             <label class="form-label">ថ្ងៃផុតកំណត់ *</label>
-            <input class="form-input" type="date" v-model="borrowForm.due_date" />
+            <KhmerDatePicker v-model="borrowForm.due_date" />
           </div>
         </div>
         <div class="modal-footer">

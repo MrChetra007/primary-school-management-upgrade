@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { toInputDate, formatDate } from '@/utils/formatDate'
+import KhmerDatePicker from '@/components/shared/KhmerDatePicker.vue'
 import { getKhmerHolidays } from 'khmer-chhankitek-calendar'
 import { BuildingOfficeIcon, CalendarIcon, BookOpenIcon, CalendarDaysIcon, ClockIcon, ArrowDownTrayIcon, CheckIcon, XCircleIcon, SunIcon, InformationCircleIcon, SparklesIcon, PencilIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
@@ -639,8 +640,8 @@ function switchTab(id) {
         <div class="modal-header"><span class="modal-title">ឆ្នាំសិក្សា</span></div>
         <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
           <div class="form-group"><label class="form-label">ឈ្មោះ</label><input class="form-input" v-model="yearForm.year_name" /></div>
-          <div class="form-group"><label class="form-label">ចាប់ផ្តើម</label><input type="date" class="form-input" v-model="yearForm.start_date" /></div>
-          <div class="form-group"><label class="form-label">បញ្ចប់</label><input type="date" class="form-input" v-model="yearForm.end_date" /></div>
+          <div class="form-group"><label class="form-label">ចាប់ផ្តើម</label><KhmerDatePicker v-model="yearForm.start_date" /></div>
+          <div class="form-group"><label class="form-label">បញ្ចប់</label><KhmerDatePicker v-model="yearForm.end_date" /></div>
           <div class="form-group"><label class="form-label">ស្ថានភាព</label><select class="form-select" v-model="yearForm.status"><option value="active">សកម្ម</option><option value="inactive">មិនសកម្ម</option></select></div>
         </div>
         <div class="modal-footer"><button class="btn btn-ghost" @click="yearModal = false">បោះបង់</button><button class="btn btn-primary" @click="saveYear">រក្សាទុក</button></div>
@@ -660,8 +661,8 @@ function switchTab(id) {
         <div class="modal-header"><span class="modal-title">ថ្ងៃឈប់សម្រាក</span></div>
         <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
           <div class="form-group"><label class="form-label">ឈ្មោះ</label><input class="form-input" v-model="holidayForm.name" /></div>
-          <div class="form-group"><label class="form-label">ចាប់ផ្តើម</label><input type="date" class="form-input" v-model="holidayForm.start_date" /></div>
-          <div class="form-group"><label class="form-label">បញ្ចប់</label><input type="date" class="form-input" v-model="holidayForm.end_date" /></div>
+          <div class="form-group"><label class="form-label">ចាប់ផ្តើម</label><KhmerDatePicker v-model="holidayForm.start_date" /></div>
+          <div class="form-group"><label class="form-label">បញ្ចប់</label><KhmerDatePicker v-model="holidayForm.end_date" /></div>
         </div>
         <div class="modal-footer"><button class="btn btn-ghost" @click="holidayModal = false">បោះបង់</button><button class="btn btn-primary" @click="saveHoliday">រក្សាទុក</button></div>
       </div>

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { CheckIcon, XCircleIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
 import { isFemale } from '@/utils/gender'
+import KhmerDatePicker from '@/components/shared/KhmerDatePicker.vue'
 
 const authStore = useAuthStore()
 
@@ -416,7 +417,7 @@ async function uploadAvatar() {
                 </div>
                 <div class="form-group">
                   <label class="form-label">ថ្ងៃខែឆ្នាំកំណើត (DOB)</label>
-                  <input type="date" class="form-input" v-model="newUser.dob" />
+                  <KhmerDatePicker v-model="newUser.dob" />
                 </div>
               </div>
               <div class="form-group">

@@ -4,6 +4,7 @@ import { CheckIcon, XCircleIcon, AcademicCapIcon, CameraIcon, TrashIcon } from '
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
+import KhmerDatePicker from '@/components/shared/KhmerDatePicker.vue'
 import { useToast } from '@/composables/useToast'
 import { isFemale, genderLabel } from '@/utils/gender'
 
@@ -196,7 +197,7 @@ function initials(name) {
             </div>
             <div class="form-group">
               <label class="form-label">ថ្ងៃខែឆ្នាំកំណើត</label>
-              <input class="form-input" type="date" v-model="form.dob" />
+              <KhmerDatePicker v-model="form.dob" />
             </div>
             <div class="form-group">
               <label class="form-label">លេខទូរស័ព្ទ</label>

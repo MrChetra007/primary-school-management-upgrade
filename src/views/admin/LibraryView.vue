@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate, toInputDate } from '@/utils/formatDate'
+import KhmerDatePicker from '@/components/shared/KhmerDatePicker.vue'
 import { CheckIcon, XCircleIcon, BookOpenIcon, CheckCircleIcon, ExclamationTriangleIcon, ClipboardDocumentListIcon, TrashIcon, ArrowUpTrayIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
 
@@ -380,8 +381,8 @@ function getStatusLabel(status) {
               <div v-for="s in studentResults" :key="s.id" style="padding:8px 12px;cursor:pointer;font-size:13px;" @click="selectStudent(s)" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">{{ s.full_name }}</div>
             </div>
           </div>
-          <div class="form-group"><label class="form-label">កាលបរិច្ឆេទខ្ចី</label><input class="form-input" type="date" v-model="borrowForm.borrow_date"/></div>
-          <div class="form-group"><label class="form-label">កាលបរិច្ឆេទត្រូវសង *</label><input class="form-input" type="date" v-model="borrowForm.due_date"/></div>
+          <div class="form-group"><label class="form-label">កាលបរិច្ឆេទខ្ចី</label><KhmerDatePicker v-model="borrowForm.borrow_date" /></div>
+          <div class="form-group"><label class="form-label">កាលបរិច្ឆេទត្រូវសង *</label><KhmerDatePicker v-model="borrowForm.due_date" /></div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-ghost" @click="showBorrowModal=false">បោះបង់</button>

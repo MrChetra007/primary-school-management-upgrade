@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
 import { formatDate, toInputDate } from '@/utils/formatDate'
+import KhmerDatePicker from '@/components/shared/KhmerDatePicker.vue'
 import { CheckIcon, XCircleIcon, BuildingOfficeIcon, FaceFrownIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
 
@@ -194,7 +195,7 @@ async function doDelete() {
           </div>
           <div class="form-group">
             <label class="form-label">Date *</label>
-            <input class="form-input" type="date" v-model="form.date" />
+            <KhmerDatePicker v-model="form.date" />
           </div>
           <div class="form-group">
             <label class="form-label">Duration (days)</label>
