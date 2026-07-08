@@ -1,11 +1,11 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { toInputDate, formatDate } from '@/utils/formatDate'
 import { getKhmerHolidays } from 'khmer-chhankitek-calendar'
-import { BuildingOfficeIcon, CalendarIcon, BookOpenIcon, CalendarDaysIcon, ClockIcon, ArrowDownTrayIcon, CheckIcon, XCircleIcon, SunIcon, InformationCircleIcon, SparklesIcon } from '@heroicons/vue/24/outline'
+import { BuildingOfficeIcon, CalendarIcon, BookOpenIcon, CalendarDaysIcon, ClockIcon, ArrowDownTrayIcon, CheckIcon, XCircleIcon, SunIcon, InformationCircleIcon, SparklesIcon, PencilIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
@@ -100,6 +100,79 @@ async function uploadStamp(e) {
     showToast(error.message, 'error')
   }
   uploadingLogo.value = false
+}
+
+// ── SIGNATURE PAD ─────────────────────────────────────────
+const showSignaturePad = ref(false)
+const signatureSaving = ref(false)
+const sigCanvas = ref(null)
+let sigCtx = null
+let sigDrawing = false
+
+function openSignaturePad() {
+  showSignaturePad.value = true
+  nextTick(initCanvas)
+}
+
+function initCanvas() {
+  const c = sigCanvas.value
+  if (!c) return
+  sigCtx = c.getContext('2d')
+  sigCtx.strokeStyle = '#1e293b'
+  sigCtx.lineWidth = 2.5
+  sigCtx.lineCap = 'round'
+  sigCtx.lineJoin = 'round'
+}
+
+function getCanvasPos(e) {
+  const c = sigCanvas.value
+  const r = c.getBoundingClientRect()
+  const t = e.touches ? e.touches[0] : e
+  return { x: t.clientX - r.left, y: t.clientY - r.top }
+}
+
+function startDraw(e) {
+  sigDrawing = true
+  const p = getCanvasPos(e)
+  sigCtx.beginPath()
+  sigCtx.moveTo(p.x, p.y)
+}
+
+function draw(e) {
+  if (!sigDrawing) return
+  e.preventDefault()
+  const p = getCanvasPos(e)
+  sigCtx.lineTo(p.x, p.y)
+  sigCtx.stroke()
+}
+
+function stopDraw() {
+  sigDrawing = false
+}
+
+function clearCanvas() {
+  const c = sigCanvas.value
+  sigCtx.clearRect(0, 0, c.width, c.height)
+}
+
+async function saveSignature() {
+  const c = sigCanvas.value
+  const blank = c.toDataURL('image/png') === c.toDataURL('image/png', () => { sigCtx.clearRect(0, 0, c.width, c.height); return '' })
+  // Check if blank by measuring pixel data
+  const imageData = sigCtx.getImageData(0, 0, c.width, c.height).data
+  const hasContent = imageData.some(pixel => pixel !== 0)
+  if (!hasContent) { showToast('សូមគូរហត្ថលេខាជាមុនសិន', 'error'); return }
+
+  signatureSaving.value = true
+  const blob = await new Promise(resolve => c.toBlob(resolve, 'image/png'))
+  const path = `${auth.schoolId}/signature.png`
+  const { error } = await supabase.storage.from('school-assets').upload(path, blob, { upsert: true })
+  if (error) { showToast(error.message, 'error'); signatureSaving.value = false; return }
+  const { data } = supabase.storage.from('school-assets').getPublicUrl(path)
+  schoolForm.value.signature_url = data.publicUrl
+  signatureSaving.value = false
+  showSignaturePad.value = false
+  showToast('ហត្ថលេខាត្រូវបានរក្សាទុក!', 'success')
 }
 
 // ── ACADEMIC YEARS ────────────────────────────────────────
@@ -491,10 +564,15 @@ function switchTab(id) {
                   <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
               </div>
-              <label class="btn btn-ghost btn-sm">
-                {{ uploadingLogo ? 'កំពុងផ្ទុក...' : 'បញ្ចូលរូបហត្ថលេខា' }}
-                <input type="file" @change="uploadSignature" hidden accept="image/*" />
-              </label>
+              <div style="display:flex;gap:8px;">
+                <label class="btn btn-ghost btn-sm">
+                  {{ uploadingLogo ? 'កំពុងផ្ទុក...' : 'បញ្ចូលរូប' }}
+                  <input type="file" @change="uploadSignature" hidden accept="image/*" />
+                </label>
+                <button class="btn btn-secondary btn-sm" @click="openSignaturePad">
+                  <PencilIcon class="w-4 h-4" /> គូរហត្ថលេខា
+                </button>
+              </div>
               <p style="font-size:11px;color:var(--text-secondary);text-align:center;">រូបភាពហត្ថលេខារបស់នាយកសាលា នឹងបង្ហាញនៅលើរបាយការណ៍របស់សិស្ស</p>
             </div>
             <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
@@ -592,6 +670,40 @@ function switchTab(id) {
     <div v-if="yearDeleteTarget" class="modal-overlay"><div class="modal" style="max-width:320px;padding:20px;text-align:center;"><h3>លុបឆ្នាំសិក្សានេះ?</h3><div class="modal-footer"><button class="btn btn-ghost" @click="yearDeleteTarget = null">បោះបង់</button><button class="btn btn-danger" @click="deleteYear">លុប</button></div></div></div>
     <div v-if="subjectDeleteTarget" class="modal-overlay"><div class="modal" style="max-width:320px;padding:20px;text-align:center;"><h3>លុបមុខវិជ្ជានេះ?</h3><div class="modal-footer"><button class="btn btn-ghost" @click="subjectDeleteTarget = null">បោះបង់</button><button class="btn btn-danger" @click="deleteSubject">លុប</button></div></div></div>
     <div v-if="holidayDeleteTarget" class="modal-overlay"><div class="modal" style="max-width:320px;padding:20px;text-align:center;"><h3>លុបថ្ងៃឈប់សម្រាកនេះ?</h3><div class="modal-footer"><button class="btn btn-ghost" @click="holidayDeleteTarget = null">បោះបង់</button><button class="btn btn-danger" @click="deleteHoliday">លុប</button></div></div></div>
+
+    <!-- Signature Pad Modal -->
+    <div v-if="showSignaturePad" class="modal-overlay" @click.self="showSignaturePad = false">
+      <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+          <span class="modal-title">គូរហត្ថលេខា</span>
+          <button class="btn btn-ghost btn-sm btn-icon" @click="showSignaturePad = false">
+            <XCircleIcon class="w-5 h-5" />
+          </button>
+        </div>
+        <div class="modal-body" style="padding:16px;">
+          <canvas
+            ref="sigCanvas"
+            width="480"
+            height="200"
+            style="width:100%;height:200px;border:2px solid var(--border-default);border-radius:12px;cursor:crosshair;background:#fff;touch-action:none;"
+            @mousedown="startDraw"
+            @mousemove="draw"
+            @mouseup="stopDraw"
+            @mouseleave="stopDraw"
+            @touchstart.prevent="startDraw"
+            @touchmove.prevent="draw"
+            @touchend="stopDraw"
+          ></canvas>
+          <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;text-align:center;">គូរហត្ថលេខារបស់អ្នកនៅលើប្រអប់ខាងលើ</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" @click="clearCanvas">សម្អាត</button>
+          <button class="btn btn-primary" @click="saveSignature" :disabled="signatureSaving">
+            {{ signatureSaving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកហត្ថលេខា' }}
+          </button>
+        </div>
+      </div>
+    </div>
 
   </div>
 </template>
