@@ -4,6 +4,16 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { formatDate, toInputDate } from '@/utils/formatDate'
+import { Doughnut, Bar } from 'vue-chartjs'
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement
+} from 'chart.js'
 import { 
   CheckIcon, 
   XCircleIcon, 
@@ -15,6 +25,8 @@ import {
   TrashIcon 
 } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
 const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
@@ -52,6 +64,84 @@ const filtered = computed(() => {
 const totalIncome = computed(() => filtered.value.filter(t => t.type === 'income').reduce((a, t) => a + Number(t.amount), 0))
 const totalExpense = computed(() => filtered.value.filter(t => t.type === 'expense').reduce((a, t) => a + Number(t.amount), 0))
 const balance = computed(() => totalIncome.value - totalExpense.value)
+
+// ── Doughnut: expense breakdown by category ──
+const expenseCategories = computed(() => {
+  const map = {}
+  transactions.value
+    .filter(t => t.type === 'expense')
+    .forEach(t => {
+      const cat = t.category || 'ផ្សេងៗ'
+      map[cat] = (map[cat] || 0) + Number(t.amount)
+    })
+  return map
+})
+const doughnutLabels = computed(() => Object.keys(expenseCategories.value))
+const doughnutData = computed(() => Object.values(expenseCategories.value))
+const doughnutColors = [
+  '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4',
+  '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#a855f7'
+]
+const doughnutChartData = computed(() => ({
+  labels: doughnutLabels.value,
+  datasets: [{
+    data: doughnutData.value,
+    backgroundColor: doughnutColors.slice(0, doughnutLabels.value.length),
+    borderWidth: 0
+  }]
+}))
+const doughnutOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, font: { size: 12 } } }
+  }
+}
+
+// ── Bar: monthly income vs expense trend ──
+const khmerMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ']
+const monthlyTrend = computed(() => {
+  const map = {}
+  transactions.value.forEach(t => {
+    const m = new Date(t.date).getMonth()
+    if (!map[m]) map[m] = { income: 0, expense: 0 }
+    map[m][t.type] += Number(t.amount)
+  })
+  return map
+})
+const barLabels = computed(() => {
+  return Object.keys(monthlyTrend.value)
+    .sort((a, b) => a - b)
+    .map(m => khmerMonths[Number(m)])
+})
+const barIncome = computed(() => {
+  return Object.keys(monthlyTrend.value)
+    .sort((a, b) => a - b)
+    .map(m => monthlyTrend.value[m].income)
+})
+const barExpense = computed(() => {
+  return Object.keys(monthlyTrend.value)
+    .sort((a, b) => a - b)
+    .map(m => monthlyTrend.value[m].expense)
+})
+const barChartData = computed(() => ({
+  labels: barLabels.value,
+  datasets: [
+    { label: 'ចំណូល', data: barIncome.value, backgroundColor: '#22c55e', borderRadius: 4 },
+    { label: 'ចំណាយ', data: barExpense.value, backgroundColor: '#ef4444', borderRadius: 4 }
+  ]
+}))
+const barOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    x: { grid: { display: false } },
+    y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString() } }
+  },
+  plugins: {
+    legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, font: { size: 12 } } }
+  }
+}
 
 onMounted(async () => { await load() })
 
@@ -155,6 +245,24 @@ function fmt(n) {
           <div class="stat-value" :style="`color:${balance >= 0 ? '#1d4ed8' : '#dc2626'};font-size:20px;` ">
             {{ fmt(balance) }} ៛
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid-cols-2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-header"><h3>ចំណាយតាមប្រភេទ</h3></div>
+        <div class="card-body" style="height:260px;display:flex;align-items:center;justify-content:center;">
+          <Doughnut v-if="doughnutData.length" :data="doughnutChartData" :options="doughnutOptions" />
+          <p v-else class="text-gray-400 text-sm" style="text-align:center;">គ្មានទិន្នន័យចំណាយ</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>ចំណូល vs ចំណាយប្រចាំខែ</h3></div>
+        <div class="card-body" style="height:260px;display:flex;align-items:center;justify-content:center;">
+          <Bar v-if="barLabels.length" :data="barChartData" :options="barOptions" />
+          <p v-else class="text-gray-400 text-sm" style="text-align:center;">គ្មានទិន្នន័យប្រតិបត្តិការ</p>
         </div>
       </div>
     </div>
