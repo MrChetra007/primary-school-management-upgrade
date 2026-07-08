@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useAcademicYearStore } from "@/stores/academicYear";
 import { formatDate, toInputDate } from "@/utils/formatDate";
 import { useRouter } from "vue-router";
+import KhmerDatePicker from "@/components/shared/KhmerDatePicker.vue";
 import {
   CheckIcon,
   XCircleIcon,
@@ -793,7 +794,7 @@ async function doImport() {
             </div>
             <div class="form-group">
               <label class="form-label">ថ្ងៃខែឆ្នាំកំណើត *</label>
-              <input class="form-input" type="date" v-model="form.dob" />
+              <KhmerDatePicker v-model="form.dob" />
             </div>
             <div class="form-group">
               <label class="form-label">ថ្នាក់រៀន</label>
