@@ -47,7 +47,7 @@ async function loadData() {
     .from('classes')
     .select('*, academic_years!inner(status)')
     .eq('teacher_id', teacherId)
-    .eq('academic_years.status', 'active')
+    .eq('academic_years.status', 'active').is('academic_years.deleted_at', null)
     .maybeSingle()
   
   if (classData) {

@@ -2129,7 +2129,7 @@ create policy "school-assets: public read"
 
 -- classes: anon read via report link
 -- Needed for: ReportDropdownView, ReportCardView !inner joins
-create policy "classes: anon read via report link"
+create or replace policy "classes: anon read via report link"
   on classes for select to anon
   using (
     id in (select class_id from report_links)
@@ -2137,7 +2137,7 @@ create policy "classes: anon read via report link"
 
 -- subjects: anon read via report link
 -- Needed for: ReportCardView scores query with subjects(subject_name)
-create policy "subjects: anon read via report link"
+create or replace policy "subjects: anon read via report link"
   on subjects for select to anon
   using (
     id in (

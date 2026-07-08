@@ -67,7 +67,7 @@ onMounted(async () => {
 
 async function load() {
   loading.value = true
-  const { data } = await supabase.from('academic_years').select('*').order('start_date', { ascending: false })
+  const { data } = await supabase.from('academic_years').select('*').is('deleted_at', null).order('start_date', { ascending: false })
   years.value = data || []
   loading.value = false
 }
@@ -111,7 +111,7 @@ async function doDelete() {
     yearStore.clearYear()
   }
 
-  const { error } = await supabase.from('academic_years').delete().eq('id', targetId)
+  const { error } = await supabase.from('academic_years').update({ deleted_at: new Date().toISOString() }).eq('id', targetId)
   deleteTarget.value = null
   
   if (error) { 
@@ -178,6 +178,21 @@ async function executeRollup() {
   }, 300)
 
   try {
+    // Debug: check class names in both years
+    const [oldClasses, newClasses] = await Promise.all([
+      supabase.from('classes').select('id, class_name').eq('academic_year_id', rollupSource.value.id),
+      supabase.from('classes').select('id, class_name').eq('academic_year_id', targetYearId.value)
+    ])
+    console.log('Old year classes:', oldClasses.data)
+    console.log('New year classes:', newClasses.data)
+
+    console.log('Rollup debug:', {
+      oldYearId: rollupSource.value.id,
+      oldYearName: rollupSource.value.year_name,
+      newYearId: targetYearId.value,
+      newYearName: years.value.find(y => y.id === targetYearId.value)?.year_name,
+      schoolId: auth.schoolId
+    })
     const { data, error } = await supabase.rpc('perform_student_rollup', {
       p_old_year_id: rollupSource.value.id,
       p_new_year_id: targetYearId.value
@@ -187,6 +202,7 @@ async function executeRollup() {
     rollupProgress.value = 100
 
     if (error) throw error
+    console.log('Rollup result:', JSON.stringify(data, null, 2))
     rollupSummary.value = data
     showToast('បញ្ជូនសិស្សទៅឆ្នាំថ្មីបានសម្រេច!', 'success')
   } catch (err) {

@@ -185,7 +185,7 @@ const yearDeleteTarget = ref(null)
 
 async function loadYears() {
   loading.value = true
-  const { data } = await supabase.from('academic_years').select('*').order('start_date', { ascending: false })
+  const { data } = await supabase.from('academic_years').select('*').is('deleted_at', null).order('start_date', { ascending: false })
   years.value = data || []
   loading.value = false
 }
@@ -208,7 +208,11 @@ async function saveYear() {
 }
 
 async function deleteYear() {
-  const { error } = await supabase.from('academic_years').delete().eq('id', yearDeleteTarget.value.id)
+  const targetId = yearDeleteTarget.value.id
+  if (targetId === yearStore.selectedYearId) {
+    yearStore.clearYear()
+  }
+  const { error } = await supabase.from('academic_years').update({ deleted_at: new Date().toISOString() }).eq('id', targetId)
   if (error) showToast(error.message, 'error')
   else { showToast('បានលុបឆ្នាំសិក្សា'); yearDeleteTarget.value = null; loadYears() }
 }
