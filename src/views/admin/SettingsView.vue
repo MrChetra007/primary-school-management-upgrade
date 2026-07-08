@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { toInputDate, formatDate } from '@/utils/formatDate'
-import { BuildingOfficeIcon, CalendarIcon, BookOpenIcon, CalendarDaysIcon, ClockIcon, ArrowDownTrayIcon, CheckIcon, XCircleIcon, SunIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
+import { getKhmerHolidays } from 'khmer-chhankitek-calendar'
+import { BuildingOfficeIcon, CalendarIcon, BookOpenIcon, CalendarDaysIcon, ClockIcon, ArrowDownTrayIcon, CheckIcon, XCircleIcon, SunIcon, InformationCircleIcon, SparklesIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
@@ -214,6 +215,56 @@ async function deleteHoliday() {
   else { showToast('បានលុបថ្ងៃឈប់សម្រាក'); holidayDeleteTarget.value = null; loadHolidays() }
 }
 
+const importingHolidays = ref(false)
+
+async function importKhmerHolidays() {
+  const { data: year } = await supabase
+    .from('academic_years')
+    .select('start_date, end_date')
+    .eq('id', yearStore.selectedYearId)
+    .single()
+  if (!year) { showToast('មិនអាចទាញទិន្នន័យឆ្នាំសិក្សា', 'error'); return }
+
+  const startYear = new Date(year.start_date).getFullYear()
+  const endYear = new Date(year.end_date).getFullYear()
+  const years = []
+  for (let y = startYear; y <= endYear; y++) years.push(y)
+
+  importingHolidays.value = true
+  const all = years.flatMap(y => getKhmerHolidays(y))
+  const seen = new Set()
+  const merged = []
+  for (const h of all) {
+    const key = h.date + '|' + h.nameKm
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push(h)
+  }
+
+  const existing = new Set(holidays.value.map(h => h.name + '|' + h.start_date))
+  const newHolidays = merged.filter(h => !existing.has(h.nameKm + '|' + h.date))
+
+  if (newHolidays.length === 0) {
+    showToast('ថ្ងៃឈប់សម្រាកទាំងអស់មានរួចហើយ', 'info')
+    importingHolidays.value = false
+    return
+  }
+
+  const rows = newHolidays.map(h => ({
+    school_id: auth.schoolId,
+    academic_year_id: yearStore.selectedYearId,
+    name: h.nameKm,
+    start_date: h.date,
+    end_date: h.date
+  }))
+
+  const { error } = await supabase.from('school_holidays').insert(rows)
+  importingHolidays.value = false
+  if (error) { showToast(error.message, 'error'); return }
+  showToast(`បានបន្ថែមថ្ងៃឈប់សម្រាកចំនួន ${rows.length} ថ្ងៃដោយជោគជ័យ!`, 'success')
+  loadHolidays()
+}
+
 // ── ATTENDANCE CONFIG ─────────────────────────────────────
 const attConfig = ref({
   id: null,
@@ -388,7 +439,7 @@ function switchTab(id) {
 
       <div v-if="currentTab === 'holidays'" class="tab-pane">
         <div class="card">
-          <div class="card-header"><span class="card-title">ថ្ងៃឈប់សម្រាក ({{ yearStore.selectedYearName }})</span><button class="btn btn-primary btn-sm" @click="openAddHoliday">+ បន្ថែមថ្ងៃឈប់សម្រាក</button></div>
+          <div class="card-header"><span class="card-title">ថ្ងៃឈប់សម្រាក ({{ yearStore.selectedYearName }})</span><div style="display:flex;gap:8px;"><button class="btn btn-secondary btn-sm" @click="importKhmerHolidays" :disabled="importingHolidays"><SparklesIcon class="w-4 h-4" /> {{ importingHolidays ? 'កំពុងដំណើរការ...' : 'បន្ថែមតាមប្រតិទិនខ្មែរ' }}</button><button class="btn btn-primary btn-sm" @click="openAddHoliday">+ បន្ថែម</button></div></div>
           <div class="table-wrapper">
             <table>
               <thead><tr><th>ឈ្មោះ</th><th>ចាប់ផ្តើម</th><th>បញ្ចប់</th><th>សកម្មភាព</th></tr></thead>
