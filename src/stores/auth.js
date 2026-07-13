@@ -5,13 +5,14 @@ import { useSchoolStore } from './school'
 
 export const useAuthStore = defineStore('auth', () => {
   const session = ref(null)
-  const profile = ref(null) // row from users table
-  const teacherProfile = ref(null) // row from teachers table if applicable
+  const profile = ref(null)
+  const teacherProfile = ref(null)
+  let fetchPromise = null // tracks in-flight fetchProfile calls so init() can await them
 
   const isLoggedIn = computed(() => !!session.value)
   const role = computed(() => profile.value?.role ?? null)
   const userId = computed(() => session.value?.user?.id ?? null)
-  
+
   const isSuperAdmin = computed(() => role.value === 'super_admin')
   const isAdmin = computed(() => role.value === 'admin')
   const isTeacher = computed(() => role.value === 'teacher')
@@ -20,43 +21,45 @@ export const useAuthStore = defineStore('auth', () => {
   const schoolId = computed(() => profile.value?.school_id ?? null)
 
   async function fetchProfile(id) {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', id)
-        .single()
-      if (error) throw error
-      
-      // Security Check: Inactive users cannot access the app
-      if (data?.status === 'inactive') {
-        console.warn('AuthStore: Account deactivated. Blocking access.')
-        await logout()
-        return // Stop execution
-      }
+    // Dedup: if a fetch for this session is already running, share it
+    if (fetchPromise) return fetchPromise
 
-      profile.value = data
-      
-      // Load school information
-      const schoolStore = useSchoolStore()
-      if (data.school_id) {
-        await schoolStore.fetchSchool(data.school_id)
-      }
+    fetchPromise = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', id)
+          .single()
+        if (error) throw error
 
-      // Every user has a teacher profile in Cambodia school system (Roadmap v8)
-      const { data: tData } = await supabase
-        .from('teachers')
-        .select('*')
-        .eq('user_id', id)
-        .maybeSingle()
-      teacherProfile.value = tData
-      
-      console.log('AuthStore: Profile loaded:', data)
-      console.log('AuthStore: Teacher profile loaded:', tData)
-      
-    } catch (e) {
-      console.error('AuthStore: Error fetching profile:', e)
-    }
+        if (data?.status === 'inactive') {
+          console.warn('AuthStore: Account deactivated. Blocking access.')
+          await logout()
+          return
+        }
+
+        profile.value = data
+
+        const schoolStore = useSchoolStore()
+        if (data.school_id) {
+          await schoolStore.fetchSchool(data.school_id)
+        }
+
+        const { data: tData } = await supabase
+          .from('teachers')
+          .select('*')
+          .eq('user_id', id)
+          .maybeSingle()
+        teacherProfile.value = tData
+      } catch (e) {
+        console.error('AuthStore: Error fetching profile:', e)
+      } finally {
+        fetchPromise = null // clear so a future login/refresh can fetch again
+      }
+    })()
+
+    return fetchPromise
   }
 
   function backupSession(s) {
@@ -90,7 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (newSession) {
         session.value = newSession
         backupSession(newSession)
-        fetchProfile(newSession.user.id)
+        fetchProfile(newSession.user.id) // fire-and-forget is fine now — init() will await the shared promise
       }
       return
     }
@@ -99,7 +102,7 @@ export const useAuthStore = defineStore('auth', () => {
       const backup = restoreBackup()
       if (backup) {
         supabase.auth.setSession({ access_token: backup.access_token, refresh_token: backup.refresh_token })
-          .then(({ data, error }) => {
+          .then(({ data }) => {
             if (data.session) {
               session.value = data.session
               backupSession(data.session)
@@ -131,7 +134,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function init() {
     console.log('AuthStore: Initializing...')
-    if (session.value) return
+
+    // Session already set (e.g. by handleAuthEvent) but profile may still be loading —
+    // wait for the in-flight fetch instead of returning early.
+    if (session.value) {
+      if (fetchPromise) await fetchPromise
+      return
+    }
+
     const { data } = await supabase.auth.getSession()
     session.value = data.session
     if (session.value) {
@@ -142,7 +152,7 @@ export const useAuthStore = defineStore('auth', () => {
       const backup = restoreBackup()
       if (backup) {
         console.log('AuthStore: Restoring from backup')
-        const { data: restored, error } = await supabase.auth.setSession({
+        const { data: restored } = await supabase.auth.setSession({
           access_token: backup.access_token,
           refresh_token: backup.refresh_token
         })
@@ -172,29 +182,29 @@ export const useAuthStore = defineStore('auth', () => {
     session.value = null
     profile.value = null
     teacherProfile.value = null
+    fetchPromise = null
     clearBackup()
-    
-    // Clear school info
+
     const schoolStore = useSchoolStore()
     schoolStore.clearSchool()
   }
 
-  return { 
-    session, 
-    profile, 
+  return {
+    session,
+    profile,
     teacherProfile,
-    isLoggedIn, 
-    role, 
-    userId, 
+    isLoggedIn,
+    role,
+    userId,
     isSuperAdmin,
     isAdmin,
     isTeacher,
     isLibrarian,
     isParent,
     schoolId,
-    init, 
+    init,
     handleAuthEvent,
-    login, 
-    logout 
+    login,
+    logout
   }
 })
