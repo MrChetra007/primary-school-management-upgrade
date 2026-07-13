@@ -153,13 +153,24 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
-  // Initialize auth state if session is not loaded
-  if (!auth.isLoggedIn) {
-    await auth.init()
+  // Always await init — guarantees both session AND profile are ready,
+  // regardless of whether handleAuthEvent already set session.value.
+  await auth.init()
+
+  const isPublic = to.matched.some(record => record.meta.public)
+
+  // Redirect an already-logged-in user away from the landing/login page
+  if (auth.isLoggedIn && (to.path === '/' || to.name === 'login')) {
+    const roleHome = {
+      super_admin: '/super/dashboard',
+      admin: '/admin/dashboard',
+      teacher: '/teacher/dashboard',
+      librarian: '/librarian/dashboard',
+    }
+    return { path: roleHome[auth.role] || '/' }
   }
 
   // 1. Always allow public routes
-  const isPublic = to.matched.some(record => record.meta.public)
   if (isPublic) return true
 
   // 2. Auth Required Check
