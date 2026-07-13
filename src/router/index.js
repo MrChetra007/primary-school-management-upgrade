@@ -153,10 +153,8 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
-  // Initialize auth state if session is not loaded
-  if (!auth.isLoggedIn) {
-    await auth.init()
-  }
+  // Initialize auth state — always runs to ensure both session AND profile are loaded
+  await auth.init()
 
   // 1. Always allow public routes
   const isPublic = to.matched.some(record => record.meta.public)
