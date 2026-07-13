@@ -9,14 +9,12 @@ const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
 app.use(router)
+app.mount('#app')
 
-// ── Auth listener (registered BEFORE mount) ──────────────
-// Must register before app.mount() so INITIAL_SESSION fires
-// before the router guard runs, preventing login-loop on PWA restart.
+// ── Auth listener (registered EXACTLY ONCE) ──────────────
+// Must happen after pinia is installed so useAuthStore() works.
 import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore()
 supabase.auth.onAuthStateChange((event, newSession) => {
   auth.handleAuthEvent(event, newSession)
 })
-
-app.mount('#app')

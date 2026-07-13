@@ -39,7 +39,6 @@ export function usePwa() {
       clearInterval(updateInterval)
       updateInterval = null
     }
-    window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
   })
 
   function updateNow() {
@@ -80,12 +79,9 @@ export function usePwa() {
     showIOSHint.value = false
   }
 
-  // Register beforeinstallprompt immediately (not in onMounted) to catch
-  // the event before Vue finishes mounting — browsers fire this early.
-  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-
   onMounted(() => {
     checkIOS()
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
     window.addEventListener('appinstalled', () => {
       canInstall.value = false
       installPrompt.value = null
