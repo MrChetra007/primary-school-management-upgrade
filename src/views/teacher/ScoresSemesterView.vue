@@ -8,16 +8,19 @@ import { useRouter } from 'vue-router'
 import { CheckIcon, XCircleIcon, ArrowDownTrayIcon, BuildingOfficeIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
 import { useOfflineMutation } from '@/composables/useOfflineMutation'
+import { useCache } from '@/composables/useCache'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { showToast } = useToast()
 const { mutate } = useOfflineMutation()
+const { get: cacheGet, set: cacheSet, isOnline } = useCache()
 const students = ref([])
 const subjects = ref([])
 const classInfo = ref(null)
 const loading = ref(true)
 const saving = ref(false)
+const isStale = ref(false)
 const pinnedRow = ref(null)
 const pinnedCol = ref(null)
 const compactMode = ref(false)
@@ -83,34 +86,54 @@ onMounted(async () => {
 async function loadData() {
   loading.value = true
   const teacherId = auth.teacherProfile.id
+  const cacheKey = `semester_ref_${teacherId}`
 
-  const { data: classData } = await supabase
-    .from('classes')
-    .select('*, academic_years!inner(id, year_name, status)')
-    .eq('teacher_id', teacherId)
-    .eq('academic_years.status', 'active').is('academic_years.deleted_at', null)
-    .maybeSingle()
-  
-  if (classData) {
-    classInfo.value = classData
+  if (isOnline.value) {
+    const { data: classData } = await supabase
+      .from('classes')
+      .select('*, academic_years!inner(id, year_name, status)')
+      .eq('teacher_id', teacherId)
+      .eq('academic_years.status', 'active').is('academic_years.deleted_at', null)
+      .maybeSingle()
     
-    // 1. Get Subjects
-    const { data: subData } = await supabase
-      .from('class_subjects')
-      .select('subjects(*)')
-      .eq('class_id', classData.id)
-    subjects.value = subData?.map(s => s.subjects) || []
+    if (classData) {
+      classInfo.value = classData
+      
+      const { data: subData } = await supabase
+        .from('class_subjects')
+        .select('subjects(*)')
+        .eq('class_id', classData.id)
+      subjects.value = subData?.map(s => s.subjects) || []
 
-    await fetchSemesterConfig()
+      await fetchSemesterConfig()
 
-    // 2. Get Students
-    const { data: stuData } = await supabase
-      .from('students')
-      .select('id, full_name')
-      .eq('class_id', classData.id)
-      .order('full_name')
-    students.value = stuData || []
-    
+      const { data: stuData } = await supabase
+        .from('students')
+        .select('id, full_name')
+        .eq('class_id', classData.id)
+        .order('full_name')
+      students.value = stuData || []
+      
+      cacheSet(cacheKey, {
+        classInfo: classInfo.value,
+        subjects: subjects.value,
+        students: students.value,
+        semesterConfigs: semesterConfigs.value
+      }, 1440)
+      isStale.value = false
+      await fetchAllScores()
+      loading.value = false
+      return
+    }
+  }
+
+  const cached = cacheGet(cacheKey)
+  if (cached) {
+    classInfo.value = cached.classInfo
+    subjects.value = cached.subjects
+    students.value = cached.students
+    semesterConfigs.value = cached.semesterConfigs || []
+    isStale.value = true
     await fetchAllScores()
   }
   loading.value = false
@@ -126,30 +149,45 @@ async function fetchAllScores() {
   }
   const studentIds = students.value.map(s => s.id)
   const academicYearId = classInfo.value.academic_year_id
+  const cacheKey = `scores_semester_${classInfo.value.id}_${selectedSemester.value}`
 
-  // Semester exam: score_type='semester', month = 1 or 2 (the semester number)
-  const { data: examData, error: examError } = await supabase
-    .from('scores')
-    .select('*')
-    .in('student_id', studentIds)
-    .eq('academic_year_id', academicYearId)
-    .eq('score_type', 'semester')
-    .eq('semester', selectedSemester.value)
+  if (isOnline.value) {
+    const { data: examData, error: examError } = await supabase
+      .from('scores')
+      .select('*')
+      .in('student_id', studentIds)
+      .eq('academic_year_id', academicYearId)
+      .eq('score_type', 'semester')
+      .eq('semester', selectedSemester.value)
 
-  if (examError) { console.error('Exam scores error:', examError); return }
-  examScores.value = examData || []
+    if (!examError && examData) {
+      examScores.value = examData
 
-  // Monthly scores: score_type='monthly', month in [1,2,3] or [4,5,6]
-  const { data: mData, error: mError } = await supabase
-    .from('scores')
-    .select('*')
-    .in('student_id', studentIds)
-    .eq('academic_year_id', academicYearId)
-    .eq('score_type', 'monthly')
-    .in('month', semesterMonths.value)
+      const { data: mData, error: mError } = await supabase
+        .from('scores')
+        .select('*')
+        .in('student_id', studentIds)
+        .eq('academic_year_id', academicYearId)
+        .eq('score_type', 'monthly')
+        .in('month', semesterMonths.value)
 
-  if (mError) { console.error('Monthly scores error:', mError); return }
-  monthlyScores.value = mData || []
+      if (!mError && mData) {
+        monthlyScores.value = mData
+        cacheSet(cacheKey, { examScores: examData, monthlyScores: mData }, 120)
+        buildMatrix()
+        return
+      }
+    }
+  }
+
+  const cached = cacheGet(cacheKey)
+  if (cached) {
+    examScores.value = cached.examScores || []
+    monthlyScores.value = cached.monthlyScores || []
+  } else {
+    examScores.value = []
+    monthlyScores.value = []
+  }
   buildMatrix()
 }
 
@@ -284,6 +322,7 @@ watch(selectedSemester, fetchAllScores)
         <h1 class="page-title">បញ្ចូលពិន្ទុប្រឡងឆមាស</h1>
         <p class="page-subtitle" v-if="classInfo">
           គ្រប់គ្រងថ្នាក់ <strong>{{ classInfo.class_name }}</strong> ({{ classInfo.academic_years?.year_name }})
+          <span v-if="isStale" class="offline-badge">ប្រើទិន្នន័យពីឃ្លាំង</span>
         </p>
       </div>
       <div style="display:flex; gap:12px;">
@@ -576,6 +615,18 @@ watch(selectedSemester, fetchAllScores)
 }
 
 .text-danger { color: #ef4444; }
+
+.offline-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #92400e;
+  background: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
 
 /* ── Pinned row ── */
 tr.pinned td,

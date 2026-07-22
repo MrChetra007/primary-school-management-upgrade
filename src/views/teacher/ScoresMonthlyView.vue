@@ -8,16 +8,19 @@ import { useRouter } from 'vue-router'
 import { CheckIcon, XCircleIcon, ArrowDownTrayIcon, BuildingOfficeIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
 import { useOfflineMutation } from '@/composables/useOfflineMutation'
+import { useCache } from '@/composables/useCache'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { showToast } = useToast()
 const { mutate } = useOfflineMutation()
+const { get: cacheGet, set: cacheSet, isOnline } = useCache()
 const students = ref([])
 const subjects = ref([])
 const classInfo = ref(null)
 const loading = ref(true)
 const saving = ref(false)
+const isStale = ref(false)
 const pinnedRow = ref(null)
 const pinnedCol = ref(null)
 const compactMode = ref(false)
@@ -59,32 +62,46 @@ onMounted(async () => {
 async function loadData() {
   loading.value = true
   const teacherId = auth.teacherProfile.id
+  const cacheKey = `monthly_ref_${teacherId}`
 
-  const { data: classData } = await supabase
-    .from('classes')
-    .select('*, academic_years!inner(id, year_name, status)')
-    .eq('teacher_id', teacherId)
-    .eq('academic_years.status', 'active').is('academic_years.deleted_at', null)
-    .maybeSingle()
-  
-  if (classData) {
-    classInfo.value = classData
+  if (isOnline.value) {
+    const { data: classData } = await supabase
+      .from('classes')
+      .select('*, academic_years!inner(id, year_name, status)')
+      .eq('teacher_id', teacherId)
+      .eq('academic_years.status', 'active').is('academic_years.deleted_at', null)
+      .maybeSingle()
     
-    // 1. Get Subjects
-    const { data: subData } = await supabase
-      .from('class_subjects')
-      .select('subjects(*)')
-      .eq('class_id', classData.id)
-    subjects.value = subData?.map(s => s.subjects) || []
+    if (classData) {
+      classInfo.value = classData
+      
+      const { data: subData } = await supabase
+        .from('class_subjects')
+        .select('subjects(*)')
+        .eq('class_id', classData.id)
+      subjects.value = subData?.map(s => s.subjects) || []
 
-    // 2. Get Students
-    const { data: stuData } = await supabase
-      .from('students')
-      .select('id, full_name')
-      .eq('class_id', classData.id)
-      .order('full_name')
-    students.value = stuData || []
-    
+      const { data: stuData } = await supabase
+        .from('students')
+        .select('id, full_name')
+        .eq('class_id', classData.id)
+        .order('full_name')
+      students.value = stuData || []
+      
+      cacheSet(cacheKey, { classInfo: classInfo.value, subjects: subjects.value, students: students.value }, 1440)
+      isStale.value = false
+      await fetchScores()
+      loading.value = false
+      return
+    }
+  }
+
+  const cached = cacheGet(cacheKey)
+  if (cached) {
+    classInfo.value = cached.classInfo
+    subjects.value = cached.subjects
+    students.value = cached.students
+    isStale.value = true
     await fetchScores()
   }
   loading.value = false
@@ -92,16 +109,27 @@ async function loadData() {
 
 async function fetchScores() {
   if (!classInfo.value || students.value.length === 0) return
-  
-  const { data } = await supabase
-    .from('scores')
-    .select('*')
-    .in('student_id', students.value.map(s => s.id))
-    .eq('academic_year_id', classInfo.value.academic_year_id)
-    .eq('month', selectedMonth.value)
-    .eq('score_type', 'monthly')
-  
-  scores.value = data || []
+  const cacheKey = `scores_monthly_${classInfo.value.id}_${selectedMonth.value}`
+
+  if (isOnline.value) {
+    const { data } = await supabase
+      .from('scores')
+      .select('*')
+      .in('student_id', students.value.map(s => s.id))
+      .eq('academic_year_id', classInfo.value.academic_year_id)
+      .eq('month', selectedMonth.value)
+      .eq('score_type', 'monthly')
+    
+    if (data) {
+      scores.value = data
+      cacheSet(cacheKey, data, 120)
+      buildMatrix()
+      return
+    }
+  }
+
+  const cached = cacheGet(cacheKey)
+  scores.value = cached || []
   buildMatrix()
 }
 
@@ -232,6 +260,7 @@ watch(selectedMonth, fetchScores)
         <h1 class="page-title">បញ្ចូលពិន្ទុប្រចាំខែ</h1>
         <p class="page-subtitle" v-if="classInfo">
           គ្រប់គ្រងថ្នាក់ <strong>{{ classInfo.class_name }}</strong> ({{ classInfo.academic_years?.year_name }})
+          <span v-if="isStale" class="offline-badge">ប្រើទិន្នន័យពីឃ្លាំង</span>
         </p>
       </div>
       <div style="display:flex; gap:12px;">
@@ -495,6 +524,18 @@ watch(selectedMonth, fetchScores)
 }
 
 .text-danger { color: #ef4444; }
+
+.offline-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #92400e;
+  background: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
 
 /* ── Pinned row ── */
 tr.pinned td,

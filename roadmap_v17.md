@@ -80,6 +80,8 @@ Teachers in rural Cambodia face unreliable internet. The app now supports offlin
 - Currently applied to **monthly + semester score entry** only
 - Single global toast container — no more duplicate toast implementations across views
 - Storage assets (profile pics, signatures, stamps, voice) cached via CacheFirst strategy
+- **Offline read caching** — reference data (classes, subjects, students) and per-period scores cached to localStorage with TTL expiry; served instantly when offline instead of showing a misleading empty state
+- **Stale-data indicator** — yellow "ប្រើទិន្នន័យពីឃ្លាំង" badge appears when viewing cached data offline
 
 ---
 
@@ -105,7 +107,8 @@ src/
 │   ├── usePwa.js            # PWA install/update state management
 │   ├── useToast.js          # NEW v17 — shared toast state + showToast()
 │   ├── useNetworkStatus.js  # NEW v17 — reactive navigator.onLine tracker
-│   └── useOfflineMutation.js# NEW v17 — offline-aware Supabase write wrapper
+│   ├── useOfflineMutation.js# NEW v17 — offline-aware Supabase write wrapper
+│   └── useCache.js           # NEW v17 — localStorage-backed read cache with TTL
 ├── layouts/
 │   ├── AdminLayout.vue       # Sidebar + Topbar — bell icon
 │   ├── TeacherLayout.vue     # Bell icon
@@ -141,7 +144,7 @@ src/
 └── main.js
 ```
 
-**Total source files: ~80** (51 views, 8 components, 5 composables, 6 stores, 3 utils, 5 layouts, 1 router)
+**Total source files: ~81** (51 views, 8 components, 6 composables, 6 stores, 3 utils, 5 layouts, 1 router)
 
 ---
 
@@ -414,6 +417,9 @@ src/
 - [x] `useOfflineMutation` `upsert` type added for batch score saving
 - [x] `AttendanceView` reverted to direct Supabase calls (offline queue removed)
 - [x] `ScoresMonthlyView` + `ScoresSemesterView` integrated with offline queue (batch upsert via `mutate`)
+- [x] `useCache` composable — localStorage-backed read cache with TTL per key
+- [x] Offline read fallback for `ScoresMonthlyView` + `ScoresSemesterView` — reference data cached 24h, scores cached 2h
+- [x] Stale-data indicator badge in score views when viewing cached data offline
 
 ---
 
@@ -497,7 +503,7 @@ src/
 4. **Parent portal E2E** — test full flow: generate → approve → share → parent views → voice reply
 5. **Validation** — vee-validate + yup usage inconsistent across forms
 6. **Responsive polish** — tablet/mobile layouts need attention
-7. **Empty/loading states** — skeleton loaders missing in some views
+7. **Empty/loading states** — skeleton loaders missing in some views; score views now show cached data instead of empty state when offline (partial fix)
 8. **Extend offline queue to more views** — monthly + semester scores done; still pending: sick-days, growth, vaccinations, library borrows, budget, inventory
 9. **Offline queue conflict resolution** — handle conflicts when the same record is edited offline and modified elsewhere
 10. **PWA app icon** — replace default Vite logo with custom 192x192 + 512x512 icons
@@ -603,3 +609,29 @@ src/
 - `handleAuthEvent` no longer skips `INITIAL_SESSION` — sets `session.value` and calls `fetchProfile()` immediately when the listener fires, instead of deferring to `init()`
 - `init()` now bails early with `if (session.value) return` — avoids duplicate `fetchProfile()` if `handleAuthEvent` already restored the session
 - Two redundant session-restore paths ensure the user stays logged in across PWA restarts
+
+### Session 5 — Offline Read Cache for Score Views (July 2026)
+
+**Problem:** When opening the app in airplane mode, the score pages (`ScoresMonthlyView`, `ScoresSemesterView`) tried to fetch class info, subjects, students, and existing scores from Supabase. With no network, the requests failed and the page showed the "មិនទាន់មានថ្នាក់ត្រូវបានចាត់តាំង" (no class assigned) empty state — completely wrong. The existing offline queue only handled **writes** (saving scores) but not **reads** (loading data).
+
+**Fix: `src/composables/useCache.js`:**
+- Created a composable providing `get()`, `set()`, `remove()` methods backed by localStorage with per-key TTL expiry
+- Each entry stores `{ data, expiry }` — expired entries auto-purge on access
+
+**Changes in both `ScoresMonthlyView.vue` and `ScoresSemesterView.vue`:**
+- `loadData()` now checks `isOnline` before attempting network calls:
+  - Online → fetches normally, caches a composite of `{ classInfo, subjects, students }` on success (24h TTL)
+  - Offline → restores instantly from localStorage cache (no 5s service worker timeout)
+- `fetchScores()` / `fetchAllScores()`:
+  - Online → fetches, caches per-period scores on success (2h TTL)
+  - Offline → restores cached scores for the selected month/semester
+- Added `isStale` ref — set to `true` when data comes from cache, showing a yellow "ប្រើទិន្នន័យពីឃ្លាំង" badge next to the page subtitle
+
+**Behavior:**
+- First visit (online) → silent cache fill, no UX change
+- Subsequent visit (offline) → instant load from localStorage, yellow badge visible
+- Switch months/semesters offline → loads cached scores for that period
+- Return online → fetches fresh data, updates cache, badge disappears
+- Cold cache (first visit offline) → still shows empty/no-class state (acceptable — no data has ever been fetched)
+
+**Build:** `npm run build` passes with 0 errors, PWA generates 161 precached entries.
