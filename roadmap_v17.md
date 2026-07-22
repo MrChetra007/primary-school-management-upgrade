@@ -423,7 +423,8 @@ src/
 - [x] `upsert` case added to `offlineQueue.processQueue()` — queued score entries now sync on reconnect instead of being silently skipped
 - [x] Toast icons fixed — `ExclamationTriangleIcon` for warning, `InformationCircleIcon` for info, `XCircleIcon` for error
 - [x] Offline queue extended to `SickDaysView`, `GrowthView`, `VaccinationsView` (insert/update/delete via `mutate`)
-- [x] Dead code removed — unused `wasOffline` ref, unused `ArrowPathIcon` import, duplicate CSS block if ConnectionStatus
+- [x] Dead code removed — unused `wasOffline` ref, unused `ArrowPathIcon` import, duplicate CSS block in ConnectionStatus
+- [x] `migration_v11_realtime_fix.sql` — added `notifications` to Supabase Realtime publication, set `REPLICA IDENTITY FULL`, added trigger for re-submit notification
 
 ---
 
@@ -515,6 +516,7 @@ src/
 6. **Responsive polish** — tablet/mobile layouts need attention
 7. **Empty/loading states** — skeleton loaders missing in some views; score views now show cached data instead of empty state when offline (partial fix)
 8. **Extend offline queue to more views** — monthly/semester scores, sick-days, growth, vaccinations done; still pending: library borrows, budget, inventory
+8a. **Realtime migration** — `migration_v11_realtime_fix.sql` ready, needs execution on production Supabase
 9. **Offline queue conflict resolution** — handle conflicts when the same record is edited offline and modified elsewhere
 10. **PWA app icon** — replace default Vite logo with custom 192x192 + 512x512 icons
 

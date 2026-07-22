@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>វិធីចែក - Long Division Step-by-Step</title>
+    <style>
+        body {
+            font-family: 'Khmer OS Siemreap', 'Segoe UI', Tahoma, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            max-width: 500px;
+            width: 100%;
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+        /* Custom Division Layout matching textbook style */
+        .division-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .math-box {
+            display: grid;
+            grid-template-columns: auto auto auto;
+            column-gap: 12px;
+            row-gap: 6px;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #2563eb;
+            position: relative;
+            padding: 10px 20px;
+        }
+        /* Vertical line separator */
+        .math-box::after {
+            content: "";
+            position: absolute;
+            top: 5px;
+            bottom: 5px;
+            right: 85px;
+            width: 3px;
+            background-color: #2563eb;
+        }
+        /* Horizontal line under divisor */
+        .math-box::before {
+            content: "";
+            position: absolute;
+            top: 60px;
+            right: 15px;
+            width: 75px;
+            height: 3px;
+            background-color: #2563eb;
+        }
+        .sub-step {
+            font-size: 1.4rem;
+            color: #64748b;
+        }
+        /* Step-by-step interactive tabs or list */
+        .steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .step-item {
+            background: #f1f5f9;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 4px solid #cbd5e1;
+            font-size: 1rem;
+            color: #334155;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .step-item.active {
+            background: #eff6ff;
+            border-left-color: #2563eb;
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+        .highlight {
+            color: #dc2626;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>វិធីចែក (Long Division)</h2>
+        
+        <!-- Matching Layout -->
+        <div class="division-display">
+            <div class="math-box">
+                <span>42</span>
+                <span>|</span>
+                <span>5</span>
+                <span style="grid-column: 3; font-size: 1.8rem; text-align: center;">8</span>
+                <span style="grid-column: 1; font-size: 1.8rem;">40</span>
+                <span style="grid-column: 1; font-size: 1.8rem; border-top: 2px solid #2563eb; padding-top: 2px;">2</span>
+            </div>
+        </div>
+
+        <!-- Step-by-Step Breakdown -->
+        <div class="steps-list">
+            <div class="step-item active">
+                <strong>ជំហានទី ១៖</strong> មើលលេខខាងឆ្វេងបំផុត <span class="highlight">4</span> តូចជាងតួចែក <span class="highlight">5</span> ដូច្នេះយើងត្រូវយកទាំងមូល <span class="highlight">42</span>។
+            </div>
+            <div class="step-item">
+                <strong>ជំហានទី ២៖</strong> រកផលគុណនឹង <span class="highlight">5</span> ដែលជិត <span class="highlight">42</span> បំផុតគឺ <span class="highlight">5 × 8 = 40</span>។ សរសេរ <span class="highlight">8</span> ជាលទ្ធផល។
+            </div>
+            <div class="step-item">
+                <strong>ជំហានទី ៣៖</strong> យក <span class="highlight">42 - 40 = 2</span>។ លេខ <span class="highlight">2</span> នេះគឺជាសំណល់ (Remainder)។
+            </div>
+            <div class="step-item" style="background: #f0fdf4; border-left-color: #22c55e; color: #166534;">
+                <strong>ចម្លើយ៖</strong> ដូចនេះ ៖ 42 ÷ 5 = 8 សំណល់ 2
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

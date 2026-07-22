@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @page {
+    size: Letter;
+    margin: 10mm 10mm 9mm 10mm;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: auto;
+  }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 7.6pt;
+    line-height: 1.16;
+    color: #1a1a1a;
+    margin: 0;
+  }
+  .header {
+    border-bottom: 2px solid #1e3a5f;
+    padding-bottom: 4px;
+    margin-bottom: 7px;
+  }
+  .header h1 {
+    font-size: 14pt;
+    margin: 0 0 1px 0;
+    color: #1e3a5f;
+  }
+  .header .sub {
+    font-size: 7.5pt;
+    color: #555;
+  }
+  .columns {
+    display: flex;
+    gap: 11px;
+  }
+  .col {
+    flex: 1;
+    min-width: 0;
+  }
+  .section {
+    break-inside: avoid;
+    margin-bottom: 6px;
+    border: 1px solid #d8dfe6;
+    border-radius: 3px;
+    padding: 4px 6px 5px 6px;
+    background: #fbfcfd;
+  }
+  .section-title {
+    font-size: 8.3pt;
+    font-weight: 700;
+    color: #ffffff;
+    background: #1e3a5f;
+    margin: -4px -6px 4px -6px;
+    padding: 2px 6px;
+    border-radius: 3px 3px 0 0;
+    letter-spacing: 0.1px;
+  }
+  .qa {
+    margin-bottom: 2.5px;
+  }
+  .q {
+    font-weight: 700;
+    color: #0d2942;
+    font-style: italic;
+  }
+  .a {
+    margin: 1px 0 0 0;
+    color: #222;
+  }
+  .diagram-box {
+    background: #eef2f6;
+    border: 1px dashed #9aa9b8;
+    border-radius: 3px;
+    padding: 3px 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 6.8pt;
+    margin: 3px 0 4px 0;
+    white-space: pre-wrap;
+    line-height: 1.15;
+  }
+  .narrative-box {
+    background: #fff8ec;
+    border: 1px solid #e8d5a8;
+    border-radius: 3px;
+    padding: 4px 6px;
+    font-size: 7.3pt;
+    font-style: italic;
+    color: #4a3a1a;
+    margin-top: 3px;
+  }
+  .footer-note {
+    break-inside: avoid;
+    margin-top: 5px;
+    font-size: 7pt;
+    color: #666;
+    text-align: center;
+    border-top: 1px solid #d8dfe6;
+    padding-top: 3px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>PSMS Thesis Defense — Q&A Cheat Sheet</h1>
+  <div class="sub">Primary School Management System · Vue 3 + Supabase · National University of Battambang · Defense: July 25, 2026</div>
+</div>
+
+<div class="columns">
+
+  <div class="section">
+    <div class="section-title">Real-Time &amp; Notifications</div>
+    <div class="qa">
+      <div class="q">Q: How do notifications reach the admin without refreshing?</div>
+      <div class="a">A: Supabase Realtime — a DB trigger fires on insert into notifications (e.g. teacher requests approval). Frontend subscribes to that table via a realtime channel, so the bell icon's unread count updates live, no polling.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: Why triggers instead of creating notifications in frontend code?</div>
+      <div class="a">A: A trigger guarantees the notification fires no matter which code path touches the table — frontend, Edge Function, or future admin tool. Frontend-only logic risks silent drops from bugs or bypasses.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">PWA / Service Worker</div>
+    <div class="qa">
+      <div class="q">Q: What is a service worker, in your own words?</div>
+      <div class="a">A: A background script the browser runs separately from the page — it intercepts network requests and serves cached responses. That's what makes the app installable, offline-capable, and instant on repeat visits.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: Why change registerType from autoUpdate to prompt?</div>
+      <div class="a">A: autoUpdate could swap code mid-session while a teacher is entering scores. prompt waits for explicit approval — an update banner appears, refresh only happens when the teacher chooses.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: Why cache-control no-store for sw.js and index.html specifically?</div>
+      <div class="a">A: If the service worker file itself gets cached by CDN/browser, users get stuck on an old version permanently, unable to receive updates. Those files must always be fetched fresh.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Database Design &amp; Performance</div>
+    <div class="qa">
+      <div class="q">Q: Why 25+ indexes — how did you decide what to index?</div>
+      <div class="a">A: Based on actual query patterns — anything filtered heavily in RLS policies or dashboards (school_id, class_id, student_id foreign keys) needs an index, or every tenant-scoped query does a full table scan as data grows.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: With 28 tables and a year of scores/attendance per student, will it scale?</div>
+      <div class="a">A: Per-school volume stays modest (one school's population); multi-tenancy means growth is horizontal (more schools), not one school's tables growing unbounded. Honest gap: multi-tenant isolation hasn't been stress-tested under real concurrent load.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Process &amp; Ownership</div>
+    <div class="qa">
+      <div class="q">Q: Did you build all 81 files yourself?</div>
+      <div class="a">A: Solo developer using AI assistance throughout — same as using an IDE, Stack Overflow, or pair programming. What matters: every architectural decision (RLS design, offline-first scoping, approval workflow) was mine, and I can explain and defend each one.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: How did you test without an automated test suite?</div>
+      <div class="a">A: Manual testing at a real Battambang school with real teachers (Phase 8) — legitimate QA for a solo-built system at this stage. Acknowledge automated testing as a known gap, not something claimed as done.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: Why Vercel for deployment?</div>
+      <div class="a">A: Zero-config deploys from Git, free tier suits a single-school pilot, pairs cleanly with Supabase's hosted backend — no server to manage myself.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Business Logic</div>
+    <div class="qa">
+      <div class="q">Q: How does rank computation handle ties?</div>
+      <div class="a">A: Ties share the same rank; the next rank skips accordingly (two tied for 1st → next is rank 3, not 2). Computed within each class only, never school-wide.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: Why is score calculation done client-side, not in the database?</div>
+      <div class="a">A: The database stores only raw scores as the single source of truth. Averages/totals/ranks are derived values computed in one shared utility (scoreCalculator.js) — never stored redundantly, so a computed value can never drift from the raw data.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">DB Relationships — One-to-One</div>
+    <div class="qa">
+      <div class="q">Q: Where is there a strict 1:1 relationship, and why?</div>
+      <div class="a">A: public.users ↔ teachers, via teachers.user_id NOT NULL UNIQUE — every account is exactly one person, one profile, never zero or many. Also auth.users ↔ public.users.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: Why enforce UNIQUE instead of careful application code?</div>
+      <div class="a">A: App code can have bugs or race conditions. A unique constraint makes "one profile per account" impossible to violate even if a future feature forgets to check — a guarantee at the data layer, not a hope at the code layer.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">DB Relationships — One-to-Many</div>
+    <div class="qa">
+      <div class="q">Q: Give the core one-to-many chain in your schema.</div>
+      <div class="a">A: schools → users → teachers → classes → students. Each school has many users; each teacher owns many classes (classes.teacher_id); each class has many students (students.class_id). This chain also enforces multi-tenancy — everything traces back to one school_id.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: Other 1:many relationships that matter?</div>
+      <div class="a">A: students → scores/attendances/growth/vaccinations/sick_days — one student accumulates many timestamped records. classes → report_links → report_messages — one link per month/semester, one thread per student.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: Why not store scores as columns on the student row?</div>
+      <div class="a">A: One score per subject per month per year is inherently repeating data — exactly what a separate scores table with foreign keys is for. Columns would need schema changes every new month.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">DB Relationships — Many-to-Many</div>
+    <div class="qa">
+      <div class="q">Q: Where is there a many-to-many relationship, and how modeled?</div>
+      <div class="a">A: classes ↔ subjects, via junction table class_subjects. A class has many subjects; the same subject (e.g. "Math") is taught differently per class/grade, so subjects are pulled per-class, not from one global list.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: Why not give subjects a class_id directly?</div>
+      <div class="a">A: Subjects are still a shared, reusable pool per school (e.g. "English" exists once). A junction table lets many classes reference the same subject without duplicating rows.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: Any other many-to-many?</div>
+      <div class="a">A: students ↔ books via book_borrows — a student borrows many books over time, a book is borrowed by many students. The junction table also carries its own data (borrow date, return date) — a sign of a proper many-to-many with attributes.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Cascade Behavior &amp; Referential Integrity</div>
+    <div class="qa">
+      <div class="q">Q: What happens to a teacher's classes if their account is deleted?</div>
+      <div class="a">A: auth.users deletion cascades to public.users, then to the teachers row (user_id FK). classes.teacher_id is ON DELETE SET NULL — the class survives with teacher_id = null, not deleted. In practice, staff are deactivated (status='inactive') rather than hard-deleted, to avoid orphaning classes and students.</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q: How do you stop a student from belonging to a class in a different school?</div>
+      <div class="a">A: Every table in the chain carries its own school_id (not just inherited through joins), and RLS policies check school_id directly on each table rather than trusting the relationship chain alone — so a bug in one join can't leak cross-tenant data.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Self-Referencing / Hierarchical</div>
+    <div class="qa">
+      <div class="q">Q: Any hierarchical or self-referencing relationship?</div>
+      <div class="a">A: No classic self-reference (like manager-employee), but academic_years functions similarly — each year's classes are cloned from the prior year via clone_classes_structure(), giving a conceptual "previous year → current year" lineage without a literal self-FK.</div>
+    </div>
+  </div>
+
+  <div class="section" style="background:#f4f8fb;">
+    <div class="section-title">ER Diagram Walkthrough — Narrative Answer</div>
+    <div class="diagram-box">school_id (tenant root)
+  └─ auth.users → users → teachers      (identity)
+       └─ academic_years → classes → class_subjects → students  (academic structure)
+            └─ scores, attendances, health, growth,
+               vaccinations, sick_days                (student activity, 1:many each)
+            └─ report_links → report_messages          (parent portal)
+            └─ notifications                           (approval workflow)
+            └─ teacher_phrases                          (per-teacher, cross-cutting)</div>
+    <div class="narrative-box">
+      "Everything scopes to school_id at the top. Identity flows auth.users → users → teachers. Academic structure is academic_years → classes → class_subjects → students. From students, everything else branches out — scores, attendance, health, sick days, growth, vaccinations — each its own one-to-many, since a student accumulates many of each over time. Cross-cutting features — report_links/messages for the parent portal, notifications for the approval workflow, teacher_phrases per teacher — each scope to whichever entity owns them."
+    </div>
+    <div class="footer-note">PSMS Thesis Defense Prep · Compiled July 2026 · Bring alongside the Q&amp;A prep doc and PPTX deck</div>
+  </div>
+
+</div>
+
+</body>
+</html>
