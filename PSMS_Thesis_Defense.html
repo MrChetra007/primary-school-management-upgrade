@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSMS Thesis Defense</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Khmer:wght@400;500;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --navy: #1E2761;
+    --navy-light: #2A3680;
+    --navy-dark: #141B47;
+    --ice: #CADCFC;
+    --ice-light: #E8F0FE;
+    --amber: #E8A33D;
+    --amber-light: #F5C776;
+    --white: #FFFFFF;
+    --gray: #8892B0;
+    --dark: #0A0E27;
+    --red: #E74C3C;
+    --green: #2ECC71;
+    --radius: 12px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Inter', 'Noto Sans Khmer', sans-serif;
+    background: var(--dark);
+    color: var(--white);
+  }
+
+  /* Slide container */
+  .slideshow {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    overflow-y: auto;
+  }
+
+  .slide.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .slide-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -1;
+  }
+
+  /* Navy gradient background (default) */
+  .slide-bg.navy-bg {
+    background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 50%, var(--navy-light) 100%);
+  }
+
+  .slide-bg.dark-bg {
+    background: var(--dark);
+  }
+
+  .slide-bg.split-bg {
+    background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 50%, var(--navy-light) 100%);
+  }
+
+  .slide-bg.split-bg::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 45%;
+    height: 100%;
+    background: linear-gradient(180deg, var(--navy-light) 0%, var(--navy) 100%);
+    border-left: 1px solid rgba(202, 220, 252, 0.1);
+  }
+
+  /* Content layout */
+  .content {
+    width: 100%;
+    max-width: 1200px;
+    z-index: 1;
+    position: relative;
+  }
+
+  /* Title slide */
+  .title-left {
+    width: 55%;
+  }
+
+  .title-right {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 38%;
+    padding: 40px;
+  }
+
+  .title-label {
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+  }
+
+  h1.hero {
+    font-size: 56px;
+  }
+
+  h1 .highlight {
+    color: var(--amber);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--ice);
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  .meta {
+    font-size: 14px;
+    color: var(--gray);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+  }
+
+  h2 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  h2 .highlight {
+    color: var(--amber);
+  }
+
+  h3 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .section-number {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 17px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 16px;
+  }
+
+  p.lead {
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--ice);
+  }
+
+  /* Cards */
+  .card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius);
+    padding: 28px;
+    backdrop-filter: blur(12px);
+  }
+
+  .card h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .card p {
+    font-size: 14px;
+    color: var(--gray);
+    margin: 0;
+  }
+
+  /* Grids */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+
+  .grid-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 20px;
+  }
+
+  /* Tech stack cards */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .tech-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+
+  .tech-card:hover {
+    border-color: var(--amber);
+    transform: translateY(-2px);
+  }
+
+  .tech-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .tech-badge.vue { background: #42B883; color: #fff; }
+  .tech-badge.vite { background: #646CFF; color: #fff; }
+  .tech-badge.tailwind { background: #06B6D4; color: #fff; }
+  .tech-badge.supabase { background: #3ECF8E; color: #fff; }
+  .tech-badge.pinia { background: #FFD859; color: #333; }
+  .tech-badge.pwa { background: #5A0FC8; color: #fff; }
+
+  .tech-card .info h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .tech-card .info p {
+    font-size: 12px;
+    color: var(--gray);
+    margin: 0;
+  }
+
+  /* Stats circles */
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid var(--amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--white);
+  }
+
+  .stat-item p {
+    font-size: 14px;
+    color: var(--gray);
+    margin: 0;
+  }
+
+  /* Flow diagrams */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .flow-step {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 16px 24px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 500;
+    min-width: 140px;
+  }
+
+  .flow-step.highlight {
+    background: rgba(232, 163, 61, 0.15);
+    border-color: var(--amber);
+  }
+
+  .flow-arrow {
+    color: var(--amber);
+    font-size: 20px;
+    padding: 0 12px;
+    font-weight: 300;
+  }
+
+  .flow-vertical {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .flow-vertical .flow-step {
+    width: 200px;
+  }
+
+  .flow-vertical .flow-arrow {
+    transform: rotate(90deg);
+    padding: 4px 0;
+  }
+
+  /* Bullets */
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  ul li {
+    padding: 8px 0;
+    padding-left: 28px;
+    position: relative;
+    font-size: 17px;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.85);
+  }
+
+  ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 16px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+  }
+
+  ul li.green::before {
+    background: var(--green);
+  }
+
+  ul li.red::before {
+    background: var(--red);
+  }
+
+  /* Callout boxes */
+  .callout {
+    background: rgba(232, 163, 61, 0.1);
+    border-left: 3px solid var(--amber);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+
+  .callout code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: var(--amber-light);
+    background: rgba(0,0,0,0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .callout p {
+    font-size: 15px;
+    margin: 0;
+  }
+
+  /* Toggle switches (before/after) */
+  .compare-col {
+    padding: 24px;
+    border-radius: var(--radius);
+  }
+
+  .compare-col.before {
+    background: rgba(231, 76, 60, 0.08);
+    border: 1px solid rgba(231, 76, 60, 0.2);
+  }
+
+  .compare-col.after {
+    background: rgba(46, 204, 113, 0.08);
+    border: 1px solid rgba(46, 204, 113, 0.2);
+  }
+
+  .compare-col h3 {
+    font-size: 18px;
+  }
+
+  .compare-col.before h3 { color: var(--red); }
+  .compare-col.after h3 { color: var(--green); }
+
+  .compare-col ul li { font-size: 14px; padding: 6px 0 6px 24px; }
+  .compare-col ul li::before { top: 13px; width: 6px; height: 6px; }
+
+  .compare-col.before ul li::before { background: var(--red); }
+  .compare-col.after ul li::before { background: var(--green); }
+
+  /* Image placeholder */
+  .img-placeholder {
+    border: 2px dashed rgba(202, 220, 252, 0.3);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--gray);
+    font-size: 14px;
+    gap: 8px;
+    background: rgba(255,255,255,0.03);
+    min-height: 180px;
+  }
+
+  .img-placeholder .icon {
+    font-size: 32px;
+    opacity: 0.5;
+  }
+
+  .img-placeholder .label {
+    font-weight: 500;
+    color: rgba(202, 220, 252, 0.5);
+  }
+
+  /* Security check rows */
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .check-row:last-child { border-bottom: none; }
+
+  .check-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .check-row .text {
+    font-size: 15px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.85);
+  }
+
+  .check-row .text strong {
+    color: var(--white);
+  }
+
+  /* Divider slide */
+  .divider-content {
+    text-align: center;
+  }
+
+  .divider-content h2 {
+    font-size: 48px;
+    font-weight: 200;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.15);
+    margin-bottom: 8px;
+  }
+
+  .divider-content .divider-sub {
+    font-size: 16px;
+    color: var(--gray);
+    letter-spacing: 2px;
+  }
+
+  /* Arrow bullets for roadmap */
+  .arrow-bullet {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .arrow-bullet:last-child { border-bottom: none; }
+
+  .arrow-icon {
+    color: var(--amber);
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .arrow-bullet .text {
+    font-size: 15px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.8);
+  }
+
+  .arrow-bullet .text strong {
+    color: var(--white);
+  }
+
+  /* Full-bleed statement */
+  .statement-slide {
+    text-align: center;
+  }
+
+  .statement-slide h2 {
+    font-size: 40px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.3;
+  }
+
+  .statement-slide p {
+    font-size: 18px;
+    color: var(--ice);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Bottom bar / slide controls */
+  .controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 16px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    background: linear-gradient(transparent, rgba(10, 14, 39, 0.9));
+    pointer-events: none;
+  }
+
+  .controls > * {
+    pointer-events: auto;
+  }
+
+  .slide-counter {
+    font-size: 13px;
+    color: var(--gray);
+    letter-spacing: 1px;
+    font-weight: 500;
+  }
+
+  .slide-counter .current {
+    color: var(--white);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .nav-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .nav-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: var(--white);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s;
+    backdrop-filter: blur(8px);
+  }
+
+  .nav-btn:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: var(--amber);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--amber);
+    z-index: 101;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 12px rgba(232, 163, 61, 0.4);
+  }
+
+  /* Speaker notes overlay */
+  .notes-overlay {
+    position: fixed;
+    bottom: 80px;
+    right: 24px;
+    max-width: 420px;
+    background: rgba(10, 14, 39, 0.95);
+    border: 1px solid rgba(202, 220, 252, 0.2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    z-index: 102;
+    backdrop-filter: blur(16px);
+    display: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  .notes-overlay.visible {
+    display: block;
+  }
+
+  .notes-overlay .notes-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--amber);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .notes-overlay .notes-text {
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.85);
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .notes-toggle-hint {
+    position: fixed;
+    bottom: 72px;
+    right: 24px;
+    z-index: 99;
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.5px;
+    cursor: pointer;
+  }
+
+  .notes-toggle-hint:hover {
+    color: var(--gray);
+  }
+
+  /* Code blocks (appendix) */
+  pre {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--ice);
+    overflow-x: auto;
+    margin: 12px 0;
+  }
+
+  pre .keyword { color: #C792EA; }
+  pre .string { color: #C3E88D; }
+  pre .comment { color: #546E7A; }
+  pre .func { color: #82AAFF; }
+  pre .type { color: #FFCB6B; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .slide { padding: 40px 32px; }
+    h1 { font-size: 32px; }
+    h1.hero { font-size: 36px; }
+    h2 { font-size: 26px; }
+    .subtitle { font-size: 16px; }
+    .grid-2 { grid-template-columns: 1fr; gap: 24px; }
+    .grid-3, .tech-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .grid-2x2 { grid-template-columns: 1fr; }
+    .title-left { width: 100%; }
+    .title-right { position: static; transform: none; width: 100%; padding: 24px 0 0; }
+    .flow { flex-direction: column; gap: 8px; }
+    .flow-arrow { transform: rotate(90deg); padding: 4px 0; }
+    .controls { padding: 12px 20px; }
+    .notes-overlay { right: 12px; left: 12px; max-width: none; bottom: 72px; }
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide.active .content > * {
+    animation: fadeInUp 0.5s ease forwards;
+  }
+
+  .slide.active .content > *:nth-child(1) { animation-delay: 0s; }
+  .slide.active .content > *:nth-child(2) { animation-delay: 0.1s; }
+  .slide.active .content > *:nth-child(3) { animation-delay: 0.2s; }
+  .slide.active .content > *:nth-child(4) { animation-delay: 0.3s; }
+  .slide.active .content > *:nth-child(5) { animation-delay: 0.4s; }
+
+  /* Thin scrollbar for slides with lots of content */
+  .slide::-webkit-scrollbar { width: 4px; }
+  .slide::-webkit-scrollbar-track { background: transparent; }
+  .slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+  /* Appendix specific */
+  .mechanism-list {
+    counter-reset: step;
+  }
+
+  .mechanism-list li {
+    counter-increment: step;
+    padding-left: 40px;
+    padding-bottom: 10px;
+  }
+
+  .mechanism-list li::before {
+    content: counter(step);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(232, 163, 61, 0.15);
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    top: 10px;
+  }
+
+  .honest-note {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: rgba(232, 163, 61, 0.06);
+    border-radius: 8px;
+    border-left: 2px solid var(--amber);
+  }
+
+  .honest-note .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--amber);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .honest-note p {
+    font-size: 13px;
+    margin: 0;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .team-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+  }
+
+  .team-card .team-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--gray);
+    margin-bottom: 12px;
+  }
+
+  .team-card .team-names {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+
+  .team-card .team-names .placeholder {
+    color: var(--amber);
+    font-weight: 400;
+  }
+
+  .team-card .uni {
+    font-size: 13px;
+    color: var(--gray);
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="slideshow" id="slideshow">
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 1 — Title -->
+  <!-- ============================================================ -->
+  <div class="slide active" data-index="0" data-notes="Your names, university, and one sentence on what the system is.">
+    <div class="slide-bg split-bg"></div>
+    <div class="content" style="position:relative; display:flex; align-items:center; min-height:70vh;">
+      <div class="title-left">
+        <div class="title-label">Thesis Defense · 2026</div>
+        <h1 class="hero">Primary School<br><span class="highlight">Management System</span></h1>
+        <p class="subtitle">An offline-first management platform for a Cambodian primary school</p>
+        <p class="meta">National University of Battambang · July 2026</p>
+      </div>
+      <div class="title-right">
+        <div class="team-card">
+          <div class="team-label">Presented by</div>
+          <div class="team-names">
+            <span class="placeholder">[ Team Member 1 ]</span><br>
+            <span class="placeholder">[ Team Member 2 ]</span><br>
+            <span class="placeholder">[ Team Member 3 ]</span>
+          </div>
+          <div class="uni">National University of Battambang</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 2 — The Problem -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="1" data-notes="Ground the problem in the real Battambang school context before jumping to the solution.">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">The Problem</div>
+      <h2>School records are still <span class="highlight">paper-based</span> and disconnected</h2>
+      <div class="grid-2" style="margin-top:32px;">
+        <div>
+          <ul>
+            <li><strong>No parent visibility</strong> — Parents only learn about their child's progress during exam week; no ongoing insight into daily scores or attendance</li>
+            <li><strong>Fragile record-keeping</strong> — Paper score books are lost, damaged, or illegible over time; no backup exists</li>
+            <li><strong>Unreliable rural internet</strong> — Teachers in Battambang province lose connectivity mid-class; cloud-only apps fail in practice</li>
+            <li><strong>No cross-role visibility</strong> — The principal cannot review student performance trends without collecting physical reports from every teacher</li>
+          </ul>
+        </div>
+        <div>
+          <div class="img-placeholder">
+            <div class="icon">📋</div>
+            <div class="label">Photo: Paper record books / rural classroom</div>
+            <div style="font-size:11px; color:rgba(255,255,255,0.2);">— swap in a real photo before defense day —</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 3 — Core Design Decision -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="2" data-notes="This is your most distinctive architectural choice. Explain why (every staff member in a Cambodian school is a teacher by training) before how (the schema enforces it, not just the UI). Expect a direct committee question here.">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Core Design Decision</div>
+      <h2>Every user <span class="highlight">IS</span> a teacher</h2>
+      <div class="grid-2" style="margin-top:28px;">
+        <div>
+          <p class="lead">In Cambodian schools, all staff members are teachers first. The librarian is a teacher who manages the library. The admin is a teacher who runs the school. This is not a UI convention — it is enforced at the database level.</p>
+          <div class="callout">
+            <p><code>teachers.user_id</code> is <code>NOT NULL UNIQUE</code> — one profile per account, always linked. There is no such thing as a user without a teacher profile.</p>
+          </div>
+          <p style="font-size:15px; color:var(--gray); margin-top:12px;">The <code>role</code> field in <code>public.users</code> only controls what they can access — not who they are.</p>
+        </div>
+        <div>
+          <h3 style="font-size:16px; font-weight:500; color:var(--ice); text-align:center; margin-bottom:16px;">User → Teacher Chain</h3>
+          <div class="flow-vertical" style="margin:0 auto;">
+            <div class="flow-step" style="background:rgba(232,163,61,0.1); border-color:var(--amber);">auth.users</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">public.users<br><span style="font-size:11px; color:var(--gray);">role, status, school_id</span></div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step" style="background:rgba(232,163,61,0.1); border-color:var(--amber);">teachers<br><span style="font-size:11px; color:var(--gray);">user_id NOT NULL UNIQUE</span></div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">classes<br><span style="font-size:11px; color:var(--gray);">teacher_id → ownership</span></div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">students<br><span style="font-size:11px; color:var(--gray);">class_id → membership</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 4 — Tech Stack -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="3" data-notes="Move quickly — this is reference material, not a talking point unless asked.">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Architecture</div>
+      <h2>Technology <span class="highlight">Stack</span></h2>
+      <div class="tech-grid" style="margin-top:32px;">
+        <div class="tech-card">
+          <div class="tech-badge vue">V</div>
+          <div class="info">
+            <h4>Vue 3</h4>
+            <p>Progressive frontend framework with Composition API</p>
+          </div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-badge vite">V</div>
+          <div class="info">
+            <h4>Vite 8</h4>
+            <p>Fast build tool with HMR and optimized production builds</p>
+          </div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-badge tailwind">T</div>
+          <div class="info">
+            <h4>Tailwind CSS 4</h4>
+            <p>Utility-first CSS framework for rapid UI development</p>
+          </div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-badge supabase">S</div>
+          <div class="info">
+            <h4>Supabase</h4>
+            <p>Backend-as-a-Service: PostgreSQL, Auth, Storage, Edge Functions</p>
+          </div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-badge pinia">P</div>
+          <div class="info">
+            <h4>Pinia 3</h4>
+            <p>Type-safe state management with modular stores</p>
+          </div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-badge pwa">PWA</div>
+          <div class="info">
+            <h4>PWA + vite-plugin-pwa</h4>
+            <p>Offline-capable installable web app with service worker caching</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 5 — System Scope -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="4" data-notes="Let the numbers land — this is a credibility slide, don't rush past it silently.">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Scope</div>
+      <h2>System <span class="highlight">Scale</span></h2>
+      <div class="grid-4" style="margin-top:48px;">
+        <div class="stat-item">
+          <div class="stat-circle">5</div>
+          <p style="font-weight:600; color:var(--white);">User Roles</p>
+        </div>
+        <div class="stat-item">
+          <div class="stat-circle">28+</div>
+          <p style="font-weight:600; color:var(--white);">Database Tables</p>
+        </div>
+        <div class="stat-item">
+          <div class="stat-circle">~80</div>
+          <p style="font-weight:600; color:var(--white);">Source Files</p>
+        </div>
+        <div class="stat-item">
+          <div class="stat-circle">1</div>
+          <p style="font-weight:600; color:var(--white);">Live School</p>
+        </div>
+      </div>
+      <p style="text-align:center; color:var(--gray); font-size:15px; margin-top:32px;">Super Admin · Admin/Director · Teacher · Librarian · Parent (anon, link-only)</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 6 — Academic Year Navigation Model -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="5" data-notes="Quick model explanation before diving into feature deep dives.">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Navigation Model</div>
+      <h2>Academic Year <span class="highlight">Scoping</span></h2>
+      <p class="lead" style="max-width:700px;">Everything downstream — scores, attendance, health, classes — is scoped to the selected academic year.</p>
+      <div class="flow" style="margin-top:48px;">
+        <div class="flow-step highlight">Academic Year</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">Dashboard</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">Classes</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">Students</div>
+      </div>
+      <p style="text-align:center; color:var(--gray); font-size:14px; margin-top:24px;">Admin selects an academic year → Pinia store saves <code>academic_year_id</code> → all subsequent queries filter by it</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 7 — Offline-First Score Entry -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="6" data-notes="Explain the why (rural connectivity) before the how. This is your best differentiator — don't undersell it.">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Feature Deep Dive</div>
+      <h2>Offline-First <span class="highlight">Score Entry</span></h2>
+      <div class="grid-2" style="margin-top:28px;">
+        <div>
+          <p class="lead">Rural teachers lose connectivity mid-class. The app now supports offline writes with automatic sync — scoped to score entry.</p>
+          <ul style="margin-top:16px;">
+            <li><strong>Connection banner</strong> — Yellow dismissible banner at page top with pending queue count</li>
+            <li><strong>Auto-sync on reconnect</strong> — Queue processed in FIFO order with success/failure toasts</li>
+            <li><strong>Deliberately scoped</strong> — Applied to monthly + semester score entry; avoids complexity of conflict resolution across all modules</li>
+          </ul>
+        </div>
+        <div>
+          <div class="img-placeholder">
+            <div class="icon">📸</div>
+            <div class="label">Screenshot: Offline banner + score entry grid</div>
+            <div style="font-size:11px; color:rgba(255,255,255,0.2);">— swap in a real screenshot before defense day —</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 8 — Parent Portal Approval Flow -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="7" data-notes="Emphasize the privacy boundary — committees respond well to hearing you thought about data exposure deliberately.">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Feature Deep Dive</div>
+      <h2>Parent Portal — <span class="highlight">Approval Flow</span></h2>
+      <div class="flow" style="margin-top:32px;">
+        <div class="flow-step highlight">Teacher<br>Requests</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">Admin<br>Reviews</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">Link<br>Unlocks</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight">Parent<br>Views</div>
+      </div>
+      <p style="text-align:center; color:var(--gray); font-size:14px; margin-top:12px;">Health, growth, vaccination, and sick day data are <strong style="color:var(--amber);">never exposed</strong> through this link</p>
+      <div style="margin-top:24px;">
+        <div class="img-placeholder" style="min-height:120px;">
+          <div class="icon">📄</div>
+          <div class="label">Screenshot: Parent report card with principal signature + school stamp footer</div>
+          <div style="font-size:11px; color:rgba(255,255,255,0.2);">— swap in a real screenshot before defense day —</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 9 — Live Demo / Screenshots -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="8" data-notes="Either click through the real app live here, or use these screenshots if Wi-Fi is a risk on the day.">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Demo</div>
+      <h2>Live <span class="highlight">Screenshots</span></h2>
+      <div class="grid-2x2" style="margin-top:28px; flex:1;">
+        <div class="img-placeholder" style="min-height:160px;">
+          <div class="icon">📱</div>
+          <div class="label">Score Entry — Compact Mode</div>
+        </div>
+        <div class="img-placeholder" style="min-height:160px;">
+          <div class="icon">📊</div>
+          <div class="label">Parent Report Card</div>
+        </div>
+        <div class="img-placeholder" style="min-height:160px;">
+          <div class="icon">🔔</div>
+          <div class="label">Notification Bell + Approvals</div>
+        </div>
+        <div class="img-placeholder" style="min-height:160px;">
+          <div class="icon">📶</div>
+          <div class="label">Offline Banner + Sync Toast</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 10 — Role-Based Security -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="9" data-notes="Expect a question on what stops a teacher from seeing another class's data — this slide is your answer. Deliberately scoped to role-based security, not multi-school isolation.">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Security</div>
+      <h2>Role-Based <span class="highlight">Security</span></h2>
+      <div class="grid-2" style="margin-top:28px;">
+        <div>
+          <div class="check-row">
+            <div class="check-icon">✓</div>
+            <div class="text"><strong>Row-Level Security</strong> — Every table has RLS enabled. Policies use <code style="font-size:12px;">get_user_role()</code> and <code style="font-size:12px;">get_user_school_id()</code> helpers.</div>
+          </div>
+          <div class="check-row">
+            <div class="check-icon">✓</div>
+            <div class="text"><strong>Role scoping</strong> — A teacher sees <strong>only their own class</strong>. Admin sees their entire school. Super admin sees all schools.</div>
+          </div>
+          <div class="check-row">
+            <div class="check-icon">✓</div>
+            <div class="text"><strong>Narrow anon access</strong> — Parent portal users are <strong>anon</strong>; RLS is scoped to <code style="font-size:12px;">report_link_id</code> — no open <code style="font-size:12px;">using (true)</code> policies.</div>
+          </div>
+          <div class="check-row">
+            <div class="check-icon">✓</div>
+            <div class="text"><strong>Pending/rejected links hidden</strong> — Anon users cannot access report links with <code style="font-size:12px;">status = 'pending'</code> or <code style="font-size:12px;">'rejected'</code>.</div>
+          </div>
+        </div>
+        <div>
+          <div class="img-placeholder" style="min-height:220px;">
+            <div class="icon">🔒</div>
+            <div class="label">Diagram: RLS policy scoping by roles / anon</div>
+            <div style="font-size:11px; color:rgba(255,255,255,0.2);">— swap in a real diagram before defense day —</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 11 — Engineering Maturity (Before/After) -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="10" data-notes="This slide shows judgment, not just feature count. Walk through why each fix mattered, not just what changed.">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Engineering Maturity</div>
+      <h2>Before & <span class="highlight">After</span></h2>
+      <div class="grid-2" style="margin-top:28px; gap:24px;">
+        <div class="compare-col before">
+          <h3>Before ❌</h3>
+          <ul>
+            <li>28 duplicate toast implementations across views</li>
+            <li>Silent PWA auto-update — users never knew a new version was available</li>
+            <li>Session lost on app restart (PWA users re-logged in every time)</li>
+            <li>Offline queue unscoped — attempted across attendance + scores</li>
+          </ul>
+        </div>
+        <div class="compare-col after">
+          <h3>After ✅</h3>
+          <ul>
+            <li>Single <code>useToast</code> composable + <code>&lt;ToastContainer /&gt;</code> in App.vue</li>
+            <li>Prompt-based update flow — user clicks to activate new SW</li>
+            <li>Session persistence fix — <code>INITIAL_SESSION</code> event handled directly</li>
+            <li>Offline queue scoped deliberately to score entry only</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 12 — Current Status -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="11" data-notes='Say this plainly and let it land. "Live at a real school" is your single strongest credibility line — do not rush it.'>
+    <div class="slide-bg dark-bg"></div>
+    <div class="content statement-slide">
+      <div class="section-number" style="color:var(--amber);">Current Status</div>
+      <h2>Live and in active testing<br>at a <span class="highlight">real primary school</span><br>in Battambang.</h2>
+      <p>Phase 8 — Stabilize & Polish<br>Real teachers using the offline-aware workflow daily</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 13 — Honest Roadmap -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="12" data-notes="Be upfront — committees respect honesty about what is unfinished far more than pretending it is done. The closing line frames multi-school support as a choice, not something you failed to finish.">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Looking Ahead</div>
+      <h2>Honest <span class="highlight">Roadmap</span></h2>
+      <div style="margin-top:28px; max-width:700px;">
+        <div class="arrow-bullet">
+          <div class="arrow-icon">→</div>
+          <div class="text"><strong>Form validation consistency</strong> — vee-validate + yup is installed but usage is inconsistent across forms</div>
+        </div>
+        <div class="arrow-bullet">
+          <div class="arrow-icon">→</div>
+          <div class="text"><strong>Extend offline queue</strong> — Currently scoped to scores only; sick days, growth, vaccinations, library, budget, inventory are still pending</div>
+        </div>
+        <div class="arrow-bullet">
+          <div class="arrow-icon">→</div>
+          <div class="text"><strong>Offline conflict resolution</strong> — Same record edited on two devices offline is not yet handled</div>
+        </div>
+        <div class="arrow-bullet">
+          <div class="arrow-icon">→</div>
+          <div class="text"><strong>Mobile/tablet polish</strong> — Responsive layouts need attention across several views</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:24px; max-width:700px;">
+        <p><strong>Looking ahead:</strong> The system is built for one school today. Multi-school support is a deliberate future scaling step — the schema was designed with <code>school_id</code> on every table from day one.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 14 — Appendix Divider -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="13" data-notes="Skip in the timed run-through. Only open if a Q&A question leads here.">
+    <div class="slide-bg dark-bg"></div>
+    <div class="content divider-content">
+      <h2>Appendix</h2>
+      <div class="divider-sub">Q&A Backup Slides</div>
+      <div style="margin-top:48px; display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+        <span style="font-size:13px; padding:8px 16px; background:rgba(255,255,255,0.05); border-radius:6px; color:var(--gray);">Report Link Security</span>
+        <span style="font-size:13px; padding:8px 16px; background:rgba(255,255,255,0.05); border-radius:6px; color:var(--gray);">Offline Auth</span>
+        <span style="font-size:13px; padding:8px 16px; background:rgba(255,255,255,0.05); border-radius:6px; color:var(--gray);">Score Queue</span>
+        <span style="font-size:13px; padding:8px 16px; background:rgba(255,255,255,0.05); border-radius:6px; color:var(--gray);">Voice Replies</span>
+        <span style="font-size:13px; padding:8px 16px; background:rgba(255,255,255,0.05); border-radius:6px; color:var(--gray);">PWA Install</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 15 — How the Report Link Works (Appendix) -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="14" data-notes="Open if asked: How does the parent link actually work / how is it secured?">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Appendix</div>
+      <h2>How the <span class="highlight">Report Link</span> Works</h2>
+      <div style="margin-top:20px; max-width:800px;">
+        <ol class="mechanism-list" style="list-style:none; padding:0;">
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>Teacher requests approval</strong> on the ranking page → <code>report_links.status</code> set to <code>'pending'</code></li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>DB trigger creates notification</strong> for the admin — in-app bell icon, no email/push</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>Admin approves or rejects</strong> with optional rejection note → teacher is notified via another DB trigger</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>UUID acts as the shareable token</strong> — the URL path is <code>/parent/report/:report_link_id</code></li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>RLS enforces anon access</strong> — only <code>status = 'approved'</code> links are visible to the anon role</li>
+        </ol>
+        <pre><span class="keyword">create policy</span> <span class="string">"report_links: anon read approved only"</span>
+  <span class="keyword">on</span> report_links <span class="keyword">for select to</span> anon
+  <span class="keyword">using</span> (status = <span class="string">'approved'</span> <span class="keyword">and</span>
+    school_id = <span class="func">get_user_school_id</span>());</pre>
+        <div class="honest-note">
+          <div class="label">Honest answer</div>
+          <p>Forwarding the link still works — no expiry or PIN yet. Same tradeoff as a private video link. Acceptable for the pilot scope.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 16 — How Offline Auth Works (Appendix) -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="15" data-notes="Open if asked: How does the app stay logged in without internet?">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Appendix</div>
+      <h2>How <span class="highlight">Offline Auth</span> Works</h2>
+      <div style="margin-top:20px; max-width:800px;">
+        <ol class="mechanism-list" style="list-style:none; padding:0;">
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>Session stored in <code>localStorage</code></strong> by Supabase Auth client automatically</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong><code>INITIAL_SESSION</code> event</strong> fires on boot to restore session from storage</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>The bug:</strong> <code>handleAuthEvent</code> was skipping <code>INITIAL_SESSION</code>, relying on router guard <code>init()</code> — async timing gaps left <code>session.value</code> null</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>The fix:</strong> <code>handleAuthEvent</code> now sets <code>session.value</code> and calls <code>fetchProfile()</code> immediately on <code>INITIAL_SESSION</code>; <code>init()</code> bails early if session already exists</li>
+        </ol>
+        <pre><span class="keyword">const</span> handleAuthEvent = (event, session) => {
+  <span class="keyword">if</span> (event === <span class="string">'INITIAL_SESSION'</span>) {
+    session.value = session;
+    <span class="keyword">if</span> (session?.user) fetchProfile(session.user.id);
+    <span class="keyword">return</span>;
+  }
+  <span class="comment">// handle SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED...</span>
+};</pre>
+        <div class="honest-note">
+          <div class="label">Honest answer</div>
+          <p>Survives an app restart. Does not survive an expired token with no network — that requires a refresh token exchange.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 17 — How the Offline Score Queue Works (Appendix) -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="16" data-notes="Open if asked: How does offline score saving work technically?">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Appendix</div>
+      <h2>How the <span class="highlight">Offline Score Queue</span> Works</h2>
+      <div style="margin-top:20px; max-width:800px;">
+        <ol class="mechanism-list" style="list-style:none; padding:0;">
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong><code>useNetworkStatus</code></strong> — reactive <code>isOnline</code> ref via <code>navigator.onLine</code> + browser events</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong><code>mutate()</code> wrapper</strong> — drop-in replacement for <code>supabase.from().insert/update/delete</code></li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>Online:</strong> passes through to Supabase immediately → returns result</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>Offline:</strong> enqueues to <code>localStorage</code> with UUID → returns <code>{ queued: true }</code></li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>On reconnect:</strong> FIFO queue processed with progress/success/failure toasts</li>
+        </ol>
+        <pre><span class="keyword">async function</span> <span class="func">mutate</span>(table, type, payload, filters) {
+  <span class="keyword">if</span> (isOnline.value) {
+    <span class="keyword">return await</span> supabase.from(table)[type](payload, filters);
+  }
+  <span class="keyword">const</span> id = crypto.randomUUID();
+  offlineQueue.enqueue({ id, table, type, payload, filters });
+  <span class="keyword">return</span> { queued: true, id };
+}</pre>
+        <div class="honest-note">
+          <div class="label">Honest answer</div>
+          <p>Same record edited offline on two devices is not resolved yet — this is a listed roadmap gap.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 18 — How Voice Replies Work (Appendix) -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="17" data-notes="Open if asked: How do the voice messages work?">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Appendix</div>
+      <h2>How <span class="highlight">Voice Replies</span> Work</h2>
+      <div style="margin-top:20px; max-width:800px;">
+        <ol class="mechanism-list" style="list-style:none; padding:0;">
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong><code>MediaRecorder API</code></strong> — <code>useVoiceRecorder</code> composable wraps <code>start()</code> / <code>stop()</code> / <code>upload()</code> / <code>playback()</code></li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);">Captured audio is a <strong><code>.webm</code> Blob</strong> — good browser compatibility, reasonable file size</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);">Blob uploaded to <strong>Supabase Storage</strong> (<code>report-voices</code> bucket) — URL saved to <code>report_messages</code></li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);">Same composable used for <strong>teacher notes and parent replies</strong> — consistent API</li>
+        </ol>
+        <pre><span class="keyword">async function</span> <span class="func">stopAndUpload</span>(reportLinkId, studentId, role) {
+  recorder.stop();
+  <span class="keyword">const</span> blob = <span class="keyword">await new</span> Promise(resolve => {
+    recorder.ondataavailable = e => resolve(e.data);
+  });
+  <span class="keyword">const</span> path = <span class="string">`${reportLinkId}/${studentId}/${role}.webm`</span>;
+  <span class="keyword">await</span> supabase.storage.from(<span class="string">'report-voices'</span>).upload(path, blob);
+  <span class="comment">// Update report_messages row with the new URL</span>
+}</pre>
+        <div style="margin-top:12px; background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px; border-left:2px solid var(--amber);">
+          <p style="font-size:13px; margin:0; color:rgba(255,255,255,0.7);"><strong style="color:var(--amber);">Why voice?</strong> Removes the typing barrier for parents who are uncomfortable writing about their child's schoolwork in Khmer.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 19 — How the PWA Install Works (Appendix) -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="18" data-notes="Open if asked: Is this a real app? How does the download/install work?">
+    <div class="slide-bg navy-bg"></div>
+    <div class="content">
+      <div class="section-number">Appendix</div>
+      <h2>How the <span class="highlight">PWA Install</span> Works</h2>
+      <div style="margin-top:20px; max-width:800px;">
+        <ol class="mechanism-list" style="list-style:none; padding:0;">
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong><code>vite-plugin-pwa</code></strong> generates the Web App Manifest + service worker at build time</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);">App is <strong>installable from the browser</strong> — "Add to Home Screen" on mobile, install icon in desktop address bar</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>App shell is precached</strong> — all Vue components, router, stores, and assets load instantly without network</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>Storage assets cached 30 days</strong> — profile pics, signatures, stamps, voices via CacheFirst strategy</li>
+          <li style="padding-left:40px; padding-bottom:10px; position:relative; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.85);"><strong>Updates require explicit user click</strong> — <code>registerType: 'prompt'</code>; new SW waits, user taps "Update" to activate</li>
+        </ol>
+        <pre><span class="comment">// vite.config.js</span>
+VitePWA({
+  registerType: <span class="string">'prompt'</span>,
+  workbox: {
+    runtimeCaching: [{
+      urlPattern: <span class="string">/^https?:\/\/.*\/storage\/v1\/object\/.*/</span>,
+      handler: <span class="string">'CacheFirst'</span>,
+      options: { expiration: { maxAgeSeconds: <span class="type">30 * 24 * 60 * 60</span> } }
+    }]
+  }
+})</pre>
+        <div class="honest-note">
+          <div class="label">Honest answer</div>
+          <p>It's a PWA, not a native app — installable from the browser, no app store, no APK to distribute. Works offline for the cached app shell and score entry.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDE 20 — Thank You / Q&A -->
+  <!-- ============================================================ -->
+  <div class="slide" data-index="19" data-notes="Routing: Architecture questions → Person 1. Feature/UX questions → Person 2. Security/engineering questions → Person 3. Pre-loaded answer for 'Why Supabase over a custom Node/Express backend?': RLS gives database-level security without hand-writing auth middleware, and it fit a realistic solo/small-team build timeline.">
+    <div class="slide-bg split-bg"></div>
+    <div class="content" style="position:relative; display:flex; align-items:center; min-height:70vh;">
+      <div class="title-left">
+        <div class="title-label" style="color:var(--amber);">Q&A · Open Floor</div>
+        <h1 class="hero" style="font-size:64px;">Thank You</h1>
+        <p class="subtitle" style="font-size:24px;">Questions & Discussion</p>
+      </div>
+      <div class="title-right">
+        <div class="team-card">
+          <div class="team-label">Presented by</div>
+          <div class="team-names">
+            <span class="placeholder">[ Team Member 1 ]</span><br>
+            <span class="placeholder">[ Team Member 2 ]</span><br>
+            <span class="placeholder">[ Team Member 3 ]</span>
+          </div>
+          <div class="uni">National University of Battambang</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /slideshow -->
+
+<!-- Controls -->
+<div class="controls">
+  <div class="slide-counter">
+    <span class="current" id="currentSlide">1</span> / <span id="totalSlides">20</span>
+    <span style="margin-left:16px; font-size:12px; color:rgba(255,255,255,0.2);" id="slideTitle">Title</span>
+  </div>
+  <div class="nav-buttons">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>◀</button>
+    <button class="nav-btn" id="nextBtn" onclick="navigate(1)">▶</button>
+  </div>
+</div>
+
+<!-- Notes overlay -->
+<div class="notes-toggle-hint" id="notesHint" onclick="toggleNotes()">[N]otes</div>
+<div class="notes-overlay" id="notesOverlay">
+  <div class="notes-label">Speaker Notes</div>
+  <div class="notes-text" id="notesText"></div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+  let notesVisible = false;
+
+  document.getElementById('totalSlides').textContent = total;
+
+  const slideTitles = [
+    'Title', 'The Problem', 'Core Design Decision', 'Tech Stack', 'System Scope',
+    'Academic Year Navigation', 'Offline-First Score Entry', 'Parent Portal Approval Flow',
+    'Live Demo / Screenshots', 'Role-Based Security', 'Engineering Maturity',
+    'Current Status', 'Honest Roadmap', 'Appendix Divider',
+    'How the Report Link Works', 'How Offline Auth Works', 'How the Offline Score Queue Works',
+    'How Voice Replies Work', 'How the PWA Install Works', 'Thank You / Q&A'
+  ];
+
+  function updateSlide() {
+    slides.forEach((s, i) => {
+      s.classList.toggle('active', i === current);
+    });
+
+    document.getElementById('currentSlide').textContent = current + 1;
+    document.getElementById('slideTitle').textContent = slideTitles[current] || '';
+
+    document.getElementById('prevBtn').disabled = current === 0;
+    document.getElementById('nextBtn').disabled = current === total - 1;
+
+    document.getElementById('progressBar').style.width = ((current + 1) / total * 100) + '%';
+
+    if (notesVisible) {
+      const notes = slides[current].dataset.notes || '';
+      document.getElementById('notesText').textContent = notes;
+    }
+  }
+
+  function navigate(dir) {
+    const next = current + dir;
+    if (next < 0 || next >= total) return;
+    current = next;
+    updateSlide();
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      navigate(1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      navigate(-1);
+    } else if (e.key === 'n' || e.key === 'N') {
+      toggleNotes();
+    } else if (e.key === 'Home') {
+      current = 0;
+      updateSlide();
+    } else if (e.key === 'End') {
+      current = total - 1;
+      updateSlide();
+    }
+  });
+
+  // Click navigation on slide
+  document.querySelector('.slideshow').addEventListener('click', (e) => {
+    if (e.target.closest('.nav-btn') || e.target.closest('.notes-overlay') || e.target.closest('.notes-toggle-hint')) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if (x < rect.width / 2) {
+      navigate(-1);
+    } else {
+      navigate(1);
+    }
+  });
+
+  function toggleNotes() {
+    notesVisible = !notesVisible;
+    const overlay = document.getElementById('notesOverlay');
+    const hint = document.getElementById('notesHint');
+    if (notesVisible) {
+      const notes = slides[current].dataset.notes || '';
+      document.getElementById('notesText').textContent = notes;
+      overlay.classList.add('visible');
+      hint.textContent = '[N]ide';
+    } else {
+      overlay.classList.remove('visible');
+      hint.textContent = '[N]otes';
+    }
+  }
+
+  // Touch swipe support
+  let touchStartX = 0;
+  let touchStartY = 0;
+  document.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    const dy = e.changedTouches[0].screenY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) navigate(1);
+      else navigate(-1);
+    }
+  }, { passive: true });
+
+  // Init
+  updateSlide();
+
+  // Handle resize
+  window.addEventListener('resize', updateSlide);
+</script>
+</body>
+</html>
