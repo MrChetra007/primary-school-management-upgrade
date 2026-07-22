@@ -5,9 +5,11 @@ import { supabase } from '@/lib/supabase'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, BeakerIcon, ClockIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
+import { useOfflineMutation } from '@/composables/useOfflineMutation'
 
 const auth = useAuthStore()
 const { showToast } = useToast()
+const { mutate } = useOfflineMutation()
 const vaccinations = ref([])
 const students = ref([])
 const classInfo = ref(null)
@@ -101,24 +103,34 @@ async function save() {
   }
   saving.value = true
   const { id, students: _s, ...payload } = form.value
-  const { error } = id
-    ? await supabase.from('student_vaccinations').update(payload).eq('id', id)
-    : await supabase.from('student_vaccinations').insert({ ...payload, school_id: auth.schoolId })
+  const result = id
+    ? await mutate('student_vaccinations', 'update', payload, { id })
+    : await mutate('student_vaccinations', 'insert', { ...payload, school_id: auth.schoolId })
   
   saving.value = false
-  if (error) { showToast(error.message, 'error'); return }
-  
-  showToast(isEdit.value ? 'បានកែប្រែកំណត់ត្រា!' : 'បានបញ្ចូលវ៉ាក់សាំង!', 'success')
-  showModal.value = false
-  await loadVaccinations()
+  if (result && result.queued) {
+    showToast('ទិន្នន័យបានរក្សាទុកក្នុងមូលដ្ឋាន — នឹងធ្វើសមកាលកម្មពេលមានបណ្តាញ', 'warning', 4000)
+    showModal.value = false
+  } else if (result && result.error) {
+    showToast(result.error.message, 'error')
+  } else {
+    showToast(isEdit.value ? 'បានកែប្រែកំណត់ត្រា!' : 'បានបញ្ចូលវ៉ាក់សាំង!', 'success')
+    showModal.value = false
+    await loadVaccinations()
+  }
 }
 
 async function doDelete() {
-  const { error } = await supabase.from('student_vaccinations').delete().eq('id', deleteTarget.value.id)
+  const result = await mutate('student_vaccinations', 'delete', null, { id: deleteTarget.value.id })
   deleteTarget.value = null
-  if (error) { showToast(error.message, 'error'); return }
-  showToast('បានលុបកំណត់ត្រា', 'success')
-  await loadVaccinations()
+  if (result && result.queued) {
+    showToast('ទិន្នន័យបានរក្សាទុកក្នុងមូលដ្ឋាន — នឹងធ្វើសមកាលកម្មពេលមានបណ្តាញ', 'warning', 4000)
+  } else if (result && result.error) {
+    showToast(result.error.message, 'error')
+  } else {
+    showToast('បានលុបកំណត់ត្រា', 'success')
+    await loadVaccinations()
+  }
 }
 
 </script>

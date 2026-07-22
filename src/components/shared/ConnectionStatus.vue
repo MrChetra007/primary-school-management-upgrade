@@ -4,7 +4,7 @@ import { useNetworkStatus } from '@/composables/useNetworkStatus'
 import { useToast } from '@/composables/useToast'
 import { useOfflineQueueStore } from '@/stores/offlineQueue'
 import { useAuthStore } from '@/stores/auth'
-import { XMarkIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
+import { XMarkIcon } from '@heroicons/vue/24/outline'
 
 const { isOnline } = useNetworkStatus()
 const { showToast } = useToast()
@@ -101,43 +101,6 @@ watch(isOnline, async (online) => {
   color: #fff;
   font-size: 11px;
   font-weight: 700;
-}
-.offline-banner-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #92400e;
-  padding: 4px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-.offline-banner-close:hover {
-  background: #fef3c7;
-}
-</style>
-
-<style scoped>
-.offline-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 9998;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
-  background: #fffbeb;
-  border-bottom: 1px solid #fde68a;
-  color: #92400e;
-  font-size: 13px;
-  font-weight: 500;
-}
-.offline-banner-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 .offline-banner-close {
   background: none;

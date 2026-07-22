@@ -49,6 +49,8 @@ export const useOfflineQueueStore = defineStore('offlineQueue', () => {
           let query = supabase.from(entry.table).update(entry.payload)
           for (const [key, val] of Object.entries(entry.filters || {})) query = query.eq(key, val)
           result = await query
+        } else if (entry.type === 'upsert') {
+          result = await supabase.from(entry.table).upsert(entry.payload).select()
         } else if (entry.type === 'delete') {
           let query = supabase.from(entry.table).delete()
           for (const [key, val] of Object.entries(entry.filters || {})) query = query.eq(key, val)

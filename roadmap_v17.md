@@ -77,7 +77,7 @@ Teachers in rural Cambodia face unreliable internet. The app now supports offlin
 - Yellow banner at page top when offline (dismissible, shows pending count)
 - Write operations (upsert) intercepted when offline → queued to localStorage
 - Auto-sync on reconnect: queue processed in FIFO order, success/failure toasts
-- Currently applied to **monthly + semester score entry** only
+- Currently applied to **monthly + semester score entry**, **sick days**, **growth records**, and **vaccinations**
 - Single global toast container — no more duplicate toast implementations across views
 - Storage assets (profile pics, signatures, stamps, voice) cached via CacheFirst strategy
 - **Offline read caching** — reference data (classes, subjects, students) and per-period scores cached to localStorage with TTL expiry; served instantly when offline instead of showing a misleading empty state
@@ -420,6 +420,10 @@ src/
 - [x] `useCache` composable — localStorage-backed read cache with TTL per key
 - [x] Offline read fallback for `ScoresMonthlyView` + `ScoresSemesterView` — reference data cached 24h, scores cached 2h
 - [x] Stale-data indicator badge in score views when viewing cached data offline
+- [x] `upsert` case added to `offlineQueue.processQueue()` — queued score entries now sync on reconnect instead of being silently skipped
+- [x] Toast icons fixed — `ExclamationTriangleIcon` for warning, `InformationCircleIcon` for info, `XCircleIcon` for error
+- [x] Offline queue extended to `SickDaysView`, `GrowthView`, `VaccinationsView` (insert/update/delete via `mutate`)
+- [x] Dead code removed — unused `wasOffline` ref, unused `ArrowPathIcon` import, duplicate CSS block if ConnectionStatus
 
 ---
 
@@ -469,8 +473,14 @@ src/
   - Online → passes through to Supabase immediately
   - Offline → queues to localStorage with UUID, returns `{ queued: true }`
   - Auto-sync: queue processed in FIFO order when connection returns
-- **AttendanceView integrated** — marking attendance works offline; queued entries sync automatically on reconnect
+- **Extended to 5 views**: monthly/semester scores, sick days, growth, vaccinations
 - **PWA storage caching** — Supabase Storage assets (profile pics, signatures, stamps, voices) cached CacheFirst with 30-day expiry
+
+### Offline Read Cache (NEW)
+- **`useCache` composable** — localStorage-backed read cache with per-key TTL expiry
+- **Score views** load reference data (classes, subjects, students) from cache when offline with 24h TTL
+- **Per-period scores** cached 2h — switching months/semesters works offline
+- **Stale-data badge** — yellow "ប្រើទិន្នន័យពីឃ្លាំង" indicator when viewing cached data offline
 
 ---
 
@@ -504,7 +514,7 @@ src/
 5. **Validation** — vee-validate + yup usage inconsistent across forms
 6. **Responsive polish** — tablet/mobile layouts need attention
 7. **Empty/loading states** — skeleton loaders missing in some views; score views now show cached data instead of empty state when offline (partial fix)
-8. **Extend offline queue to more views** — monthly + semester scores done; still pending: sick-days, growth, vaccinations, library borrows, budget, inventory
+8. **Extend offline queue to more views** — monthly/semester scores, sick-days, growth, vaccinations done; still pending: library borrows, budget, inventory
 9. **Offline queue conflict resolution** — handle conflicts when the same record is edited offline and modified elsewhere
 10. **PWA app icon** — replace default Vite logo with custom 192x192 + 512x512 icons
 
@@ -633,5 +643,28 @@ src/
 - Switch months/semesters offline → loads cached scores for that period
 - Return online → fetches fresh data, updates cache, badge disappears
 - Cold cache (first visit offline) → still shows empty/no-class state (acceptable — no data has ever been fetched)
+
+**Build:** `npm run build` passes with 0 errors, PWA generates 161 precached entries.
+
+### Session 6 — Offline Queue Bugfixes + Extension + Dead Code Cleanup (July 2026)
+
+**Critical bugfix — `upsert` missing from `processQueue()`:**
+- `offlineQueue.js` `processQueue()` had no `case 'upsert'` handler. Score views use `type: 'upsert'` exclusively (batch `.upsert().select()`). When the app came back online, queued score entries were silently skipped and remained stuck in localStorage forever.
+- **Fix:** Added `else if (entry.type === 'upsert')` branch calling `supabase.from(table).upsert(entry.payload).select()` — same pattern as the online path in `useOfflineMutation`.
+
+**Toast icon fix — `ToastContainer.vue`:**
+- Previously only distinguished `'success'` (CheckIcon); everything else fell through to `v-else` and rendered a red XCircleIcon. The app uses `'info'` and `'warning'` types for offline sync messages, which misleadingly appeared as errors.
+- **Fix:** Added `ExclamationTriangleIcon` for `'warning'` (yellow triangle) and `InformationCircleIcon` for `'info'` (blue circle). Error/fallback still uses XCircleIcon.
+
+**Offline queue extended to 3 more teacher views:**
+- `SickDaysView.vue` — `save()` and `doDelete()` migrated from direct `supabase.from(...)` calls to `mutate()` with offline fallback
+- `GrowthView.vue` — same pattern for insert/update/delete
+- `VaccinationsView.vue` — same pattern
+- All three show Khmer "ទិន្នន័យបានរក្សាទុកក្នុងមូលដ្ឋាន..." toast when queued offline, matching the existing score views
+
+**Dead code cleanup:**
+- `useNetworkStatus.js` — removed unused `wasOffline` ref (+ `setTimeout` that set it)
+- `ConnectionStatus.vue` — removed unused `ArrowPathIcon` import
+- `ConnectionStatus.vue` — removed duplicate `<style scoped>` block (identical CSS existed at lines 69-117 and 119-154)
 
 **Build:** `npm run build` passes with 0 errors, PWA generates 161 precached entries.

@@ -6,9 +6,11 @@ import { formatDate, toInputDate } from '@/utils/formatDate'
 import KhmerDatePicker from '@/components/shared/KhmerDatePicker.vue'
 import { CheckIcon, XCircleIcon, BuildingOfficeIcon, FaceFrownIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
+import { useOfflineMutation } from '@/composables/useOfflineMutation'
 
 const auth = useAuthStore()
 const { showToast } = useToast()
+const { mutate } = useOfflineMutation()
 const sickDays = ref([])
 const students = ref([])
 const classInfo = ref(null)
@@ -92,22 +94,33 @@ async function save() {
   }
   saving.value = true
   const { id, students: _s, ...payload } = form.value
-  const { error } = isEdit.value
-    ? await supabase.from('student_sick_days').update(payload).eq('id', id)
-    : await supabase.from('student_sick_days').insert({ ...payload, school_id: auth.schoolId })
+  const result = isEdit.value
+    ? await mutate('student_sick_days', 'update', payload, { id })
+    : await mutate('student_sick_days', 'insert', { ...payload, school_id: auth.schoolId })
   saving.value = false
-  if (error) { showToast(error.message, 'error'); return }
-  showToast(isEdit.value ? 'Sick day updated!' : 'Sick day recorded!', 'success')
-  showModal.value = false
-  await loadSickDays()
+  if (result && result.queued) {
+    showToast('ទិន្នន័យបានរក្សាទុកក្នុងមូលដ្ឋាន — នឹងធ្វើសមកាលកម្មពេលមានបណ្តាញ', 'warning', 4000)
+    showModal.value = false
+  } else if (result && result.error) {
+    showToast(result.error.message, 'error')
+  } else {
+    showToast(isEdit.value ? 'Sick day updated!' : 'Sick day recorded!', 'success')
+    showModal.value = false
+    await loadSickDays()
+  }
 }
 
 async function doDelete() {
-  const { error } = await supabase.from('student_sick_days').delete().eq('id', deleteTarget.value.id)
+  const result = await mutate('student_sick_days', 'delete', null, { id: deleteTarget.value.id })
   deleteTarget.value = null
-  if (error) { showToast(error.message, 'error'); return }
-  showToast('Record deleted', 'success')
-  await loadSickDays()
+  if (result && result.queued) {
+    showToast('ទិន្នន័យបានរក្សាទុកក្នុងមូលដ្ឋាន — នឹងធ្វើសមកាលកម្មពេលមានបណ្តាញ', 'warning', 4000)
+  } else if (result && result.error) {
+    showToast(result.error.message, 'error')
+  } else {
+    showToast('Record deleted', 'success')
+    await loadSickDays()
+  }
 }
 
 </script>
