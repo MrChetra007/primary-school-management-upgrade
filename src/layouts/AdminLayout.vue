@@ -92,16 +92,16 @@ const navGroups = [
       { to: "/admin/library", icon: "book", label: "បណ្ណាល័យ" }, // Library
     ],
   },
-  {
-    label: "របាយការណ៍", // Reports
-    items: [
-      {
-        to: "/admin/reports",
-        icon: "printer",
-        label: "របាយការណ៍ និង បោះពុម្ព",
-      }, // Reports & Print
-    ],
-  },
+  // {
+  //   label: "របាយការណ៍", // Reports
+  //   items: [
+  //     {
+  //       to: "/admin/reports",
+  //       icon: "printer",
+  //       label: "របាយការណ៍ និង បោះពុម្ព",
+  //     }, // Reports & Print
+  //   ],
+  // },
   {
     label: "ការរៀបចំសាលារៀន", // School Setup
     items: [

@@ -78,7 +78,7 @@ const router = createRouter({
         { path: 'inventory',       name: 'admin-inventory',       component: () => import('@/views/admin/InventoryView.vue') },
         { path: 'library',         name: 'admin-library',         component: () => import('@/views/admin/LibraryView.vue') },
         { path: 'users',           name: 'admin-users',           component: () => import('@/views/admin/UsersView.vue') },
-        { path: 'reports',         name: 'admin-reports',         component: () => import('@/views/admin/ReportsView.vue') },
+        // { path: 'reports',         name: 'admin-reports',         component: () => import('@/views/admin/ReportsView.vue') },
         { path: 'approvals',       name: 'admin-approvals',              component: () => import('@/views/admin/ApprovalsView.vue') },
         { path: 'approvals/:reportLinkId', name: 'admin-approvals-preview', component: () => import('@/views/admin/AdminReportPreviewView.vue') },
         // {path: 'honor-board', name: 'admin-honor-board', component: () => import('@/views/admin/Honorboard.vue')},
@@ -112,7 +112,7 @@ const router = createRouter({
         { path: 'growth',          name: 'teacher-growth',          component: () => import('@/views/teacher/GrowthView.vue') },
         { path: 'vaccinations',    name: 'teacher-vaccinations',    component: () => import('@/views/teacher/VaccinationsView.vue') },
         { path: 'holidays',        name: 'teacher-holidays',        component: () => import('@/views/teacher/HolidaysView.vue') },
-        { path: 'reports',         name: 'teacher-reports',         component: () => import('@/views/teacher/ReportsView.vue') },
+        // { path: 'reports',         name: 'teacher-reports',         component: () => import('@/views/teacher/ReportsView.vue') },
       ],
     },
 
