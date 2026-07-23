@@ -268,10 +268,10 @@ const contextName = computed(() => {
                   </div>
                 </div>
                 <div class="header-right">
-                  <h3 class="font-muol text-blue">ព្រះរាជាណាចក្រកម្ពុជា</h3>
-                  <h4 class="font-muol text-blue">ជាតិ សាសនា ព្រះមហាក្សត្រ</h4>
+                  <h3 class="font-muol">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                  <h4 class="font-muol">ជាតិ សាសនា ព្រះមហាក្សត្រ</h4>
                   <div class="wiggle-line">
-                    <svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0,5 Q25,0 50,5 T100,5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    <img :src="getImageUrl('tacteing')" alt="tacteing" crossorigin="anonymous" />
                   </div>
                 </div>
               </div>
@@ -285,7 +285,7 @@ const contextName = computed(() => {
               <!-- Body Text -->
               <div class="cert-body-text">
                 <p>សូមធ្វើការសរសើរចំពោះសិស្សឈ្មោះ <span class="highlight-red font-muol">{{ student.full_name }}</span> ភេទ <span class="highlight-red">{{ genderLabel(student.gender) }}</span></p>
-                <p>ជាសិស្សថ្នាក់ទី <span class="highlight-red">{{ toKhmerNum(classInfo.class_name) }}</span> នៃឆ្នាំសិក្សា <span class="highlight-red">{{ toKhmerNum(classInfo.academic_years?.year_name) }}</span></p>
+                <p>ជាសិស្ស <span class="highlight-red">{{ toKhmerNum(classInfo.class_name) }}</span> នៃឆ្នាំសិក្សា <span class="highlight-red">{{ toKhmerNum(classInfo.academic_years?.year_name) }}</span></p>
                 <p>ដែលទទួលបានលទ្ធផលល្អក្នុងសិក្សា និងទទួលបានចំណាត់ថ្នាក់លេខ <span class="highlight-red font-muol">{{ toKhmerNum(student.rank) }}</span> {{ contextName }}</p>
                 <p class="cert-closing-text">ប័ណ្ណសរសើរនេះប្រគល់ជូនសាមីខ្លួនប្រើប្រាស់តាមការដែលអាចប្រើប្រាស់បាន។</p>
               </div>

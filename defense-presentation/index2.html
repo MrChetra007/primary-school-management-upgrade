@@ -1,265 +1,1114 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSMS, Explained Like You're 5 (But Actually Deep)</title>
 <style>
-  @page {
-    size: Letter;
-    margin: 10mm 10mm 9mm 10mm;
+  :root{
+    --navy:#1E2761;
+    --navy-deep:#12173f;
+    --ice:#CADCFC;
+    --ice-soft:#eef3fe;
+    --paper:#ffffff;
+    --ink:#232946;
+    --muted:#5b6390;
+    --gold:#c9a227;
+    --good:#2f9e6b;
+    --warn:#b23a2f;
+    --font-display: 'Iowan Old Style','Palatino Linotype','Book Antiqua', Georgia, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   }
-  * { box-sizing: border-box; }
-  html, body {
-    height: auto;
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
   }
-  body {
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    font-size: 7.6pt;
-    line-height: 1.16;
-    color: #1a1a1a;
-    margin: 0;
+  h1,h2,h3,h4{font-family:var(--font-display); margin:0; color:var(--navy);}
+  p{margin:0 0 .75em 0;}
+  a{color:inherit;}
+
+  /* ---------- NAV ---------- */
+  header.topbar{
+    position:sticky; top:0; z-index:50;
+    background:var(--navy);
+    color:var(--ice-soft);
+    padding:.7rem 1.2rem;
+    display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
   }
-  .header {
-    border-bottom: 2px solid #1e3a5f;
-    padding-bottom: 4px;
-    margin-bottom: 7px;
+  header.topbar .brand{
+    font-family:var(--font-display);
+    font-size:1.05rem;
+    letter-spacing:.02em;
   }
-  .header h1 {
-    font-size: 14pt;
-    margin: 0 0 1px 0;
-    color: #1e3a5f;
+  header.topbar .brand small{display:block; font-family:var(--font-body); font-size:.65rem; color:var(--ice); opacity:.8; font-weight:400;}
+  nav.toc{display:flex; gap:1.1rem; flex-wrap:wrap;}
+  nav.toc a{
+    font-size:.82rem; text-decoration:none; color:var(--ice);
+    opacity:.85; white-space:nowrap;
   }
-  .header .sub {
-    font-size: 7.5pt;
-    color: #555;
+  nav.toc a:hover{opacity:1; text-decoration:underline;}
+  #menu-toggle{display:none;}
+  .menu-btn{
+    display:none; background:none; border:1px solid var(--ice); color:var(--ice);
+    border-radius:6px; padding:.35rem .6rem; font-size:.9rem; cursor:pointer;
   }
-  .columns {
-    display: flex;
-    gap: 11px;
+  @media (max-width:820px){
+    nav.toc{
+      display:none; position:absolute; top:100%; left:0; right:0;
+      background:var(--navy-deep); flex-direction:column; padding:1rem 1.2rem; gap:.6rem;
+    }
+    #menu-toggle:checked ~ nav.toc{display:flex;}
+    .menu-btn{display:inline-block;}
   }
-  .col {
-    flex: 1;
-    min-width: 0;
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:5rem 1.2rem 4rem;
+    background:linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+    color:var(--ice-soft);
+    text-align:center;
   }
-  .section {
-    break-inside: avoid;
-    margin-bottom: 6px;
-    border: 1px solid #d8dfe6;
-    border-radius: 3px;
-    padding: 4px 6px 5px 6px;
-    background: #fbfcfd;
+  .hero h1{
+    color:#fff;
+    font-size:clamp(2rem, 5vw, 3.4rem);
+    max-width:16ch; margin:0 auto .6rem;
+    line-height:1.08;
   }
-  .section-title {
-    font-size: 8.3pt;
-    font-weight: 700;
-    color: #ffffff;
-    background: #1e3a5f;
-    margin: -4px -6px 4px -6px;
-    padding: 2px 6px;
-    border-radius: 3px 3px 0 0;
-    letter-spacing: 0.1px;
+  .hero .sub{
+    max-width:56ch; margin:0 auto 1.6rem;
+    color:var(--ice); font-size:1.05rem;
   }
-  .qa {
-    margin-bottom: 2.5px;
+  .hero .badge-row{display:flex; justify-content:center; gap:.6rem; flex-wrap:wrap; font-size:.78rem;}
+  .hero .pill{
+    border:1px solid rgba(202,220,252,.4); color:var(--ice);
+    padding:.3rem .7rem; border-radius:99px;
   }
-  .q {
-    font-weight: 700;
-    color: #0d2942;
-    font-style: italic;
+
+  /* ---------- SECTIONS ---------- */
+  main{max-width:980px; margin:0 auto; padding:0 1.2rem;}
+  section.group{padding:3.2rem 0; border-bottom:1px solid #e7ebf7;}
+  section.group:last-of-type{border-bottom:none;}
+  .group-head{margin-bottom:1.8rem;}
+  .group-eyebrow{
+    font-size:.75rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--gold); font-weight:600; margin-bottom:.3rem;
   }
-  .a {
-    margin: 1px 0 0 0;
-    color: #222;
+  .group-head h2{font-size:clamp(1.5rem,3vw,2rem);}
+
+  .cards{display:grid; gap:1.4rem;}
+
+  /* ---------- CARD ---------- */
+  .card{
+    border:1px solid #dfe6f7;
+    border-radius:14px;
+    background:var(--paper);
+    overflow:hidden;
   }
-  .diagram-box {
-    background: #eef2f6;
-    border: 1px dashed #9aa9b8;
-    border-radius: 3px;
-    padding: 3px 5px;
-    font-family: 'Courier New', monospace;
-    font-size: 6.8pt;
-    margin: 3px 0 4px 0;
-    white-space: pre-wrap;
-    line-height: 1.15;
+  .card-head{padding:1.3rem 1.4rem .9rem;}
+  .card-head h3{font-size:1.25rem;}
+  .card-head .subtitle{
+    font-size:.82rem; color:var(--muted); margin-top:.25rem; font-style:italic;
   }
-  .narrative-box {
-    background: #fff8ec;
-    border: 1px solid #e8d5a8;
-    border-radius: 3px;
-    padding: 4px 6px;
-    font-size: 7.3pt;
-    font-style: italic;
-    color: #4a3a1a;
-    margin-top: 3px;
+  .tabs{
+    display:flex; gap:.4rem; padding:0 1.4rem; flex-wrap:wrap;
+    border-bottom:1px solid #eef1fa;
   }
-  .footer-note {
-    break-inside: avoid;
-    margin-top: 5px;
-    font-size: 7pt;
-    color: #666;
-    text-align: center;
-    border-top: 1px solid #d8dfe6;
-    padding-top: 3px;
+  .tab-btn{
+    background:none; border:none; cursor:pointer;
+    font-family:var(--font-body); font-size:.85rem; font-weight:600;
+    color:var(--muted); padding:.6rem .3rem; border-bottom:3px solid transparent;
+    margin-bottom:-1px;
+  }
+  .tab-btn:hover{color:var(--navy);}
+  .tab-btn.active{color:var(--navy); border-bottom-color:var(--gold);}
+  .panel{display:none; padding:1.1rem 1.4rem 1.4rem; animation:fadeIn .25s ease;}
+  .panel.active{display:block;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+  .panel.story{font-size:1.02rem;}
+  .panel.mechanism{background:var(--ice-soft); font-size:.92rem;}
+  .panel.mechanism code, .term{
+    font-family:var(--font-mono); font-size:.85em;
+  }
+  .term{
+    background:#fff; border:1px solid #c9d2ee; border-radius:4px; padding:0 .35em;
+    cursor:pointer; color:var(--navy); font-weight:600;
+  }
+  .term:hover{background:var(--ice);}
+
+  /* diagram CTA */
+  .diagram-toggle{
+    margin:0 1.4rem 1.4rem; display:inline-flex; align-items:center; gap:.4rem;
+    font-size:.8rem; color:var(--muted);
+  }
+
+  /* ---------- DIAGRAM BLOCKS ---------- */
+  .diagram{
+    margin:0 1.4rem 1.4rem; padding:1.1rem;
+    background:var(--navy); border-radius:12px; color:var(--ice-soft);
+  }
+  .diagram h4{color:#fff; font-size:.95rem; margin-bottom:.6rem; font-family:var(--font-body); font-weight:700;}
+  .diagram-caption{font-size:.8rem; color:var(--ice); margin-top:.6rem; min-height:1.2em;}
+  .diagram button{
+    font-family:var(--font-body); font-size:.78rem; font-weight:600;
+    background:var(--ice); color:var(--navy); border:none; border-radius:8px;
+    padding:.5rem .8rem; cursor:pointer; margin:0 .4rem .4rem 0;
+  }
+  .diagram button:hover{background:#fff;}
+  .diagram button.active{background:var(--gold); color:#fff;}
+
+  /* cabinet */
+  .cabinet{display:flex; flex-direction:column; gap:.5rem; margin-top:.8rem;}
+  .drawer{
+    display:flex; align-items:center; gap:.6rem;
+    background:#2a3370; border:1px solid #3d478f; border-radius:8px;
+    padding:.6rem .8rem; font-size:.85rem; transition:transform .25s, background .25s;
+  }
+  .drawer .lock{font-size:1.1rem;}
+  .drawer.open{background:var(--good); transform:translateX(10px);}
+  .drawer.shake{animation:shake .4s;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);}
+    50%{transform:translateX(4px);} 75%{transform:translateX(-4px);}
+  }
+
+  /* corkboard */
+  .corkboard-diagram .board{
+    min-height:110px; background:#6b4a2b; border-radius:8px; padding:.8rem;
+    display:flex; gap:.5rem; flex-wrap:wrap; align-items:flex-start; margin:.7rem 0;
+  }
+  .note{
+    background:var(--gold); color:#3a2c00; font-size:.72rem; font-weight:700;
+    width:64px; height:64px; padding:.4rem; border-radius:2px;
+    box-shadow:1px 2px 4px rgba(0,0,0,.3);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    transform:rotate(var(--r,-2deg));
+    transition:opacity .5s, transform .5s;
+  }
+  .note.leaving{opacity:0; transform:translateY(60px) rotate(10deg);}
+  .office{
+    background:#0f1435; border:1px dashed var(--ice); border-radius:8px;
+    min-height:56px; padding:.6rem; display:flex; gap:.4rem; flex-wrap:wrap; align-items:center;
+  }
+  .office-label{font-size:.72rem; color:var(--ice); opacity:.8;}
+  .office .note{background:var(--good); color:#fff; width:40px; height:40px; font-size:.65rem;}
+
+  /* cache split */
+  .cache-diagram .split{display:flex; gap:.8rem; flex-wrap:wrap; margin-bottom:.6rem;}
+  .cache-diagram .col{
+    flex:1 1 200px; background:#2a3370; border-radius:8px; padding:.8rem;
+  }
+  .cache-diagram .col h5{margin:0 0 .3rem; font-size:.85rem; color:#fff;}
+  .badge{
+    display:inline-block; font-size:.75rem; font-weight:700; padding:.2rem .55rem;
+    border-radius:99px; margin-top:.4rem;
+  }
+  .badge.fresh{background:var(--good); color:#fff;}
+  .badge.stale{background:var(--warn); color:#fff;}
+
+  /* relationship svg */
+  .relationship-diagram svg{width:100%; height:auto; background:#141a47; border-radius:8px;}
+  .relationship-diagram .hidden{display:none;}
+  .rel-node rect, .rel-node circle{fill:#2a3370; stroke:var(--ice); stroke-width:1;}
+  .rel-node.hub rect{fill:var(--gold); stroke:none;}
+  .rel-node text{fill:#fff; font-size:11px; font-family:var(--font-body);}
+  .rel-line{stroke:var(--ice); stroke-width:1.5; opacity:.8;}
+
+  /* ---------- GLOSSARY ---------- */
+  .glossary-strip{display:flex; flex-wrap:wrap; gap:.5rem;}
+  .glossary-strip .term{background:var(--ice-soft);}
+
+  #tooltip{
+    position:fixed; max-width:260px; background:var(--navy); color:#fff;
+    font-size:.8rem; padding:.6rem .8rem; border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,.25);
+    z-index:200; display:none; line-height:1.4;
+  }
+  #tooltip::after{content:''; position:absolute; bottom:-6px; left:16px; width:12px; height:12px; background:var(--navy); transform:rotate(45deg);}
+
+  footer{
+    text-align:center; padding:2.5rem 1.2rem 3.5rem; color:var(--muted); font-size:.82rem;
   }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>PSMS Thesis Defense — Q&A Cheat Sheet</h1>
-  <div class="sub">Primary School Management System · Vue 3 + Supabase · National University of Battambang · Defense: July 25, 2026</div>
-</div>
+<header class="topbar">
+  <div class="brand">PSMS, Explained<small>Real school software. Zero jargon required.</small></div>
+  <input type="checkbox" id="menu-toggle" style="display:none">
+  <label for="menu-toggle" class="menu-btn">☰</label>
+  <nav class="toc">
+    <a href="#identity">Accounts</a>
+    <a href="#security">Security</a>
+    <a href="#offline">Offline</a>
+    <a href="#auth">Staying logged in</a>
+    <a href="#realtime">Notifications</a>
+    <a href="#pwa">The app itself</a>
+    <a href="#database">Database</a>
+    <a href="#logic">Business logic</a>
+    <a href="#glossary">Glossary</a>
+  </nav>
+</header>
 
-<div class="columns">
-
-  <div class="section">
-    <div class="section-title">Real-Time &amp; Notifications</div>
-    <div class="qa">
-      <div class="q">Q: How do notifications reach the admin without refreshing?</div>
-      <div class="a">A: Supabase Realtime — a DB trigger fires on insert into notifications (e.g. teacher requests approval). Frontend subscribes to that table via a realtime channel, so the bell icon's unread count updates live, no polling.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: Why triggers instead of creating notifications in frontend code?</div>
-      <div class="a">A: A trigger guarantees the notification fires no matter which code path touches the table — frontend, Edge Function, or future admin tool. Frontend-only logic risks silent drops from bugs or bypasses.</div>
-    </div>
+<section class="hero">
+  <h1>It's simpler than it looks.</h1>
+  <p class="sub">PSMS is a real, working school management system used by a school in Battambang, Cambodia — built with Vue 3 and Supabase. Every idea below starts as a story, then shows you exactly where the story is standing in for the real thing.</p>
+  <div class="badge-row">
+    <span class="pill">Story → Translation → Real Mechanism</span>
+    <span class="pill">Click any card to go deeper</span>
+    <span class="pill">Underlined terms are clickable</span>
   </div>
+</section>
 
-  <div class="section">
-    <div class="section-title">PWA / Service Worker</div>
-    <div class="qa">
-      <div class="q">Q: What is a service worker, in your own words?</div>
-      <div class="a">A: A background script the browser runs separately from the page — it intercepts network requests and serves cached responses. That's what makes the app installable, offline-capable, and instant on repeat visits.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: Why change registerType from autoUpdate to prompt?</div>
-      <div class="a">A: autoUpdate could swap code mid-session while a teacher is entering scores. prompt waits for explicit approval — an update banner appears, refresh only happens when the teacher chooses.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: Why cache-control no-store for sw.js and index.html specifically?</div>
-      <div class="a">A: If the service worker file itself gets cached by CDN/browser, users get stuck on an old version permanently, unable to receive updates. Those files must always be fetched fresh.</div>
-    </div>
+<main>
+
+<!-- ============ SECTION 1: IDENTITY ============ -->
+<section class="group" id="identity">
+  <div class="group-head">
+    <div class="group-eyebrow">Identity &amp; Accounts</div>
+    <h2>Why does everyone start out as the same kind of person?</h2>
   </div>
+  <div class="cards">
 
-  <div class="section">
-    <div class="section-title">Database Design &amp; Performance</div>
-    <div class="qa">
-      <div class="q">Q: Why 25+ indexes — how did you decide what to index?</div>
-      <div class="a">A: Based on actual query patterns — anything filtered heavily in RLS policies or dashboards (school_id, class_id, student_id foreign keys) needs an index, or every tenant-scoped query does a full table scan as data grows.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: With 28 tables and a year of scores/attendance per student, will it scale?</div>
-      <div class="a">A: Per-school volume stays modest (one school's population); multi-tenancy means growth is horizontal (more schools), not one school's tables growing unbounded. Honest gap: multi-tenant isolation hasn't been stress-tested under real concurrent load.</div>
-    </div>
+    <article class="card">
+      <div class="card-head">
+        <h3>Why every staff name tag says "Teacher"</h3>
+        <p class="subtitle">One shared <span class="term" data-term="teachers-table">teachers</span> table + role flags</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>At this school, every grown-up who works here wears the same starter name tag: "Teacher." Some teachers also carry a spare key — one opens the principal's office, another opens the library closet — but you have to be wearing the Teacher tag before you're allowed to carry any spare key at all.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>In the app, the "name tag" is the <span class="term" data-term="teachers-table">teachers</span> row every staff account gets, and the "spare keys" are the <span class="term" data-term="role-flag">role</span> flags (admin, librarian) layered on top of it.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>Every staff account — director, admin, teacher, librarian — is one row in the <code>teachers</code> table. A <code>role</code> column decides which extra screens unlock, but the base row and its <code>school_id</code> are identical in shape for everyone. One permission system, one query pattern, one place to look — instead of separate <code>admins</code> and <code>librarians</code> tables that would each need their own security rules.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>Every locker has exactly one name on it</h3>
+        <p class="subtitle"><span class="term" data-term="one-to-one">users ↔ teachers</span>, a one-to-one relationship</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>Every locker in the hallway has exactly one name on it, and every name has exactly one locker. Nobody shares a locker, and nobody's name floats around with no locker to call home.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "locker" is a row in <code>teachers</code>, and the "name" is a row in Supabase's built-in <span class="term" data-term="auth-users">users</span> table — each points to exactly one of the other.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p><code>teachers.user_id</code> holds a unique foreign key back to <code>auth.users.id</code>. Login and identity (email, password, session) live in <code>users</code>; everything about being staff at a specific school (name, role, <code>school_id</code>) lives in <code>teachers</code>. Splitting them lets Supabase Auth manage credentials without PSMS ever touching passwords, while <code>teachers</code> stays free to grow school-specific columns.</p>
+      </div>
+    </article>
+
   </div>
+</section>
 
-  <div class="section">
-    <div class="section-title">Process &amp; Ownership</div>
-    <div class="qa">
-      <div class="q">Q: Did you build all 81 files yourself?</div>
-      <div class="a">A: Solo developer using AI assistance throughout — same as using an IDE, Stack Overflow, or pair programming. What matters: every architectural decision (RLS design, offline-first scoping, approval workflow) was mine, and I can explain and defend each one.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: How did you test without an automated test suite?</div>
-      <div class="a">A: Manual testing at a real Battambang school with real teachers (Phase 8) — legitimate QA for a solo-built system at this stage. Acknowledge automated testing as a known gap, not something claimed as done.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: Why Vercel for deployment?</div>
-      <div class="a">A: Zero-config deploys from Git, free tier suits a single-school pilot, pairs cleanly with Supabase's hosted backend — no server to manage myself.</div>
-    </div>
+<!-- ============ SECTION 2: SECURITY ============ -->
+<section class="group" id="security">
+  <div class="group-head">
+    <div class="group-eyebrow">Multi-tenancy &amp; Security</div>
+    <h2>Why can't one school ever see another school's students?</h2>
   </div>
+  <div class="cards">
 
-  <div class="section">
-    <div class="section-title">Business Logic</div>
-    <div class="qa">
-      <div class="q">Q: How does rank computation handle ties?</div>
-      <div class="a">A: Ties share the same rank; the next rank skips accordingly (two tied for 1st → next is rank 3, not 2). Computed within each class only, never school-wide.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: Why is score calculation done client-side, not in the database?</div>
-      <div class="a">A: The database stores only raw scores as the single source of truth. Averages/totals/ranks are derived values computed in one shared utility (scoreCalculator.js) — never stored redundantly, so a computed value can never drift from the raw data.</div>
-    </div>
+    <article class="card">
+      <div class="card-head">
+        <h3>One filing cabinet, hundreds of locked drawers</h3>
+        <p class="subtitle"><span class="term" data-term="rls">Row-Level Security</span> — multi-tenant isolation</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>Picture one enormous filing cabinet in a basement, shared by every school in the country. Every drawer has its own lock. A teacher's key only opens the drawers for their own school — even standing right next to a hundred other schools' drawers, their key simply won't turn in anyone else's lock.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "cabinet" is the single PSMS database, the "drawers" are rows in each table, and the "key" is the teacher's logged-in identity checked against a <code>school_id</code> column.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>Every tenant-scoped table has a <code>school_id</code> column and an RLS policy like <code>USING (school_id = (SELECT school_id FROM teachers WHERE user_id = auth.uid()))</code>. Postgres evaluates this on every row of every query, so even a raw <code>SELECT *</code> silently returns only rows matching the caller's school. One database, one schema — isolation enforced by the database engine itself, not app code.</p>
+      </div>
+      <div class="diagram-toggle">👇 Try it — pick a key below</div>
+      <div class="diagram cabinet-diagram">
+        <h4>Pick a teacher's key</h4>
+        <div class="key-picker">
+          <button class="key-btn active" data-school="a">🔑 Riverside</button>
+          <button class="key-btn" data-school="b">🔑 Hillcrest</button>
+          <button class="key-btn" data-school="c">🔑 Sunrise</button>
+        </div>
+        <div class="cabinet">
+          <div class="drawer" data-school="a"><span class="lock">🔒</span> Riverside School's students</div>
+          <div class="drawer" data-school="b"><span class="lock">🔒</span> Hillcrest School's students</div>
+          <div class="drawer" data-school="c"><span class="lock">🔒</span> Sunrise School's students</div>
+        </div>
+        <p class="diagram-caption" id="cabinet-caption">Riverside's key only turns Riverside's lock. Click another key.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>The raffle ticket that only shows one prize</h3>
+        <p class="subtitle">Anon / <span class="term" data-term="report-link">link-only</span> access</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>A parent gets handed a single raffle ticket. No matter how many times they look at it, flip it over, or shake it, it only ever shows one prize: their own child's report card. It can't be swapped for anyone else's.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "raffle ticket" is a link containing a unique <code>report_link_id</code>, and the "one prize" is the single student record that link's policy allows.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>Report links use an unauthenticated (<code>anon</code>) key, so the RLS policy can't check <code>auth.uid()</code> at all. Instead it checks that the row's id matches the <code>report_link_id</code> embedded in the URL — a random, unguessable UUID acting as the password. No login, and critically, no way to browse to any other student's data.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>The principal has to sign before it's mailed</h3>
+        <p class="subtitle">Report link approval workflow</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>Before a letter goes home with the school's official stamp on it, the principal has to read it and sign it first. A teacher can write the letter, but she can't stamp it and mail it out by herself.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "stamp" is a report link's <code>status</code> flipping to <code>approved</code>, and the "principal's desk" is an admin-only screen that must set it.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>A teacher generates a report with <code>status = 'draft'</code>; RLS blocks the anon key from ever reading draft rows. Only an admin-role account can flip <code>status</code> to <code>'approved'</code> — the exact moment the same row becomes visible through the public link's policy. The teacher prepares everything, but the "publish" transition is gated to a different role entirely.</p>
+      </div>
+    </article>
+
   </div>
+</section>
 
-  <div class="section">
-    <div class="section-title">DB Relationships — One-to-One</div>
-    <div class="qa">
-      <div class="q">Q: Where is there a strict 1:1 relationship, and why?</div>
-      <div class="a">A: public.users ↔ teachers, via teachers.user_id NOT NULL UNIQUE — every account is exactly one person, one profile, never zero or many. Also auth.users ↔ public.users.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: Why enforce UNIQUE instead of careful application code?</div>
-      <div class="a">A: App code can have bugs or race conditions. A unique constraint makes "one profile per account" impossible to violate even if a future feature forgets to check — a guarantee at the data layer, not a hope at the code layer.</div>
-    </div>
+<!-- ============ SECTION 3: OFFLINE ============ -->
+<section class="group" id="offline">
+  <div class="group-head">
+    <div class="group-eyebrow">Offline-first &amp; Syncing</div>
+    <h2>What happens when the classroom wifi drops?</h2>
   </div>
+  <div class="cards">
 
-  <div class="section">
-    <div class="section-title">DB Relationships — One-to-Many</div>
-    <div class="qa">
-      <div class="q">Q: Give the core one-to-many chain in your schema.</div>
-      <div class="a">A: schools → users → teachers → classes → students. Each school has many users; each teacher owns many classes (classes.teacher_id); each class has many students (students.class_id). This chain also enforces multi-tenancy — everything traces back to one school_id.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: Other 1:many relationships that matter?</div>
-      <div class="a">A: students → scores/attendances/growth/vaccinations/sick_days — one student accumulates many timestamped records. classes → report_links → report_messages — one link per month/semester, one thread per student.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: Why not store scores as columns on the student row?</div>
-      <div class="a">A: One score per subject per month per year is inherently repeating data — exactly what a separate scores table with foreign keys is for. Columns would need schema changes every new month.</div>
-    </div>
+    <article class="card">
+      <div class="card-head">
+        <h3>Sticky notes on a corkboard</h3>
+        <p class="subtitle">Offline write queue, drained <span class="term" data-term="fifo">FIFO</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>The classroom phone line goes down. Instead of giving up, the teacher writes each grade on its own sticky note and sticks it on a corkboard, in the order she writes them. When the phone line comes back, she doesn't shout them all out in a jumble — she reads them off the board one at a time, top to bottom, in exactly the order they went up.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "corkboard" is a local queue of pending writes stored on the device. "Reading them out in order" is how that queue drains once connectivity returns.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>The <code>useOfflineMutation</code> composable intercepts writes when <code>navigator.onLine</code> is false and appends them to an IndexedDB-backed queue instead of failing. Each entry keeps its timestamp and payload. An online listener triggers a drain function that replays queued mutations against Supabase strictly in insertion order — a grade entered at 9:01 never lands after one entered at 9:04.</p>
+      </div>
+      <div class="diagram-toggle">👇 Try it</div>
+      <div class="diagram corkboard-diagram">
+        <h4>Offline write queue</h4>
+        <div>
+          <button id="add-note-btn">✏️ Write a grade (offline)</button>
+          <button id="sync-btn">📶 Connection restored — sync now</button>
+        </div>
+        <div class="board" id="corkboard"></div>
+        <div class="office" id="office-tray"><span class="office-label">🏫 Office (synced, in order)</span></div>
+        <p class="diagram-caption" id="cork-caption">Write a few notes offline, then sync — watch them arrive in the exact order they were written.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>First note written, first note read</h3>
+        <p class="subtitle">Why the queue can't reorder itself</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>The sticky notes come off the board in exactly the order they went up — first note written, first note read out loud. Nobody's allowed to grab one from the middle of the stack and shout it out early.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"First written, first read" is <span class="term" data-term="fifo">FIFO</span> — first-in, first-out — the ordering guarantee on the offline queue.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>The queue is keyed by an auto-incrementing sequence number set at write time, not sync time. The drain loop always requests the lowest unsynced sequence number next and waits for it to succeed before advancing. This matters for dependent writes — a grade referencing an attendance record created five minutes earlier — where replaying out of order could violate a foreign key or overwrite a later edit with an earlier one.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>The photocopy with a "good for 24 hours" stamp</h3>
+        <p class="subtitle">Read cache with <span class="term" data-term="ttl">TTL</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>A teacher keeps a photocopy of today's class list in her bag, in case the office is closed when she needs it. The photocopy works fine for a while — but it has a stamp on it: "good for 24 hours." After that, it's too old to trust without checking again.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "photocopy with a stamp" is cached read data with a stored fetch timestamp. "Too old to trust" is the cache's time-to-live expiring.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>Read-heavy queries (rosters, subject lists) are cached in IndexedDB alongside a <code>fetched_at</code> timestamp. Under the TTL, the cache serves instantly with zero network round-trip. Over it, the cached copy still renders immediately — never a blank screen — but a background refetch replaces it. The write queue and read cache are deliberately separate systems with opposite failure modes: writes must never be lost, reads are allowed to be a little stale.</p>
+      </div>
+      <div class="diagram-toggle">👇 Try it</div>
+      <div class="diagram cache-diagram">
+        <h4>Write queue vs. read cache</h4>
+        <div class="split">
+          <div class="col write-col">
+            <h5>✍️ Write Queue</h5>
+            <p style="font-size:.82rem; margin:0;">Never expires. Waits patiently, in exact order, until it can be sent.</p>
+          </div>
+          <div class="col read-col">
+            <h5>📋 Read Cache</h5>
+            <p style="font-size:.82rem; margin:0;" id="cache-age">Fetched just now.</p>
+            <span class="badge fresh" id="cache-badge">🟢 Fresh</span>
+          </div>
+        </div>
+        <button id="advance-time-btn">⏩ Skip ahead 6 hours</button>
+        <button id="reset-time-btn">↺ Reset clock</button>
+        <p class="diagram-caption">Keep skipping time forward — watch the cache cross its 24-hour stamp.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>"Heads up — this might be old"</h3>
+        <p class="subtitle">Stale-data badge</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>Taped to the photocopy is a small sticky note: "Heads up — this might be yesterday's list." Nobody mistakes the copy for the real, freshly-printed one.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "sticky note" is a small UI badge shown whenever data is being served from an expired cache entry.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>When a component renders from a cache entry older than the TTL, it sets an <code>isStale</code> flag alongside the data before the background refetch resolves. The UI reads that flag to render a small "may be out of date" badge, which disappears the instant the refetch completes and the store's timestamp updates — a visible admission of uncertainty rather than a silent guess.</p>
+      </div>
+    </article>
+
   </div>
+</section>
 
-  <div class="section">
-    <div class="section-title">DB Relationships — Many-to-Many</div>
-    <div class="qa">
-      <div class="q">Q: Where is there a many-to-many relationship, and how modeled?</div>
-      <div class="a">A: classes ↔ subjects, via junction table class_subjects. A class has many subjects; the same subject (e.g. "Math") is taught differently per class/grade, so subjects are pulled per-class, not from one global list.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: Why not give subjects a class_id directly?</div>
-      <div class="a">A: Subjects are still a shared, reusable pool per school (e.g. "English" exists once). A junction table lets many classes reference the same subject without duplicating rows.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: Any other many-to-many?</div>
-      <div class="a">A: students ↔ books via book_borrows — a student borrows many books over time, a book is borrowed by many students. The junction table also carries its own data (borrow date, return date) — a sign of a proper many-to-many with attributes.</div>
-    </div>
+<!-- ============ SECTION 4: AUTH ============ -->
+<section class="group" id="auth">
+  <div class="group-head">
+    <div class="group-eyebrow">Auth Persistence</div>
+    <h2>Why doesn't closing the app log you out?</h2>
   </div>
+  <div class="cards">
 
-  <div class="section">
-    <div class="section-title">Cascade Behavior &amp; Referential Integrity</div>
-    <div class="qa">
-      <div class="q">Q: What happens to a teacher's classes if their account is deleted?</div>
-      <div class="a">A: auth.users deletion cascades to public.users, then to the teachers row (user_id FK). classes.teacher_id is ON DELETE SET NULL — the class survives with teacher_id = null, not deleted. In practice, staff are deactivated (status='inactive') rather than hard-deleted, to avoid orphaning classes and students.</div>
-    </div>
-    <div class="qa">
-      <div class="q">Q: How do you stop a student from belonging to a class in a different school?</div>
-      <div class="a">A: Every table in the chain carries its own school_id (not just inherited through joins), and RLS policies check school_id directly on each table rather than trusting the relationship chain alone — so a bug in one join can't leak cross-tenant data.</div>
-    </div>
+    <article class="card">
+      <div class="card-head">
+        <h3>The amusement park wristband</h3>
+        <p class="subtitle">Session <span class="term" data-term="jwt">token</span> stored locally</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>At the amusement park gate, you get stamped with a wristband. You can leave the park, get lunch, come back, ride again — the gate remembers your wristband all day, no new ticket required.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "wristband" is a signed session token (JWT) saved on the device. "The gate remembering it" is the app checking that token instead of asking you to log in again.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>On login, Supabase Auth issues an access token and refresh token, which PSMS persists to storage rather than keeping only in memory. On every app start, the Supabase client reads the stored pair and silently re-establishes the session before any screen renders — a login screen only appears if no valid token exists at all.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>Same wristband, walking in the next day</h3>
+        <p class="subtitle">Why reopening the app doesn't log you out</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>Even if you go home and come back tomorrow with the same wristband still on your wrist, the gate remembers it and waves you through — as long as the wristband itself hasn't expired.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"The gate remembering it tomorrow" is the Supabase client firing an <span class="term" data-term="initial-session">INITIAL_SESSION</span> event from a stored, still-valid token, before the user does anything at all.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>On boot, <code>supabase.auth.onAuthStateChange</code> fires an <code>INITIAL_SESSION</code> event carrying whatever session was restored from storage (or <code>null</code>). PSMS's router guard must wait for this event before deciding whether to redirect to login. The bug fixed in this project was the guard checking session state before <code>INITIAL_SESSION</code> had fired — so a perfectly valid stored session still bounced the user to login for a split second on cold start.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>The wristband that quietly stopped working</h3>
+        <p class="subtitle">Token expiring while offline</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>If your wristband quietly expired overnight, you don't find out until you walk up to the gate again and it beeps red. You looked like you were still wearing a valid wristband the whole time — it just wasn't actually working anymore.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "beep" is a 401 response from Supabase the next time the token is actually used against the server, since there's no way to check expiry while fully offline.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>JWTs carry their own expiry (<code>exp</code> claim), but an offline device can't ask Supabase to verify or refresh one — it can only optimistically trust the token it already has. The refresh token normally renews the session silently before expiry, but if the device stays offline past that window, the first request after reconnecting fails with a 401, triggering PSMS to attempt a refresh and, failing that, fall back to a real login screen.</p>
+      </div>
+    </article>
+
   </div>
+</section>
 
-  <div class="section">
-    <div class="section-title">Self-Referencing / Hierarchical</div>
-    <div class="qa">
-      <div class="q">Q: Any hierarchical or self-referencing relationship?</div>
-      <div class="a">A: No classic self-reference (like manager-employee), but academic_years functions similarly — each year's classes are cloned from the prior year via clone_classes_structure(), giving a conceptual "previous year → current year" lineage without a literal self-FK.</div>
-    </div>
+<!-- ============ SECTION 5: REALTIME ============ -->
+<section class="group" id="realtime">
+  <div class="group-head">
+    <div class="group-eyebrow">Real-time &amp; Notifications</div>
+    <h2>How does the principal know the second something happens?</h2>
   </div>
+  <div class="cards">
 
-  <div class="section" style="background:#f4f8fb;">
-    <div class="section-title">ER Diagram Walkthrough — Narrative Answer</div>
-    <div class="diagram-box">school_id (tenant root)
-  └─ auth.users → users → teachers      (identity)
-       └─ academic_years → classes → class_subjects → students  (academic structure)
-            └─ scores, attendances, health, growth,
-               vaccinations, sick_days                (student activity, 1:many each)
-            └─ report_links → report_messages          (parent portal)
-            └─ notifications                           (approval workflow)
-            └─ teacher_phrases                          (per-teacher, cross-cutting)</div>
-    <div class="narrative-box">
-      "Everything scopes to school_id at the top. Identity flows auth.users → users → teachers. Academic structure is academic_years → classes → class_subjects → students. From students, everything else branches out — scores, attendance, health, sick days, growth, vaccinations — each its own one-to-many, since a student accumulates many of each over time. Cross-cutting features — report_links/messages for the parent portal, notifications for the approval workflow, teacher_phrases per teacher — each scope to whichever entity owns them."
-    </div>
-    <div class="footer-note">PSMS Thesis Defense Prep · Compiled July 2026 · Bring alongside the Q&amp;A prep doc and PPTX deck</div>
+    <article class="card">
+      <div class="card-head">
+        <h3>A bell wired to the mailbox</h3>
+        <p class="subtitle"><span class="term" data-term="realtime">Supabase Realtime</span> subscriptions</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>Instead of walking to the mailbox every five minutes to check for new letters, the mailbox has a little bell wired to it. The instant a letter drops in, the bell rings — nobody has to go looking.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "bell" is a Supabase Realtime subscription over a WebSocket. "A letter dropping in" is a row being inserted into a watched table.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>PSMS opens a <code>supabase.channel(...)</code> subscription filtered to <code>postgres_changes</code> on the <code>notifications</code> table for the current <code>school_id</code>. Whenever a matching row is inserted, Supabase's replication stream pushes the payload straight to the client over the open WebSocket — no polling loop, no repeated <code>SELECT</code> every few seconds burning battery and bandwidth.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>Who rings the bell?</h3>
+        <p class="subtitle">Database <span class="term" data-term="trigger">trigger</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>The bell is wired directly to the mailbox itself, not to any particular mail carrier. So it rings no matter who delivers the letter — the regular carrier, a substitute, or someone dropping it off by hand.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "wiring" is a Postgres trigger on the source table. "No matter who delivers it" means the notification fires regardless of which part of the app made the write.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>An <code>AFTER INSERT</code> trigger on tables like <code>grades</code> or <code>attendance</code> runs a function that inserts a matching row into <code>notifications</code>. Because the trigger lives in the database rather than any one client's code path, a grade entered from the mobile app, the web app, or a future admin import script all reliably produce the same notification — the guarantee lives below the application layer.</p>
+      </div>
+    </article>
+
   </div>
+</section>
 
-</div>
+<!-- ============ SECTION 6: PWA ============ -->
+<section class="group" id="pwa">
+  <div class="group-head">
+    <div class="group-eyebrow">PWA &amp; Service Worker</div>
+    <h2>Why does the app feel instant, even offline?</h2>
+  </div>
+  <div class="cards">
+
+    <article class="card">
+      <div class="card-head">
+        <h3>A helpful assistant who remembers where the book is</h3>
+        <p class="subtitle"><span class="term" data-term="service-worker">Service worker</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>Imagine a helpful assistant standing between you and the school library. The first time you ask for a book, they walk and fetch it. But they remember exactly where it lives — so next time, they hand it to you instantly instead of walking there again.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "assistant" is the service worker — a script that intercepts network requests. "Remembering where the book lives" is its cache of previously fetched files.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>PSMS registers a service worker that intercepts <code>fetch</code> events for its own static assets (JS bundles, icons, fonts) and caches them on first load via the Cache API. Later loads are served straight from that cache before the network is even checked — the app shell appears instantly, even on a flaky connection, while actual data still goes through the separate read-cache/write-queue system.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>The assistant waits for you to say "okay"</h3>
+        <p class="subtitle">Prompt-to-update, not auto-update</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>You wouldn't want the library assistant to swap the book in your hands for a newer edition while you're mid-sentence. They wait until you say "okay, I'm ready" before handing you the new copy.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "new edition" is a newly deployed app version. "Waiting for okay" is the update prompt shown instead of forcing an instant reload.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>A new service worker version installs in the background but stays in a <code>waiting</code> state rather than activating immediately — activating would tear down in-flight requests and local state mid-session. PSMS listens for this event and shows a small "update available" prompt; only when the user taps it does the app call <code>skipWaiting()</code> and reload, guaranteeing updates never interrupt someone mid-entry.</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ SECTION 7: DATABASE ============ -->
+<section class="group" id="database">
+  <div class="group-head">
+    <div class="group-eyebrow">Database Structure</div>
+    <h2>How does the data actually connect together?</h2>
+  </div>
+  <div class="cards">
+
+    <article class="card">
+      <div class="card-head">
+        <h3>One teacher, many students</h3>
+        <p class="subtitle"><span class="term" data-term="one-to-many">One-to-many</span> relationship</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>One teacher has many students in their homeroom — but flip it around, and each student has only one homeroom teacher. It only works one way.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"One teacher, many students" is a one-to-many relationship — the most common shape in the whole database.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>A <code>students</code> row stores a single <code>homeroom_teacher_id</code> foreign key pointing at one <code>teachers</code> row. "This teacher's students" is just <code>WHERE homeroom_teacher_id = :id</code> — no table needed in between, since the relationship only ever points in one direction.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>The shared Math sign-up sheet</h3>
+        <p class="subtitle">Many-to-many + <span class="term" data-term="junction-table">junction table</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>Lots of classes take "Math," and "Math" is taught in lots of classes. So instead of every class writing "Math" fresh into its own private notebook, there's one shared sign-up sheet listing every class-and-subject pairing.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "shared sign-up sheet" is a junction table — a table whose only job is to record pairs.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>A <code>class_subjects</code> table holds just two foreign keys, <code>class_id</code> and <code>subject_id</code>, one row per valid pairing. Neither <code>classes</code> nor <code>subjects</code> needs to know about the other directly — adding a new pairing is one new row, not a schema change to either original table.</p>
+      </div>
+      <div class="diagram-toggle">👇 Try it</div>
+      <div class="diagram relationship-diagram">
+        <h4>Relationship shapes</h4>
+        <div>
+          <button class="rel-btn active" data-rel="one-many">One-to-many</button>
+          <button class="rel-btn" data-rel="many-many">Many-to-many</button>
+        </div>
+        <svg id="rel-svg" viewBox="0 0 420 220" xmlns="http://www.w3.org/2000/svg">
+          <g id="rel-one-many">
+            <g class="rel-node hub"><rect x="30" y="95" width="90" height="34" rx="6"/><text x="75" y="116" text-anchor="middle">Teacher</text></g>
+            <line class="rel-line" x1="120" y1="112" x2="290" y2="30"/>
+            <line class="rel-line" x1="120" y1="112" x2="290" y2="80"/>
+            <line class="rel-line" x1="120" y1="112" x2="290" y2="140"/>
+            <line class="rel-line" x1="120" y1="112" x2="290" y2="190"/>
+            <g class="rel-node"><rect x="290" y="13" width="100" height="30" rx="6"/><text x="340" y="33" text-anchor="middle">Student A</text></g>
+            <g class="rel-node"><rect x="290" y="63" width="100" height="30" rx="6"/><text x="340" y="83" text-anchor="middle">Student B</text></g>
+            <g class="rel-node"><rect x="290" y="123" width="100" height="30" rx="6"/><text x="340" y="143" text-anchor="middle">Student C</text></g>
+            <g class="rel-node"><rect x="290" y="173" width="100" height="30" rx="6"/><text x="340" y="193" text-anchor="middle">Student D</text></g>
+          </g>
+          <g id="rel-many-many" class="hidden">
+            <g class="rel-node"><rect x="10" y="20" width="90" height="30" rx="6"/><text x="55" y="40" text-anchor="middle">Class 3A</text></g>
+            <g class="rel-node"><rect x="10" y="95" width="90" height="30" rx="6"/><text x="55" y="115" text-anchor="middle">Class 3B</text></g>
+            <g class="rel-node"><rect x="10" y="170" width="90" height="30" rx="6"/><text x="55" y="190" text-anchor="middle">Class 4A</text></g>
+            <g class="rel-node hub"><rect x="160" y="95" width="100" height="34" rx="6"/><text x="210" y="116" text-anchor="middle">class_subjects</text></g>
+            <g class="rel-node"><rect x="320" y="20" width="90" height="30" rx="6"/><text x="365" y="40" text-anchor="middle">Math</text></g>
+            <g class="rel-node"><rect x="320" y="95" width="90" height="30" rx="6"/><text x="365" y="115" text-anchor="middle">Khmer</text></g>
+            <g class="rel-node"><rect x="320" y="170" width="90" height="30" rx="6"/><text x="365" y="190" text-anchor="middle">Science</text></g>
+            <line class="rel-line" x1="100" y1="35" x2="160" y2="105"/>
+            <line class="rel-line" x1="100" y1="110" x2="160" y2="112"/>
+            <line class="rel-line" x1="100" y1="185" x2="160" y2="119"/>
+            <line class="rel-line" x1="260" y1="105" x2="320" y2="35"/>
+            <line class="rel-line" x1="260" y1="112" x2="320" y2="110"/>
+            <line class="rel-line" x1="260" y1="119" x2="320" y2="185"/>
+          </g>
+        </svg>
+        <p class="diagram-caption" id="rel-caption">One-to-many: lines only ever fan out one direction. Many-to-many: everything routes through the junction table in the middle.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>A hallway pass, not the whole file</h3>
+        <p class="subtitle"><span class="term" data-term="foreign-key">Foreign keys</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>A student doesn't carry their entire file around the building. They carry a small hallway pass that just says which classroom they belong to — anyone can look up the rest from that one pointer.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "hallway pass" is a foreign key — a column that stores just an id pointing at the row holding the real information.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>A foreign key like <code>students.homeroom_teacher_id → teachers.id</code> stores a reference, not a copy. Postgres enforces referential integrity from it too: it rejects a value with no matching real row, and can cascade or restrict deletes — so a teacher can't be deleted while students still point at them, without an explicit decision about what happens next.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>The library card catalog</h3>
+        <p class="subtitle"><span class="term" data-term="index">Indexes</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>You could search every shelf, book by book, for one title. Or you could check the card catalog first and walk straight to the right shelf. The catalog doesn't hold the books — it just tells you exactly where to look.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "card catalog" is a database index — a smaller, ordered structure built purely to make lookups fast.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>PSMS indexes high-traffic lookup columns like <code>students.school_id</code> and <code>grades.student_id</code>, so Postgres binary-searches a compact B-tree instead of scanning every row. The tradeoff is real: an index speeds up reads but adds write cost, since every insert also updates the catalog — worth it on columns filtered constantly, wasteful on ones rarely queried.</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ SECTION 8: BUSINESS LOGIC ============ -->
+<section class="group" id="logic">
+  <div class="group-head">
+    <div class="group-eyebrow">Business Logic</div>
+    <h2>How does the app decide what to show?</h2>
+  </div>
+  <div class="cards">
+
+    <article class="card">
+      <div class="card-head">
+        <h3>Two kids tie for first place</h3>
+        <p class="subtitle">Rank computation with tie-skipping</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>Two kids cross the finish line at exactly the same time. They both get a "1st place" ribbon. Because two kids already took the 1st and 2nd spot between them, the very next kid down the line gets a "3rd place" ribbon — never a "2nd."</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"Skipping straight to 3rd" is what a proper rank function does with ties, as opposed to just counting positions one by one.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>Class rankings use Postgres's <code>RANK() OVER (ORDER BY average_score DESC)</code> rather than <code>ROW_NUMBER()</code>. <code>RANK()</code> gives tied rows the same value and skips the next rank accordingly (1, 1, 3), matching a real ribbon ceremony — whereas <code>ROW_NUMBER()</code> would arbitrarily break the tie and hand out a "2nd place" that doesn't reflect reality.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>The scratch-pad average</h3>
+        <p class="subtitle">Client-side calculated fields</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">The Story</button>
+        <button class="tab-btn" data-tab="translation">The Translation</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 Real Mechanism</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>The teacher's gradebook only ever writes down each individual test score. The class average is worked out fresh, every time someone asks, on a scratch pad off to the side — it's never written permanently into the gradebook itself.</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>The "scratch pad" is a computed value derived in the app at read time, never stored as its own column.</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>Fields like a student's average or class rank are computed in a Vue <code>computed()</code> (or a Postgres view, for heavier aggregates) from raw <code>grades</code> rows every time they're displayed, rather than stored redundantly on a <code>students.average</code> column. This guarantees the derived number can never drift out of sync — there's no second copy that could go stale after a grade is edited or deleted.</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section class="group" id="glossary">
+  <div class="group-head">
+    <div class="group-eyebrow">Reference</div>
+    <h2>Glossary</h2>
+    <p style="color:var(--muted); font-size:.9rem; margin-top:.5rem;">Every technical term used above, in one place. Tap any word for its definition.</p>
+  </div>
+  <div class="glossary-strip" id="glossary-strip"></div>
+</section>
+
+</main>
+
+<footer>Built to explain, not to sell. PSMS is a real system, running at a real school in Battambang.</footer>
+
+<div id="tooltip"></div>
+
+<script>
+  // ---------- TAB SWITCHING ----------
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.tab-btn');
+    if(!btn) return;
+    var card = btn.closest('.card');
+    card.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    card.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+    btn.classList.add('active');
+    var target = card.querySelector('.panel[data-panel="'+btn.dataset.tab+'"]');
+    if(target) target.classList.add('active');
+  });
+
+  // ---------- MOBILE MENU AUTO-CLOSE ----------
+  document.querySelectorAll('nav.toc a').forEach(function(a){
+    a.addEventListener('click', function(){
+      var cb = document.getElementById('menu-toggle');
+      if(cb) cb.checked = false;
+    });
+  });
+
+  // ---------- GLOSSARY DATA ----------
+  var glossary = {
+    'teachers-table': "One shared table holding every staff account (teacher, admin, librarian), distinguished by a role column rather than separate tables.",
+    'role-flag': "A column on a teachers row marking their permission level — e.g. 'teacher', 'admin', 'librarian' — layered on top of the same base account.",
+    'auth-users': "Supabase's built-in table for login identity: email, password hash, and session info. Kept separate from app-specific profile data.",
+    'one-to-one': "A relationship where each row on one side matches exactly one row on the other side — never zero, never more than one.",
+    'rls': "Row-Level Security: Postgres rules that filter which rows a query is allowed to see or change, evaluated per-row by the database itself.",
+    'report-link': "A shareable URL containing a random id that grants read access to exactly one record, without requiring login.",
+    'fifo': "First-In, First-Out — items are processed in the exact order they were added, never reordered or parallelized.",
+    'ttl': "Time-To-Live — how long a cached value is considered trustworthy before it's treated as stale and refetched.",
+    'jwt': "JSON Web Token — a signed, tamper-proof string proving who a user is and when their session expires, without needing a server lookup to check it.",
+    'initial-session': "A one-time event Supabase's client fires on app startup, reporting whatever session (or lack of one) it restored from local storage.",
+    'realtime': "Supabase's feature for pushing database changes to subscribed clients instantly over a WebSocket, instead of the client repeatedly asking for updates.",
+    'trigger': "A function Postgres runs automatically whenever a row is inserted, updated, or deleted — enforced by the database, not by application code.",
+    'service-worker': "A background script the browser runs that can intercept network requests and serve cached files, enabling offline-capable, instant-loading apps.",
+    'one-to-many': "A relationship where one row on one side can relate to many rows on the other, but each of those many rows relates back to only one.",
+    'junction-table': "A table that exists purely to record valid pairings between two other tables, enabling many-to-many relationships.",
+    'foreign-key': "A column that stores the id of a row in another table, pointing to it rather than duplicating its data.",
+    'index': "A separate, ordered structure the database maintains on a column so it can find matching rows quickly instead of scanning the whole table."
+  };
+
+  // populate glossary strip
+  var stripHost = document.getElementById('glossary-strip');
+  var seen = {};
+  document.querySelectorAll('.term').forEach(function(t){
+    var key = t.dataset.term;
+    if(seen[key]) return;
+    seen[key] = true;
+  });
+  Object.keys(glossary).sort().forEach(function(key){
+    var chip = document.createElement('button');
+    chip.className = 'term';
+    chip.dataset.term = key;
+    chip.textContent = key.replace(/-/g,' ');
+    stripHost.appendChild(chip);
+  });
+
+  // ---------- TOOLTIP ----------
+  var tip = document.getElementById('tooltip');
+  document.addEventListener('click', function(e){
+    var term = e.target.closest('.term');
+    if(!term){
+      if(!e.target.closest('#tooltip')) tip.style.display = 'none';
+      return;
+    }
+    var def = glossary[term.dataset.term] || "No definition found.";
+    tip.textContent = def;
+    tip.style.display = 'block';
+    var rect = term.getBoundingClientRect();
+    var top = rect.bottom + 10;
+    var left = Math.min(rect.left, window.innerWidth - 280);
+    tip.style.top = top + 'px';
+    tip.style.left = Math.max(10,left) + 'px';
+    e.stopPropagation();
+  });
+
+  // ---------- DIAGRAM 1: FILING CABINET ----------
+  document.querySelectorAll('.key-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.key-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var school = btn.dataset.school;
+      var names = {a:'Riverside', b:'Hillcrest', c:'Sunrise'};
+      document.querySelectorAll('.drawer').forEach(function(d){
+        d.classList.remove('open','shake');
+        if(d.dataset.school === school){
+          void d.offsetWidth;
+          d.classList.add('open');
+          d.querySelector('.lock').textContent = '✅';
+        } else {
+          void d.offsetWidth;
+          d.classList.add('shake');
+          d.querySelector('.lock').textContent = '🔒';
+        }
+      });
+      document.getElementById('cabinet-caption').textContent =
+        names[school] + "'s key only turns " + names[school] + "'s lock. The other drawers won't budge — try another key.";
+    });
+  });
+
+  // ---------- DIAGRAM 2: CORKBOARD FIFO ----------
+  var noteQueue = [];
+  var noteCounter = 0;
+  var board = document.getElementById('corkboard');
+  var officeTray = document.getElementById('office-tray');
+  var corkCaption = document.getElementById('cork-caption');
+
+  document.getElementById('add-note-btn').addEventListener('click', function(){
+    noteCounter++;
+    var id = noteCounter;
+    var note = document.createElement('div');
+    note.className = 'note';
+    note.style.setProperty('--r', (Math.random()*8-4)+'deg');
+    note.textContent = 'Grade #' + id;
+    note.dataset.id = id;
+    board.appendChild(note);
+    noteQueue.push(id);
+    corkCaption.textContent = noteQueue.length + ' note(s) waiting on the board, in order.';
+  });
+
+  document.getElementById('sync-btn').addEventListener('click', function(){
+    if(noteQueue.length === 0){
+      corkCaption.textContent = 'Nothing to sync yet — write a note first.';
+      return;
+    }
+    corkCaption.textContent = 'Syncing in order — first note first…';
+    var delay = 0;
+    var queueCopy = noteQueue.slice();
+    noteQueue = [];
+    queueCopy.forEach(function(id, i){
+      setTimeout(function(){
+        var el = board.querySelector('.note[data-id="'+id+'"]');
+        if(!el) return;
+        el.classList.add('leaving');
+        setTimeout(function(){
+          el.remove();
+          var mini = document.createElement('div');
+          mini.className = 'note';
+          mini.textContent = '#' + id + ' ✓';
+          officeTray.appendChild(mini);
+          if(i === queueCopy.length - 1){
+            corkCaption.textContent = 'All synced, in the exact order they were written.';
+          }
+        }, 480);
+      }, delay);
+      delay += 550;
+    });
+  });
+
+  // ---------- DIAGRAM 3: CACHE TTL ----------
+  var hoursElapsed = 0;
+  var cacheAgeEl = document.getElementById('cache-age');
+  var cacheBadgeEl = document.getElementById('cache-badge');
+
+  function updateCacheDisplay(){
+    if(hoursElapsed === 0){
+      cacheAgeEl.textContent = 'Fetched just now.';
+    } else {
+      cacheAgeEl.textContent = 'Fetched ' + hoursElapsed + ' hour(s) ago.';
+    }
+    if(hoursElapsed >= 24){
+      cacheBadgeEl.textContent = '🟡 Stale — refetching in background';
+      cacheBadgeEl.className = 'badge stale';
+    } else {
+      cacheBadgeEl.textContent = '🟢 Fresh';
+      cacheBadgeEl.className = 'badge fresh';
+    }
+  }
+
+  document.getElementById('advance-time-btn').addEventListener('click', function(){
+    hoursElapsed += 6;
+    updateCacheDisplay();
+  });
+  document.getElementById('reset-time-btn').addEventListener('click', function(){
+    hoursElapsed = 0;
+    updateCacheDisplay();
+  });
+
+  // ---------- DIAGRAM 4: RELATIONSHIP SHAPES ----------
+  document.querySelectorAll('.rel-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.rel-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var rel = btn.dataset.rel;
+      document.getElementById('rel-one-many').classList.toggle('hidden', rel !== 'one-many');
+      document.getElementById('rel-many-many').classList.toggle('hidden', rel !== 'many-many');
+      document.getElementById('rel-caption').textContent =
+        rel === 'one-many'
+        ? 'One-to-many: lines only ever fan out in one direction — one teacher, many students, never the reverse.'
+        : 'Many-to-many: nothing connects directly. Every line routes through the junction table in the middle.';
+    });
+  });
+</script>
 
 </body>
 </html>
