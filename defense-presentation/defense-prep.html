@@ -1,0 +1,2359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thesis Defense Preparation — Primary School Management System</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg: #0f172a;
+      --bg-card: #1e293b;
+      --bg-code: #0d1117;
+      --border: #334155;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent: #38bdf8;
+      --accent-dim: #0ea5e9;
+      --green: #4ade80;
+      --green-dim: #22c55e;
+      --yellow: #facc15;
+      --red: #f87171;
+      --purple: #a78bfa;
+      --orange: #fb923c;
+      --pink: #f472b6;
+      --sidebar-w: 280px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 100;
+      padding: 24px 0;
+    }
+
+    .sidebar-title {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-title h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .sidebar-title p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .sidebar-section {
+      padding: 0 12px;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-dim);
+      padding: 8px 8px 4px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 6px 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+
+    .sidebar a:hover {
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent);
+    }
+
+    .sidebar a .num {
+      display: inline-block;
+      width: 20px;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Main Content */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 960px;
+    }
+
+    .main > h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .main > .subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .section-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .section-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    /* Q&A Card */
+    .qa {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .qa:hover {
+      border-color: var(--accent-dim);
+    }
+
+    .qa-question {
+      padding: 16px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      user-select: none;
+    }
+
+    .qa-question:hover {
+      background: rgba(56, 189, 248, 0.03);
+    }
+
+    .q-badge {
+      background: var(--accent-dim);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .q-badge.hard {
+      background: var(--red);
+    }
+
+    .q-badge.medium {
+      background: var(--orange);
+    }
+
+    .q-badge.easy {
+      background: var(--green-dim);
+    }
+
+    .qa-question h3 {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .qa-toggle {
+      margin-left: auto;
+      color: var(--text-dim);
+      font-size: 18px;
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .qa.open .qa-toggle {
+      transform: rotate(180deg);
+    }
+
+    .qa-answer {
+      display: none;
+      padding: 0 20px 20px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .qa.open .qa-answer {
+      display: block;
+    }
+
+    .qa-answer p {
+      margin: 12px 0;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+
+    .qa-answer p strong {
+      color: var(--text);
+    }
+
+    .qa-answer ul, .qa-answer ol {
+      margin: 8px 0 12px 20px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .qa-answer li {
+      margin-bottom: 4px;
+    }
+
+    .qa-answer li strong {
+      color: var(--text);
+    }
+
+    /* Code Block */
+    pre {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.6;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    pre code {
+      color: var(--text-muted);
+    }
+
+    .code-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 4px;
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Inline code */
+    code {
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Key Point Box */
+    .keypoint {
+      background: rgba(56, 189, 248, 0.08);
+      border-left: 3px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 12px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .keypoint strong {
+      color: var(--accent);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-card .stat-num {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .stat-card .stat-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    /* Table */
+    .def-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+
+    .def-table th {
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .def-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      color: var(--text-muted);
+    }
+
+    .def-table tr:hover td {
+      background: rgba(56, 189, 248, 0.03);
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 40px 0;
+    }
+
+    /* Mobile */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 24px 20px; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    /* Print */
+    @media print {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .qa-answer { display: block !important; }
+      body { background: #fff; color: #000; }
+      .qa { border-color: #ccc; }
+      pre { background: #f5f5f5; border-color: #ccc; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-title">
+    <h2>Thesis Defense Prep</h2>
+    <p>School Management System v17</p>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Overview</div>
+    <a href="#sec-overview"><span class="num">1</span>Project Overview</a>
+    <a href="#sec-techstack"><span class="num">2</span>Technology Stack</a>
+    <a href="#sec-architecture"><span class="num">3</span>Architecture & Design</a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Database & Security</div>
+    <a href="#sec-database"><span class="num">4</span>Database Design</a>
+    <a href="#sec-auth"><span class="num">5</span>Authentication & RBAC</a>
+    <a href="#sec-rls"><span class="num">6</span>Row Level Security</a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Features by Role</div>
+    <a href="#sec-admin"><span class="num">7</span>Admin Features</a>
+    <a href="#sec-teacher"><span class="num">8</span>Teacher Features</a>
+    <a href="#sec-parent"><span class="num">9</span>Parent Portal</a>
+    <a href="#sec-librarian"><span class="num">10</span>Librarian Features</a>
+    <a href="#sec-super"><span class="num">11</span>Super Admin</a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Advanced Topics</div>
+    <a href="#sec-offline"><span class="num">12</span>Offline-First & PWA</a>
+    <a href="#sec-libraries"><span class="num">13</span>Libraries & Packages</a>
+    <a href="#sec-challenges"><span class="num">14</span>Challenges & Solutions</a>
+    <a href="#sec-scoring"><span class="num">15</span>Scoring Algorithm</a>
+    <a href="#sec-frontend"><span class="num">16</span>Frontend Architecture</a>
+    <a href="#sec-testing"><span class="num">17</span>Testing & Deployment</a>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+  <h1>Thesis Defense Preparation</h1>
+  <p class="subtitle">Primary School Management System — Vue 3 + Supabase · 120+ Q&A covering architecture, code, and design decisions</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: PROJECT OVERVIEW -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-overview">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(56,189,248,0.15);color:var(--accent)">📋</div>
+      <h2>1. Project Overview</h2>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num">81+</div><div class="stat-label">Source Files</div></div>
+      <div class="stat-card"><div class="stat-num">55</div><div class="stat-label">Vue Views</div></div>
+      <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Pinia Stores</div></div>
+      <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Composables</div></div>
+      <div class="stat-card"><div class="stat-num">26</div><div class="stat-label">DB Tables</div></div>
+      <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">User Roles</div></div>
+    </div>
+
+    <!-- Q1 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q1</span>
+        <h3>What is this project about? What problem does it solve?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>This is a <strong>Primary School Management System</strong> designed specifically for <strong>Cambodian schools</strong>. It digitizes the entire school administration workflow — from student enrollment, attendance tracking, and score management to library management, budget tracking, and parent communication.</p>
+        <p>The core problem it solves: Cambodian rural schools still use <strong>paper-based systems</strong> for attendance, scoring, and reporting. Teachers spend hours manually calculating averages and rankings. Parent communication is limited to physical report cards distributed a few times per year.</p>
+        <p>Key innovations:</p>
+        <ul>
+          <li><strong>Offline-first design</strong> — works without internet (critical for rural Cambodia)</li>
+          <li><strong>Link-only parent portal</strong> — parents access reports via a secure URL, no account needed</li>
+          <li><strong>Khmer-language UI</strong> — fully localized for Cambodian users</li>
+          <li><strong>Mobile-first PWA</strong> — installable on phones, works like a native app</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q2</span>
+        <h3>Who are the target users? What are the roles?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>There are <strong>5 roles</strong>, each with specific permissions:</p>
+        <table class="def-table">
+          <tr><th>Role</th><th>Description</th><th>Access Level</th></tr>
+          <tr><td><strong>Super Admin</strong></td><td>Platform owner (Tra only)</td><td>Full access to all schools</td></tr>
+          <tr><td><strong>Admin/Director</strong></td><td>School principal</td><td>Full access within their school</td></tr>
+          <tr><td><strong>Teacher</strong></td><td>Class teacher</td><td>Own class data only (students, scores, attendance)</td></tr>
+          <tr><td><strong>Librarian</strong></td><td>Library staff (also a teacher)</td><td>Library module only</td></tr>
+          <tr><td><strong>Parent</strong></td><td>Student's parent/guardian</td><td>Read-only via report link (no login)</td></tr>
+        </table>
+        <div class="keypoint"><strong>Key Design Decision:</strong> In Cambodian schools, ALL staff are teachers. The librarian is a teacher who manages the library. The admin/director is a teacher who runs the school. Therefore, every user account always has a matching <code>teachers</code> row — there is no such thing as a user without a teacher profile.</div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q3</span>
+        <h3>What is unique about this system compared to generic school management software?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Several things make this unique:</p>
+        <ol>
+          <li><strong>Cambodia-specific</strong> — Khmer language UI, Khmer numeral support, Cambodian school structure (Grades 1-6, Monday-Saturday schedule)</li>
+          <li><strong>Offline-first</strong> — Teachers in rural areas with unreliable internet can still enter scores and data. Changes queue locally and sync when connection returns.</li>
+          <li><strong>Zero-login parent portal</strong> — Parents don't create accounts. Teacher generates a secure UUID link → admin approves → parent opens link and selects their child. No passwords, no registration.</li>
+          <li><strong>Multi-tenant from day one</strong> — One deployment serves unlimited schools. Each school's data is completely isolated via Row Level Security.</li>
+          <li><strong>Real-time approval flow</strong> — Report links require principal approval before sharing with parents, with in-app notifications via Supabase Realtime.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q4</span>
+        <h3>How many phases has the project gone through? What is the current status?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The project has <strong>12 completed phases</strong>:</p>
+        <table class="def-table">
+          <tr><th>Phase</th><th>Name</th><th>Key Deliverables</th></tr>
+          <tr><td>1</td><td>Foundation</td><td>Auth, routing, Supabase setup</td></tr>
+          <tr><td>2</td><td>Admin Core</td><td>Academic years, classes, teachers, students</td></tr>
+          <tr><td>3</td><td>Admin Extended</td><td>Attendance, scores, budget, inventory, library</td></tr>
+          <tr><td>4</td><td>Teacher Features</td><td>Score entry, attendance, health, reports, certificates</td></tr>
+          <tr><td>5</td><td>Librarian Features</td><td>Book CRUD, borrow/return, overdue tracking</td></tr>
+          <tr><td>7</td><td>Student Rollup</td><td>Year-end promotion (Grades 1-5 → next, Grade 6 → graduated)</td></tr>
+          <tr><td>8</td><td>Stabilize & Polish</td><td>Testing at Battambang school, PWA, loading states</td></tr>
+          <tr><td>9</td><td>Multi-Tenant</td><td>School isolation, super admin, RLS, 25+ indexes</td></tr>
+          <tr><td>10</td><td>Parent Portal</td><td>Link-only access, voice messages, report cards</td></tr>
+          <tr><td>11</td><td>Approval + Notifications</td><td>Report link approval flow, bell notifications, phrase library</td></tr>
+          <tr><td>12</td><td>Offline + Toast</td><td>Offline queue, read cache, PWA storage caching, toast refactor</td></tr>
+        </table>
+        <p>Currently in <strong>Phase 8 (testing)</strong> — real-user testing at a school in Battambang province.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: TECHNOLOGY STACK -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-techstack">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(74,222,128,0.15);color:var(--green)">⚙️</div>
+      <h2>2. Technology Stack</h2>
+    </div>
+
+    <!-- Q5 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q5</span>
+        <h3>What libraries and packages does this project use? Why each one?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <table class="def-table">
+          <tr><th>Package</th><th>Version</th><th>Purpose & Why</th></tr>
+          <tr><td><code>vue</code></td><td>^3.5</td><td>Core framework — reactive UI with Composition API</td></tr>
+          <tr><td><code>vue-router</code></td><td>^5.0</td><td>Client-side routing with role-based guards</td></tr>
+          <tr><td><code>pinia</code></td><td>^3.0</td><td>State management — auth, school, notifications, offline queue</td></tr>
+          <tr><td><code>@supabase/supabase-js</code></td><td>^2.105</td><td>Backend-as-a-Service — auth, database, storage, realtime, edge functions</td></tr>
+          <tr><td><code>tailwindcss</code></td><td>^4.2</td><td>Utility-first CSS — rapid UI development</td></tr>
+          <tr><td><code>chart.js + vue-chartjs</code></td><td>^4.5/^5.3</td><td>Student score radar charts and visualizations</td></tr>
+          <tr><td><code>jspdf + jspdf-autotable</code></td><td>^4.2/^5.0</td><td>PDF generation for score reports and certificates</td></tr>
+          <tr><td><code>html2canvas</code></td><td>^1.4</td><td>Capture certificate designs as images for download</td></tr>
+          <tr><td><code>xlsx</code></td><td>^0.18</td><td>Excel import/export for bulk student data</td></tr>
+          <tr><td><code>@heroicons/vue</code></td><td>^2.2</td><td>SVG icon library (Heroicons by Tailwind Labs)</td></tr>
+          <tr><td><code>vee-validate + yup</code></td><td>^4.15/^1.7</td><td>Form validation with schema-based rules</td></tr>
+          <tr><td><code>@vueuse/core</code></td><td>^14.2</td><td>Vue composition utilities (clickOutside, etc.)</td></tr>
+          <tr><td><code>vite-plugin-pwa</code></td><td>^1.3</td><td>Service worker generation, offline caching, install prompts</td></tr>
+          <tr><td><code>vite</code></td><td>^8.0</td><td>Build tool — fast dev server, optimized production builds</td></tr>
+          <tr><td><code>khmer-chhankitek-calendar</code></td><td>^1.2</td><td>Khmer calendar system for date pickers</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q6</span>
+        <h3>Why did you choose Supabase instead of Firebase or a custom backend?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Several reasons:</p>
+        <ol>
+          <li><strong>PostgreSQL database</strong> — Supabase gives you a real PostgreSQL database, not a NoSQL document store. This means we can use SQL joins, foreign keys, transactions, stored procedures, and complex queries. Firebase Firestore is NoSQL and would require denormalization.</li>
+          <li><strong>Row Level Security (RLS)</strong> — Supabase's RLS lets us enforce data isolation directly at the database level. Each query automatically filters by the user's role and school. With Firebase, this logic would live entirely in client-side code or Cloud Functions.</li>
+          <li><strong>Edge Functions</strong> — Deno-based serverless functions for user management (create/delete users with admin privileges). Firebase has Cloud Functions but they're Node.js-based and more complex to deploy.</li>
+          <li><strong>Realtime subscriptions</strong> — Built-in PostgreSQL replication for live notifications. Firebase has this too, but Supabase's is based on native PostgreSQL logical replication.</li>
+          <li><strong>Storage with RLS</strong> — File storage (profile pictures, voice recordings, signatures) with the same RLS policies as the database.</li>
+          <li><strong>Open source</strong> — Supabase is open source; Firebase is proprietary Google lock-in.</li>
+        </ol>
+        <div class="keypoint"><strong>Key Point:</strong> The Supabase anon key is safe to expose in the frontend because all data access is protected by RLS policies enforced at the database level. The anon key cannot bypass RLS.</div>
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q7</span>
+        <h3>Why Vue 3 instead of React or Angular?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Vue 3 was chosen for several practical reasons:</p>
+        <ol>
+          <li><strong>Composition API</strong> — Vue 3's Composition API (<code>&lt;script setup&gt;</code>) provides excellent code organization for complex components. Logic is grouped by concern, not by type (data, methods, computed, lifecycle).</li>
+          <li><strong>Smaller learning curve</strong> — For a solo developer building a large application (81+ files), Vue's template syntax and reactivity system are more intuitive than React's JSX + hooks mental model.</li>
+          <li><strong>Single File Components (SFCs)</strong> — Template, script, and style co-located in one file. This is natural for a project with many role-specific views.</li>
+          <li><strong>Pinia integration</strong> — Official state management with excellent TypeScript support and devtools.</li>
+          <li><strong>Performance</strong> — Vue 3's proxy-based reactivity is faster than Vue 2's Object.defineProperty, and comparable to React's Virtual DOM.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q8</span>
+        <h3>Why Tailwind CSS? Why not Bootstrap or custom CSS?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p><strong>Tailwind CSS v4</strong> was chosen with the <code>@tailwindcss/vite</code> plugin for zero-configuration setup:</p>
+        <ul>
+          <li><strong>No config file needed</strong> — Tailwind v4 uses CSS-native configuration via <code>@theme</code> in <code>style.css</code>. No <code>tailwind.config.js</code> required.</li>
+          <li><strong>Custom design system</strong> — All design tokens (colors, fonts, shadows, spacing) are defined as CSS custom properties in <code>src/style.css</code> (778 lines).</li>
+          <li><strong>Khmer font support</strong> — Custom fonts: <code>Hanuman</code> for Khmer text, <code>Inter</code> for Latin text.</li>
+          <li><strong>Rapid prototyping</strong> — Utility classes allow building complex layouts without writing custom CSS for every component.</li>
+          <li><strong>Small bundle</strong> — PurgeCSS removes unused utilities, resulting in a small CSS bundle.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: ARCHITECTURE & DESIGN -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-architecture">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(167,139,250,0.15);color:var(--purple)">🏗️</div>
+      <h2>3. Architecture & Design</h2>
+    </div>
+
+    <!-- Q9 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q9</span>
+        <h3>Explain the overall system architecture. How do frontend, backend, and database interact?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The architecture is a <strong>serverless JAMstack</strong> pattern:</p>
+        <pre><code>┌─────────────────────────────────────────────────────────┐
+│                    FRONTEND (Vue 3 SPA)                  │
+│  Vue Router → Pinia Stores → Supabase JS Client          │
+│  Vite PWA Plugin → Service Worker (Workbox)              │
+└──────────────────────┬──────────────────────────────────┘
+                       │ HTTPS (REST API + WebSocket)
+┌──────────────────────▼──────────────────────────────────┐
+│                   SUPABASE PLATFORM                       │
+│                                                           │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
+│  │ Postgres │  │   Auth   │  │  Storage │  │ Realtime│ │
+│  │ (RLS)    │  │ (JWT)    │  │ (files)  │  │ (WS)    │ │
+│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
+│                                                           │
+│  ┌──────────────────────────────────────────────────┐    │
+│  │  Edge Functions (Deno) — manage-user              │    │
+│  │  Uses service_role key to create auth users        │    │
+│  └──────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────────┐
+│                 VERCEL (Static Hosting)                   │
+│  SPA served as static files + CDN edge caching            │
+│  vercel.json forces no-cache on sw.js for updates         │
+└──────────────────────────────────────────────────────────┘</code></pre>
+        <p><strong>Key points:</strong></p>
+        <ul>
+          <li>No custom backend server — Supabase IS the backend (database + auth + storage + edge functions)</li>
+          <li>Frontend communicates directly with Supabase via the JS client library</li>
+          <li>Authentication uses JWT tokens — Supabase issues them, the frontend stores them in localStorage</li>
+          <li>Service Worker caches static assets and API responses for offline use</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q10 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q10</span>
+        <h3>How is the multi-tenant architecture implemented? How do you isolate data between schools?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Multi-tenancy is enforced at <strong>three levels</strong>:</p>
+        <ol>
+          <li><strong>Database level (RLS)</strong> — Every table has a <code>school_id</code> column. RLS policies use <code>get_user_school_id()</code> to automatically filter rows by the logged-in user's school. A teacher at School A can never see School B's data, even if they manually craft an API request.</li>
+          <li><strong>Application level</strong> — The <code>auth.js</code> store loads the user's <code>school_id</code> into memory. All Supabase queries include <code>.eq('school_id', authStore.schoolId)</code> as a filter.</li>
+          <li><strong>Edge Function level</strong> — The <code>manage-user</code> function receives <code>school_id</code> in the payload and stores it in the <code>users</code> table during account creation.</li>
+        </ol>
+        <pre><code>-- Example RLS policy (every table follows this pattern)
+CREATE POLICY "admin manage own school"
+  ON classes FOR ALL TO authenticated
+  USING (
+    get_user_role() = 'admin'
+    AND school_id = get_user_school_id()
+  )
+  WITH CHECK (
+    get_user_role() = 'admin'
+    AND school_id = get_user_school_id()
+  );
+
+-- Helper function
+CREATE FUNCTION get_user_school_id()
+RETURNS uuid AS $$
+  SELECT school_id FROM users WHERE id = auth.uid();
+$$ LANGUAGE sql SECURITY DEFINER STABLE;</code></pre>
+      </div>
+    </div>
+
+    <!-- Q11 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q11</span>
+        <h3>How does the User → Teacher data relationship work?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The relationship follows a strict chain:</p>
+        <pre><code>auth.users (Supabase Auth)
+    ↓ id (cascade delete)
+public.users ← role (super_admin/admin/teacher/librarian), school_id
+    ↓ user_id (NOT NULL, UNIQUE)
+teachers ← full_name, gender, dob, phone, degree, address, profile_url
+    ↓ id
+classes ← teacher_id → which teacher owns which class
+    ↓ id
+students ← class_id → which student belongs to which class</code></pre>
+        <p><strong>Key constraint:</strong> <code>teachers.user_id</code> is <code>NOT NULL UNIQUE</code> — every user must have exactly one teacher profile. The <code>manage-user</code> Edge Function always creates 3 rows in sequence: <code>auth.users</code> → <code>public.users</code> → <code>teachers</code>.</p>
+        <p><strong>Cascade delete:</strong> If an auth user is deleted, their <code>users</code> row and <code>teachers</code> row are automatically removed via foreign key cascade.</p>
+      </div>
+    </div>
+
+    <!-- Q12 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q12</span>
+        <h3>How is the project structured? Walk me through the folder organization.</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <pre><code>src/
+├── assets/                  # Images, icons, fonts
+├── components/
+│   ├── honorBoard/          # Drag-drop certificate editor
+│   ├── report/              # PhrasePicker (reusable feedback chips)
+│   └── shared/              # ToastContainer, ConnectionStatus, NotificationsDropdown
+├── composables/             # Reusable logic: useToast, useCache, useOfflineMutation, etc.
+├── layouts/                 # 5 role-specific layouts (sidebar + topbar per role)
+├── lib/                     # supabase.js — client initialization
+├── router/                  # index.js — routes + navigation guards
+├── stores/                  # 6 Pinia stores: auth, school, academicYear, etc.
+├── views/                   # 55 view components organized by role
+│   ├── auth/                # Login, Register, Unauthorized
+│   ├── super/               # Super Admin (3 views)
+│   ├── admin/               # Admin/Director (20 views)
+│   ├── teacher/             # Teacher (20 views)
+│   ├── librarian/           # Librarian (4 views)
+│   └── parent/              # Parent portal (2 views)
+├── utils/                   # Score calculation, PDF export, date formatting
+├── App.vue                  # Root component (ConnectionStatus + Toast + PWA banner)
+├── main.js                  # App bootstrap (Pinia, Router, Auth listener)
+└── style.css                # Design system (778 lines of CSS custom properties)</code></pre>
+        <div class="keypoint"><strong>Convention:</strong> Views are organized by role in separate folders. Each view is a Single File Component (SFC) with <code>&lt;script setup&gt;</code> + Tailwind classes. Composables handle cross-cutting concerns (toast, caching, offline). Stores manage global state.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: DATABASE DESIGN -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-database">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(251,146,60,0.15);color:var(--orange)">🗄️</div>
+      <h2>4. Database Design</h2>
+    </div>
+
+    <!-- Q13 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q13</span>
+        <h3>How many tables are in the database? What are the core tables?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>There are <strong>26 tables</strong> in the database (schema v11). The core tables and their relationships:</p>
+        <table class="def-table">
+          <tr><th>Table</th><th>Purpose</th><th>Key Relationships</th></tr>
+          <tr><td><code>schools</code></td><td>Multi-tenant root</td><td>Has many users, classes, students</td></tr>
+          <tr><td><code>users</code></td><td>Auth + role + school</td><td>FK to auth.users, belongs to school</td></tr>
+          <tr><td><code>teachers</code></td><td>Staff profile (all users)</td><td>1:1 with users, has many classes</td></tr>
+          <tr><td><code>academic_years</code></td><td>School year periods</td><td>Belongs to school, has many classes</td></tr>
+          <tr><td><code>subjects</code></td><td>Subject pool</td><td>Belongs to school</td></tr>
+          <tr><td><code>classes</code></td><td>Class groups</td><td>Belongs to school+year, assigned teacher, has many students</td></tr>
+          <tr><td><code>class_subjects</code></td><td>Junction table</td><td>Maps classes ↔ subjects</td></tr>
+          <tr><td><code>students</code></td><td>Student records</td><td>Belongs to class+year, has health/growth/vaccination data</td></tr>
+          <tr><td><code>attendances</code></td><td>Daily attendance</td><td>Student + date + status (present/absent/late)</td></tr>
+          <tr><td><code>scores</code></td><td>Subject scores</td><td>Student + subject + month/semester + score value</td></tr>
+          <tr><td><code>report_links</code></td><td>Parent report URLs</td><td>Class + month/semester + approval status</td></tr>
+          <tr><td><code>report_messages</code></td><td>Teacher/parent messages</td><td>Report link + student + text/voice</td></tr>
+          <tr><td><code>notifications</code></td><td>In-app notifications</td><td>Created by DB triggers on approval events</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Q14 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge hard">Q14</span>
+        <h3>How are scores stored? What is the difference between monthly and semester scores?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Scores are stored as <strong>raw subject scores</strong> in the <code>scores</code> table. Each row represents one student's score for one subject in one period:</p>
+        <pre><code>-- scores table structure
+student_id  UUID     -- FK to students
+subject_id  UUID     -- FK to subjects (via class_subjects)
+month       INTEGER  -- 1-6 for monthly scores (null for semester)
+semester    INTEGER  -- 1-2 for semester scores (null for monthly)
+score       NUMERIC  -- Raw score (0-10)
+academic_year_id UUID -- FK to academic_years</code></pre>
+        <p><strong>Monthly scores:</strong> Teacher enters per-subject scores for a specific month (1-6). The system calculates the monthly average as the arithmetic mean of all subjects.</p>
+        <p><strong>Semester scores:</strong> Teacher enters exam scores. The semester average = <code>(mean of monthly averages + exam average) / 2</code>. Monthly averages are pulled from existing monthly scores.</p>
+        <p><strong>Critical design decision:</strong> Score calculations happen <strong>on the frontend</strong> in <code>scoreCalculator.js</code>. The database stores raw scores only. This keeps the database simple and allows flexible calculation logic without migrations.</p>
+      </div>
+    </div>
+
+    <!-- Q15 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q15</span>
+        <h3>What are the storage buckets used for?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <table class="def-table">
+          <tr><th>Bucket</th><th>Purpose</th><th>Access</th></tr>
+          <tr><td><code>teacher-profiles</code></td><td>Staff profile pictures</td><td>Public read</td></tr>
+          <tr><td><code>report-voices</code></td><td>Teacher/parent voice messages (.webm files)</td><td>Authenticated (teacher) + anon (via report link)</td></tr>
+          <tr><td><code>school-assets</code></td><td>Principal signature + school stamp images</td><td>Public read</td></tr>
+        </table>
+        <p><strong>Voice recording flow:</strong> Teacher records audio via <code>MediaRecorder</code> API → uploads to <code>report-voices/{report_link_id}/{student_id}/teacher.webm</code> → parent can play it back via the report card.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: AUTHENTICATION & RBAC -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-auth">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(244,114,182,0.15);color:var(--pink)">🔐</div>
+      <h2>5. Authentication & Role-Based Access Control</h2>
+    </div>
+
+    <!-- Q16 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q16</span>
+        <h3>How does the login and authentication flow work?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Authentication uses <strong>Supabase Auth with email + password</strong>:</p>
+        <ol>
+          <li>User enters email + password on <code>/login</code></li>
+          <li>Frontend calls <code>supabase.auth.signInWithPassword({ email, password })</code></li>
+          <li>Supabase validates credentials and returns a JWT session token</li>
+          <li><code>onAuthStateChange</code> listener fires → <code>auth.handleAuthEvent()</code> is called</li>
+          <li><code>fetchProfile()</code> loads the user's row from <code>public.users</code> table (includes <code>role</code> and <code>school_id</code>)</li>
+          <li>Also fetches the <code>teachers</code> row for the profile data</li>
+          <li>Router guard checks the role and redirects to role-specific dashboard</li>
+        </ol>
+        <pre><code>// Login flow in auth.js store
+async function login(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw error
+  // onAuthStateChange listener handles the rest
+  return profile.value?.role
+}
+
+// Session backup system — survives PWA restarts
+function backupSession(s) {
+  localStorage.setItem('auth_backup', JSON.stringify({
+    access_token: s.access_token,
+    refresh_token: s.refresh_token,
+    timestamp: Date.now()
+  }))
+}</code></pre>
+        <div class="keypoint"><strong>PWA Session Persistence:</strong> The system has a dual session restore mechanism: Supabase's internal localStorage storage AND a custom backup in <code>auth_backup</code> key. If Supabase loses the session (e.g., tab killed during token refresh), the backup restores it within 7 days.</div>
+      </div>
+    </div>
+
+    <!-- Q17 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge hard">Q17</span>
+        <h3>How does the router guard prevent unauthorized access?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The navigation guard in <code>router/index.js</code> runs on <strong>every route change</strong> and performs 6 checks:</p>
+        <pre><code>router.beforeEach(async (to) => {
+  const auth = useAuthStore()
+
+  // 1. ALWAYS await init() — guarantees session + profile are loaded
+  await auth.init()
+
+  // 2. Redirect logged-in users away from login/landing
+  if (auth.isLoggedIn && (to.path === '/' || to.name === 'login')) {
+    return { path: roleHome[auth.role] }  // → /admin/dashboard, /teacher/dashboard, etc.
+  }
+
+  // 3. Public routes — always allowed (landing, login, parent portal)
+  if (isPublic) return true
+
+  // 4. Auth Required Check — redirect to login if not authenticated
+  if (requiresAuth && !auth.isLoggedIn) {
+    return { name: 'login' }
+  }
+
+  // 5. Role Check — exact role match required
+  if (to.meta.role && auth.role !== to.meta.role) {
+    return { name: 'unauthorized' }
+  }
+
+  // 6. Academic Year Guard — admin must select year first
+  if (auth.role === 'admin' && !yearStore.selectedYearId) {
+    return { name: 'admin-academic-years' }
+  }
+})</code></pre>
+        <p><strong>Each route has metadata:</strong></p>
+        <pre><code>{
+  path: '/admin/dashboard',
+  meta: { requiresAuth: true, role: 'admin' }
+}
+// The guard checks: Is the user authenticated? Is their role exactly 'admin'?</code></pre>
+        <p>This means a <strong>teacher cannot access /admin/* routes</strong> even by manually typing the URL — the guard will redirect to <code>/unauthorized</code>.</p>
+      </div>
+    </div>
+
+    <!-- Q18 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q18</span>
+        <h3>How are user accounts created? What is the Edge Function?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>User accounts are created via a <strong>Supabase Edge Function</strong> called <code>manage-user</code>, written in Deno (TypeScript on the server):</p>
+        <pre><code>// Edge Function: supabase/functions/manage-user/index.ts
+// Uses the SERVICE_ROLE key (bypasses RLS) for admin operations
+
+// CREATE action:
+// 1. Create auth user via supabaseAdmin.auth.admin.createUser()
+//    - email_confirm: true (no email verification)
+//    - user_metadata: { role, school_id }
+//
+// 2. Verify public.users row exists (created by DB trigger handle_new_user())
+//    - If trigger failed, manually inserts as fallback
+//
+// 3. Create teachers row with full_name, gender, dob, phone, degree
+//
+// 4. If any step fails → rolls back by deleting the auth user (avoids orphans)</code></pre>
+        <p><strong>Why an Edge Function?</strong> Creating auth users requires the <code>service_role</code> key, which bypasses RLS. This key must NEVER be exposed in frontend code. The Edge Function runs server-side with the secret key, creating all 3 rows (auth + users + teachers) atomically.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: ROW LEVEL SECURITY -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-rls">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(250,204,21,0.15);color:var(--yellow)">🛡️</div>
+      <h2>6. Row Level Security (RLS)</h2>
+    </div>
+
+    <!-- Q19 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge hard">Q19</span>
+        <h3>What is Row Level Security and how does it protect data?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p><strong>Row Level Security (RLS)</strong> is a PostgreSQL feature that filters rows returned by queries based on the current database user's identity. In Supabase, every API request runs as the authenticated user (via their JWT), and RLS policies automatically filter the results.</p>
+        <p>Without RLS: If a teacher at School A manually crafted an API request for School B's students, Supabase would return all of School B's students. <strong>With RLS: The query returns zero rows</strong> because the RLS policy checks <code>school_id = get_user_school_id()</code>.</p>
+        <pre><code>-- Example: Student attendance table RLS
+
+-- Super admin: full access to everything
+CREATE POLICY "super_admin full" ON attendances
+  FOR ALL TO authenticated
+  USING (get_user_role() = 'super_admin');
+
+-- Admin: full access within their school
+CREATE POLICY "admin manage" ON attendances
+  FOR ALL TO authenticated
+  USING (
+    get_user_role() = 'admin'
+    AND school_id = get_user_school_id()
+  );
+
+-- Teacher: only their own class's students
+CREATE POLICY "teacher own class" ON attendances
+  FOR ALL TO authenticated
+  USING (
+    get_user_role() = 'teacher'
+    AND student_id IN (
+      SELECT s.id FROM students s
+      JOIN classes c ON c.id = s.class_id
+      WHERE c.teacher_id = (
+        SELECT id FROM teachers WHERE user_id = auth.uid()
+      )
+    )
+  );
+
+-- Parent (anon): only via approved report link
+CREATE POLICY "parent via report link" ON attendances
+  FOR SELECT TO anon
+  USING (
+    student_id IN (
+      SELECT s.id FROM students s
+      JOIN report_links rl ON rl.class_id = s.class_id
+      AND rl.status = 'approved'
+    )
+  );</code></pre>
+        <div class="keypoint"><strong>Why this matters:</strong> Even if someone extracts the Supabase anon key from the frontend JavaScript, they cannot access any data that doesn't belong to them. The database itself enforces the access rules.</div>
+      </div>
+    </div>
+
+    <!-- Q20 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge hard">Q20</span>
+        <h3>How does the parent portal work without login? How is it secured?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The parent portal uses the <strong>anon (unauthenticated) role</strong> in Supabase — no login required:</p>
+        <ol>
+          <li><strong>Teacher generates a report link</strong> on the Score Ranking page → <code>report_links</code> row created with status <code>'pending'</code></li>
+          <li><strong>Admin approves</strong> via the Approvals page → status changes to <code>'approved'</code></li>
+          <li><strong>Teacher shares the URL:</strong> <code>/parent/report/:report_link_id</code></li>
+          <li><strong>Parent opens the link</strong> → sees a dropdown of all students in that class → selects their child</li>
+          <li><strong>Report card shows:</strong> scores + attendance + teacher message for that specific period</li>
+        </ol>
+        <p><strong>Security is enforced by RLS:</strong></p>
+        <ul>
+          <li><code>report_links</code> has an anon SELECT policy: only <code>'approved'</code> links are visible</li>
+          <li><code>scores</code>, <code>attendances</code>, <code>report_messages</code> have anon policies scoped to <code>report_link_id</code></li>
+          <li>Health, growth, vaccinations, sick days have <strong>NO anon policies</strong> — completely invisible to parents</li>
+        </ul>
+        <pre><code>-- Parent can only see data for students in approved report links
+CREATE POLICY "anon read scores via report link" ON scores
+  FOR SELECT TO anon
+  USING (
+    student_id IN (
+      SELECT s.id FROM students s
+      JOIN report_links rl ON rl.class_id = s.class_id
+      AND rl.status = 'approved'
+      AND rl.id = current_setting('request.jwt.claims', true)::json->>'report_link_id'
+    )
+  );</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: ADMIN FEATURES -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-admin">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(56,189,248,0.15);color:var(--accent)">👨‍💼</div>
+      <h2>7. Admin/Director Features</h2>
+    </div>
+
+    <!-- Q21 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q21</span>
+        <h3>What can the Admin/Director do in the system?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The Admin has <strong>full access within their school</strong>. They manage:</p>
+        <ul>
+          <li><strong>Academic Years</strong> — Create, edit, soft-delete school years</li>
+          <li><strong>Classes</strong> — CRUD classes, assign teachers, configure subjects per class</li>
+          <li><strong>Teachers</strong> — Create/edit teacher profiles via Edge Function</li>
+          <li><strong>Students</strong> — CRUD, bulk Excel import/export, batch name refactor, age distribution report</li>
+          <li><strong>Attendance</strong> — Overview by class/date, teacher attendance with admin override</li>
+          <li><strong>Scores</strong> — Overview by class/type/month with stats summary and PDF export</li>
+          <li><strong>Health</strong> — Student health records overview</li>
+          <li><strong>Budget</strong> — Income/expense tracking with running balance</li>
+          <li><strong>Inventory</strong> — School equipment CRUD with stock tracking</li>
+          <li><strong>Library</strong> — Read-only overview of books and borrows</li>
+          <li><strong>Users</strong> — Account management (create, reset password, delete)</li>
+          <li><strong>Settings</strong> — School info, subjects, holidays, attendance config, signature/stamp upload</li>
+          <li><strong>Approvals</strong> — Review and approve/reject teacher report link requests</li>
+          <li><strong>Honor Board</strong> — Drag-drop certificate editor with text layers</li>
+          <li><strong>Reports</strong> — School summary report with PDF</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q22 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q22</span>
+        <h3>How does the approval flow for report links work?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The approval flow is a 4-step process involving database triggers and real-time notifications:</p>
+        <pre><code>1. TEACHER clicks "Request Approval" on /teacher/scores/ranking
+   → report_links.status set to 'pending'
+   → DB trigger creates notification: { type: 'approval_requested', ... }
+   → Admin receives real-time notification via Supabase Realtime
+
+2. ADMIN sees bell icon badge (unread count)
+   → Opens notification dropdown
+   → Clicks notification → navigates to /admin/approvals
+
+3. ADMIN reviews the request
+   → Clicks "Approve" → status = 'approved', approved_at = now(), approved_by = user_id
+   → DB trigger creates notification: { type: 'approval_approved', ... }
+   → OR clicks "Reject" with optional note → status = 'rejected'
+   → DB trigger creates notification: { type: 'approval_rejected', ... }
+
+4. TEACHER receives notification of decision
+   → If approved: "Share Link" button unlocks
+   → If rejected: sees rejection note, can revise and re-request</code></pre>
+        <p><strong>Real-time implementation:</strong> The <code>notifications</code> table is in Supabase's Realtime publication. The <code>notifications.js</code> Pinia store subscribes to <code>postgres_changes</code> on the <code>notifications</code> table, filtered by <code>user_id</code>. When a new notification is inserted (by a DB trigger), the frontend receives it instantly via WebSocket.</p>
+      </div>
+    </div>
+
+    <!-- Q23 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q23</span>
+        <h3>How does the Student Rollup work (year-end promotion)?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The <code>perform_student_rollup()</code> PostgreSQL function handles year-end student promotion:</p>
+        <pre><code>-- perform_student_rollup(p_old_year_id, p_new_year_id)
+-- Returns: { success, total_promoted, total_graduated, details }
+
+-- For Grades 1-5:
+--   Copies students to the next grade's class in the new academic year
+--   Auto-creates target classes if they don't exist
+--   Original students are NOT moved (copy, not move)
+
+-- For Grade 6:
+--   Sets is_graduated = true (students leave the school)
+
+-- Example: Grade 3 student in 2025-2026 → copied to Grade 4 class in 2026-2027</code></pre>
+        <p><strong>Key design decisions:</strong></p>
+        <ul>
+          <li><strong>Copy, not move</strong> — Original students remain in the old year for historical records. New rows are created in the new year.</li>
+          <li><strong>Auto-creates classes</strong> — If "Grade 4 Class A" doesn't exist in the new year, it's created automatically.</li>
+          <li><strong>Khmer digit support</strong> — Students named with Khmer numerals (១, ២, ៣...) are parsed correctly.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: TEACHER FEATURES -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-teacher">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(74,222,128,0.15);color:var(--green)">👩‍🏫</div>
+      <h2>8. Teacher Features</h2>
+    </div>
+
+    <!-- Q24 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q24</span>
+        <h3>What can the Teacher do in the system?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The Teacher is the <strong>most feature-rich role</strong> with 20 views:</p>
+        <ul>
+          <li><strong>Dashboard</strong> — Class overview, teacher check-in, today's attendance stats</li>
+          <li><strong>Students</strong> — View class students, individual detail (health, growth, vaccinations, sick days)</li>
+          <li><strong>Attendance</strong> — Bulk mark daily student attendance, own attendance calendar</li>
+          <li><strong>Scores</strong> — Monthly score entry grid, semester score entry, ranking with approval request, individual student summary (radar chart), certificate design, honor board editor</li>
+          <li><strong>Report Link</strong> — Generate/manage parent report links, parent replies inbox with PhrasePicker</li>
+          <li><strong>Health</strong> — Add sick days, growth records (height/weight), vaccination records</li>
+          <li><strong>Holidays</strong> — View school holidays (read-only)</li>
+          <li><strong>Reports</strong> — Print class attendance & score reports with PDF</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q25 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q25</span>
+        <h3>How does the monthly score entry work? Explain the offline integration.</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The monthly score entry in <code>ScoresMonthlyView.vue</code> has two modes:</p>
+        <p><strong>Full Grid Mode:</strong> A spreadsheet-like grid with students as rows and subjects as columns. Each cell is an input field. Scores support decimals (inputmode="decimal" for mobile keyboards).</p>
+        <p><strong>Compact Mode:</strong> Horizontal subject tabs at the top, one subject at a time, with large touch-friendly inputs (44px min-height). Better for mobile phones.</p>
+        <pre><code>// Score saving flow with offline support
+async function saveAll() {
+  const toUpsert = rows.value.map(row => ({
+    student_id: row.studentId,
+    subject_id: selectedSubject.value,
+    month: selectedMonth.value,
+    academic_year_id: yearStore.selectedYearId,
+    score: row.score
+  }))
+
+  // useOfflineMutation transparently handles online/offline
+  const result = await mutate('scores', 'upsert', toUpsert)
+
+  if (result.queued) {
+    showToast('ទិន្នន័យពិន្ទុបានរក្សាទុកក្នុងមូលដ្ឋាន — នឹងធ្វើសមកាលកម្មពេលមានបណ្តាញ', 'info')
+    // "Score data saved locally — will sync when network is available"
+  } else {
+    showToast('រក្សាទុកជោគជ័យ!', 'success')
+  }
+}</code></pre>
+        <p><strong>Offline read caching:</strong> When offline, the page loads reference data (classes, subjects, students) from localStorage cache (24h TTL) and per-period scores from a separate cache (2h TTL). A yellow "ប្រើទិន្នន័យពីឃ្លាំង" (Using cached data) badge appears.</p>
+      </div>
+    </div>
+
+    <!-- Q26 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q26</span>
+        <h3>What is the Teacher Phrase Library? How does it work?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The Phrase Library lets teachers save <strong>reusable feedback phrases</strong> for student messages:</p>
+        <ul>
+          <li>Each teacher has their own private phrase collection (stored in <code>teacher_phrases</code> table)</li>
+          <li>When composing a message in the <code>PhrasePicker</code> component, saved phrases appear as <strong>clickable chips</strong></li>
+          <li>Clicking a chip <strong>appends</strong> the phrase to the current message text</li>
+          <li>Teachers can add new phrases inline and delete existing ones</li>
+          <li>Phrases persist across classes, months, and academic years</li>
+        </ul>
+        <p><strong>Why?</strong> Teachers write similar feedback for many students ("Good progress this month", "Needs to pay more attention in class"). The phrase library eliminates repetitive typing.</p>
+      </div>
+    </div>
+
+    <!-- Q27 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q27</span>
+        <h3>How does the voice recording feature work?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Voice messages use the <strong>MediaRecorder Web API</strong> via the <code>useVoiceRecorder</code> composable:</p>
+        <pre><code>// useVoiceRecorder.js — 95 lines
+
+// 1. Request microphone access
+const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+
+// 2. Record audio chunks
+mediaRecorder.ondataavailable = (e) => chunks.push(e.data)
+
+// 3. Stop recording → create blob
+mediaRecorder.stop()
+const blob = new Blob(chunks, { type: 'audio/webm' })
+
+// 4. Upload to Supabase Storage
+const path = `${reportLinkId}/${studentId}/${role}.webm`
+await supabase.storage.from('report-voices').upload(path, blob, {
+  contentType: 'audio/webm',
+  upsert: true  // Overwrite previous recording
+})
+
+// 5. Get public URL for playback
+const { data } = supabase.storage.from('report-voices').getPublicUrl(path)</code></pre>
+        <p><strong>Both teacher and parent can record:</strong> Teacher records a feedback message per student. Parent can reply with their own voice message. Stored as <code>.webm</code> files in the <code>report-voices</code> bucket.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 9: PARENT PORTAL -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-parent">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(167,139,250,0.15);color:var(--purple)">👨‍👩‍👧</div>
+      <h2>9. Parent Portal</h2>
+    </div>
+
+    <!-- Q28 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q28</span>
+        <h3>Walk me through the complete parent portal flow from start to finish.</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p><strong>Complete flow:</strong></p>
+        <ol>
+          <li><strong>Teacher → Ranking page</strong> → Clicks "Request Approval" → <code>report_links</code> row created with <code>status: 'pending'</code></li>
+          <li><strong>DB trigger</strong> → Creates notification for the admin: "Teacher X requests approval for Grade 3, Month 5"</li>
+          <li><strong>Admin → Bell icon</strong> → Sees unread notification → Clicks → Goes to <code>/admin/approvals</code></li>
+          <li><strong>Admin reviews</strong> → Clicks "Approve" → <code>status: 'approved'</code>, <code>approved_at</code> set</li>
+          <li><strong>DB trigger</strong> → Creates notification for teacher: "Your request has been approved"</li>
+          <li><strong>Teacher → Ranking page</strong> → "Share Link" button now active → Copies URL</li>
+          <li><strong>Teacher shares</strong> the link with parents (WhatsApp, printed, etc.)</li>
+          <li><strong>Parent opens URL</strong>: <code>/parent/report/:report_link_id</code></li>
+          <li><strong>Class dropdown</strong> → Parent sees all students in the class → Selects their child</li>
+          <li><strong>Report card shows</strong>: Scores per subject, attendance record, teacher's text/voice message</li>
+          <li><strong>Parent can reply</strong> with text or voice recording</li>
+          <li><strong>Footer shows</strong>: Principal's digital signature image + school stamp image</li>
+        </ol>
+        <div class="keypoint"><strong>What parents CANNOT see:</strong> Health records, growth charts, vaccination records, sick days — these are private to staff only. The RLS policies for these tables have NO anon policies.</div>
+      </div>
+    </div>
+
+    <!-- Q29 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q29</span>
+        <h3>What does the parent report card display?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The report card at <code>/parent/report/:report_link_id/:student_id</code> shows:</p>
+        <ul>
+          <li><strong>Student info</strong> — Name, class, gender</li>
+          <li><strong>Scores table</strong> — All subjects with scores for the specific month/semester</li>
+          <li><strong>Average score</strong> — Calculated on the frontend</li>
+          <li><strong>Attendance record</strong> — Present/absent/late counts for the period</li>
+          <li><strong>Teacher message</strong> — Text and/or voice message from the class teacher</li>
+          <li><strong>Parent reply</strong> — Text input + voice recorder for parent to respond</li>
+          <li><strong>Principal signature</strong> — Digital signature image uploaded by admin</li>
+          <li><strong>School stamp</strong> — School stamp image uploaded by admin</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 10: LIBRARIAN -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-librarian">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(251,146,60,0.15);color:var(--orange)">📚</div>
+      <h2>10. Librarian Features</h2>
+    </div>
+
+    <!-- Q30 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q30</span>
+        <h3>What can the Librarian do?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The Librarian has 4 focused views:</p>
+        <ul>
+          <li><strong>Dashboard</strong> — Library statistics (total books, active borrows, overdue count)</li>
+          <li><strong>Books</strong> — Full CRUD for book catalog (title, author, ISBN, quantity, available count)</li>
+          <li><strong>Borrows</strong> — Issue books to students, process returns, track due dates</li>
+          <li><strong>Overdue</strong> — List of overdue borrows with student info</li>
+        </ul>
+        <p><strong>Note:</strong> The admin has a read-only <code>/admin/library</code> view to see library overview without being able to modify data. Librarian's data is scoped to their school via RLS.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 11: SUPER ADMIN -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-super">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(244,114,182,0.15);color:var(--pink)">🦸</div>
+      <h2>11. Super Admin</h2>
+    </div>
+
+    <!-- Q31 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q31</span>
+        <h3>What is the Super Admin role? What can they do?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The Super Admin is the <strong>platform owner</strong> (limited to one person — "Tra"). They have bypass RLS on all tables:</p>
+        <ul>
+          <li><strong>Dashboard</strong> — Platform-level stats: total schools, total students, total teachers across all schools</li>
+          <li><strong>Schools</strong> — Create, edit, activate/deactivate schools</li>
+          <li><strong>New School</strong> — Creates a school + first admin account (calls Edge Function)</li>
+          <li><strong>Users</strong> — Reuses admin user management view</li>
+          <li><strong>Settings</strong> — Reuses admin settings view</li>
+        </ul>
+        <pre><code>-- Super admin RLS policy — bypasses ALL restrictions
+CREATE POLICY "super_admin full" ON any_table
+  FOR ALL TO authenticated
+  USING (get_user_role() = 'super_admin')
+  WITH CHECK (get_user_role() = 'super_admin');</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 12: OFFLINE & PWA -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-offline">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(74,222,128,0.15);color:var(--green)">📡</div>
+      <h2>12. Offline-First Architecture & PWA</h2>
+    </div>
+
+    <!-- Q32 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge hard">Q32</span>
+        <h3>Explain the offline-first architecture in detail. How does it work?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The offline system has <strong>two parts</strong>: offline writes (queue) and offline reads (cache).</p>
+
+        <p><strong>1. Offline Write Queue:</strong></p>
+        <pre><code>// useOfflineMutation.js — transparent online/offline abstraction
+async function mutate(table, type, payload, filters = {}) {
+  if (isOnline.value) {
+    // Online: direct Supabase call
+    const result = await supabase.from(table)[type](payload)
+    return result
+  }
+
+  // Offline: queue to localStorage
+  queueStore.enqueue({ id: uuid, table, type, payload, filters })
+  return { data: null, error: null, queued: true }
+}</code></pre>
+        <p><strong>2. Queue Processing (on reconnect):</strong></p>
+        <pre><code>// offlineQueue.js — FIFO processing
+async function processQueue() {
+  const entries = [...queue.value]  // snapshot
+  for (const entry of entries) {
+    try {
+      if (entry.type === 'upsert') {
+        await supabase.from(entry.table).upsert(entry.payload).select()
+      } else if (entry.type === 'insert') {
+        await supabase.from(entry.table).insert(entry.payload)
+      } // ... update, delete
+      remove(entry.id)  // Remove on success
+    } catch (e) {
+      // Entry stays in queue for retry
+    }
+  }
+}</code></pre>
+
+        <p><strong>3. Offline Read Cache:</strong></p>
+        <pre><code>// useCache.js — TTL-based localStorage cache
+function get(key) {
+  const raw = localStorage.getItem('sms_read_cache_' + key)
+  if (!raw) return null
+  const { data, expiry } = JSON.parse(raw)
+  if (Date.now() > expiry) {
+    localStorage.removeItem('sms_read_cache_' + key)
+    return null  // expired
+  }
+  return data
+}
+
+// In score views:
+// Online → fetch from Supabase, cache with 24h TTL (reference) or 2h TTL (scores)
+// Offline → serve from cache, show yellow "Using cached data" badge</code></pre>
+
+        <p><strong>4. Connection Status Detection:</strong></p>
+        <pre><code>// useNetworkStatus.js — browser events
+const isOnline = ref(navigator.onLine)
+window.addEventListener('online', () => isOnline.value = true)
+window.addEventListener('offline', () => isOnline.value = false)</code></pre>
+
+        <p><strong>Applied to:</strong> Monthly scores, semester scores, sick days, growth records, vaccinations.</p>
+      </div>
+    </div>
+
+    <!-- Q33 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge hard">Q33</span>
+        <h3>How does the PWA (Progressive Web App) work? What is the service worker?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The PWA uses <code>vite-plugin-pwa</code> with <strong>Workbox</strong> for service worker generation:</p>
+        <pre><code>// vite.config.js — PWA configuration
+VitePWA({
+  registerType: 'prompt',  // Shows update prompt instead of auto-reload
+  workbox: {
+    globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+    maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,  // 10 MB
+    runtimeCaching: [
+      {
+        // Supabase REST API: try network first, fall back to cache
+        urlPattern: /^https?:\/\/.*\/rest\/v1\/.*/i,
+        handler: 'NetworkFirst',
+        options: { networkTimeoutSeconds: 5 }
+      },
+      {
+        // Supabase Storage: cache first (images, fonts, voices)
+        urlPattern: /^https?:\/\/.*\/storage\/v1\/object\/.*/i,
+        handler: 'CacheFirst',
+        options: { expiration: { maxAgeSeconds: 60 * 60 * 24 * 30 } }  // 30 days
+      }
+    ]
+  }
+})</code></pre>
+        <p><strong>Three caching strategies:</strong></p>
+        <ol>
+          <li><strong>Pre-cache</strong> — All static assets (JS, CSS, HTML, images) cached during service worker install (~161 entries)</li>
+          <li><strong>NetworkFirst</strong> — Supabase API calls try network first, fall back to cache after 5s timeout</li>
+          <li><strong>CacheFirst</strong> — Storage assets (profile pics, signatures, stamps, voices) cached for 30 days</li>
+        </ol>
+        <p><strong>Update flow:</strong> When a new service worker is available, <code>usePwa.js</code> shows a banner: "កំណែថ្មីមានហើយ!" (New version available!). User clicks "អាប់ដេតឥឡូវនេះ" (Update now) → service worker updates → page reloads.</p>
+        <div class="keypoint"><strong>vercel.json</strong> forces <code>no-cache</code> on <code>sw.js</code> and <code>workbox-*.js</code> to ensure users always get the latest service worker file.</div>
+      </div>
+    </div>
+
+    <!-- Q34 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q34</span>
+        <h3>Why is offline support limited to score entry and not all features?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Offline support is <strong>intentionally scoped</strong> to the most critical teacher workflows:</p>
+        <ul>
+          <li><strong>Score entry</strong> — Teachers must enter scores on time regardless of internet. This is the highest-priority offline feature.</li>
+          <li><strong>Sick days, growth, vaccinations</strong> — Secondary health data that teachers record during school hours.</li>
+        </ul>
+        <p><strong>Why not everything?</strong></p>
+        <ul>
+          <li><strong>Attendance</strong> — Reverted to direct Supabase calls because attendance is time-sensitive and must be accurate in real-time</li>
+          <li><strong>Budget, inventory, library</strong> — Used by admin/librarian who typically have stable office internet</li>
+          <li><strong>Complexity</strong> — Every offline-enabled view requires cache invalidation, conflict resolution, and UI indicators. The ROI decreases for less-used features.</li>
+        </ul>
+        <p><strong>Future work:</strong> Extending offline to library borrows, budget, and inventory is listed in the roadmap.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 13: LIBRARIES DEEP DIVE -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-libraries">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(250,204,21,0.15);color:var(--yellow)">📦</div>
+      <h2>13. Libraries & Packages — Deep Dive</h2>
+    </div>
+
+    <!-- Q35 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q35</span>
+        <h3>How do you use Chart.js? What kind of charts?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Chart.js (with <code>vue-chartjs</code> wrapper) is used for the <strong>Student Score Summary radar chart</strong>:</p>
+        <pre><code>// ScoreSummaryView.vue — individual student performance
+import { Radar } from 'vue-chartjs'
+import { Chart as ChartJS, RadialLinearScale, PointElement, ... } from 'chart.js'
+
+const chartData = {
+  labels: subjects.value.map(s => s.name),  // ["Math", "Khmer", "Science", ...]
+  datasets: [{
+    label: 'Score',
+    data: subjects.value.map(s => getScore(s.id)),  // [8.5, 7.2, 9.1, ...]
+    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+    borderColor: '#38bdf8',
+    pointBackgroundColor: '#38bdf8'
+  }]
+}
+
+// Radar chart shows student's strength/weakness across subjects visually</code></pre>
+        <p>The radar chart gives teachers and parents a <strong>visual snapshot</strong> of a student's performance across all subjects — it's immediately obvious which subjects need attention.</p>
+      </div>
+    </div>
+
+    <!-- Q36 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q36</span>
+        <h3>How does Excel import/export work? Which library do you use?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The <code>xlsx</code> library (SheetJS) handles Excel operations:</p>
+        <pre><code>// Import: Admin uploads Excel file → parsed client-side → batch insert to Supabase
+import * as XLSX from 'xlsx'
+
+const workbook = XLSX.read(file, { type: 'array' })
+const sheet = workbook.Sheets[workbook.SheetNames[0]]
+const data = XLSX.utils.sheet_to_json(sheet)
+
+// data = [{ name: "Sokha", gender: "M", dob: "2015-03-15", ... }, ...]
+
+// Batch insert to Supabase
+await supabase.from('students').insert(data)
+
+// Export: Fetch from Supabase → create worksheet → download as .xlsx
+const ws = XLSX.utils.json_to_sheet(students)
+const wb = XLSX.utils.book_new()
+XLSX.utils.book_append_sheet(wb, ws, 'Students')
+XLSX.writeFile(wb, 'students_export.xlsx')</code></pre>
+        <p><strong>Template file:</strong> A pre-formatted <code>student_import_template.xlsx</code> is available for download, ensuring teachers use the correct column headers.</p>
+      </div>
+    </div>
+
+    <!-- Q37 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q37</span>
+        <h3>How does PDF generation work?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>PDF generation uses two approaches:</p>
+        <p><strong>1. jsPDF + jspdf-autotable</strong> — For score reports and certificates. Creates PDF programmatically with tables, headers, and styling.</p>
+        <p><strong>2. Browser Print API</strong> — For ranking PDFs. Opens a new window with formatted HTML, then triggers <code>window.print()</code> for "Save as PDF". This produces better Khmer text rendering.</p>
+        <pre><code>// exportPdf.js — generateMonthlyScorePDF
+function generateMonthlyScorePDF(scores, className, month) {
+  const printWindow = window.open('', '_blank')
+  printWindow.document.write(`
+    &lt;html&gt;
+    &lt;head&gt;
+      &lt;style&gt;
+        /* Khmer font, table styling, Royal header, signature blocks */
+      &lt;/style&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+      &lt;!-- Two-column layout: 25 rows per column, max 50 students --&gt;
+      &lt;!-- Khmer numerals for scores --&gt;
+      &lt;!-- Principal + Class Teacher signature blocks --&gt;
+    &lt;/body&gt;
+    &lt;/html&gt;
+  `)
+  printWindow.document.close()
+  printWindow.print()  // User can save as PDF
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Q38 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q38</span>
+        <h3>What is html2canvas used for?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p><code>html2canvas</code> captures HTML elements as images. It's used in the <strong>Certificate Design</strong> feature:</p>
+        <ul>
+          <li>Teacher designs a certificate using the drag-drop editor (text layers on templates)</li>
+          <li>When downloading, <code>html2canvas</code> renders the certificate DOM element to a canvas</li>
+          <li>Canvas is converted to a PNG image for download or PDF embedding</li>
+        </ul>
+        <pre><code>// Certificate download
+const canvas = await html2canvas(certificateElement)
+const image = canvas.toDataURL('image/png')
+// Trigger download as PNG
+const link = document.createElement('a')
+link.download = 'certificate.png'
+link.href = image
+link.click()</code></pre>
+      </div>
+    </div>
+
+    <!-- Q39 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q39</span>
+        <h3>What does @vueuse/core provide? How do you use it?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p><code>@vueuse/core</code> provides composable utilities. Key usage:</p>
+        <ul>
+          <li><code>useClickOutside</code> — Dismisses dropdowns (notification panel, modals) when clicking outside</li>
+          <li><code>useDebounceFn</code> — Debounces search inputs to avoid excessive API calls</li>
+          <li><code>useStorage</code> — Reactive localStorage binding (used in some stores)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q40 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q40</span>
+        <h3>What is vee-validate + yup? How do you use form validation?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p><strong>vee-validate</strong> provides form validation components for Vue 3. <strong>yup</strong> defines validation schemas. Usage is <strong>inconsistent</strong> across the project (listed as a known gap):</p>
+        <pre><code>// Example: Login form validation
+import { Form, Field } from 'vee-validate'
+import * as yup from 'yup'
+
+const schema = yup.object({
+  email: yup.string().required().email(),
+  password: yup.string().required().min(6)
+})
+
+// &lt;Form :validation-schema="schema" @submit="handleLogin"&gt;
+//   &lt;Field name="email" type="email" /&gt;
+//   &lt;Field name="password" type="password" /&gt;
+// &lt;/Form&gt;</code></pre>
+        <p><strong>Current state:</strong> Some forms use vee-validate, others use manual validation. Standardizing is a known TODO item.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 14: CHALLENGES -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-challenges">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(248,113,113,0.15);color:var(--red)">⚡</div>
+      <h2>14. Challenges & Solutions</h2>
+    </div>
+
+    <!-- Q41 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge hard">Q41</span>
+        <h3>What was the biggest technical challenge you faced? How did you solve it?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>The biggest challenge was the <strong>offline-first architecture</strong>. The core problem: teachers in rural Cambodia have unreliable internet, but they must enter scores on time.</p>
+        <p><strong>Challenges encountered:</strong></p>
+        <ol>
+          <li><strong>Write queue sync</strong> — Initial implementation missed the <code>upsert</code> case in <code>processQueue()</code>. Score views exclusively use <code>upsert</code> (batch save). When the app came back online, queued scores were silently skipped and stuck in localStorage forever. Fixed by adding the missing <code>case 'upsert'</code> handler.</li>
+          <li><strong>Read caching vs empty states</strong> — When offline, score pages tried to fetch from Supabase, timed out after 5 seconds, then showed "No class assigned" — completely wrong. Fixed by implementing the <code>useCache</code> composable with TTL-based localStorage caching. Online → cache on success. Offline → serve from cache.</li>
+          <li><strong>PWA session loss</strong> — Users had to re-login after closing and reopening the PWA. Supabase's <code>INITIAL_SESSION</code> event was being skipped. Fixed by handling it in <code>handleAuthEvent</code> and adding a custom session backup system.</li>
+          <li><strong>Toast inconsistencies</strong> — 28 views had duplicate inline toast implementations with different icons and behaviors. Refactored to a single <code>useToast</code> composable + global <code>ToastContainer</code>.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Q42 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q42</span>
+        <h3>How did you handle the Khmer language in the UI?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Khmer language support was implemented at multiple levels:</p>
+        <ul>
+          <li><strong>Font loading</strong> — Google Fonts <code>Hanuman</code> for Khmer text, <code>Inter</code> for Latin. Loaded via CSS <code>@import</code> in <code>style.css</code>.</li>
+          <li><strong>CSS font stack</strong> — <code>--font-khmer: 'Hanuman', serif</code> applied to Khmer text elements.</li>
+          <li><strong>Khmer numerals</code> — Score views support Khmer digit input (០-៩) and display. The <code>Khmer digit parsing</code> in Phase 7 handles this for the student rollup function.</li>
+          <li><strong>All UI labels</strong> — Every button, header, message, and notification is in Khmer. English is only used in code.</li>
+          <li><strong>Khmer calendar</strong> — <code>khmer-chhankitek-calendar</code> package for date pickers.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q43 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q43</span>
+        <h3>How did you handle the "Every User IS a Teacher" design decision?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>This was a real-world requirement from Cambodian schools. In the Cambodian education system:</p>
+        <ul>
+          <li>The school principal (admin) is a teacher who also manages the school</li>
+          <li>The librarian is a teacher assigned to library duties</li>
+          <li>Everyone has a teaching background and a teacher profile</li>
+        </ul>
+        <p><strong>Implementation:</strong></p>
+        <ul>
+          <li><code>teachers.user_id</code> is <code>NOT NULL UNIQUE</code> — every user MUST have a teacher profile</li>
+          <li>The <code>manage-user</code> Edge Function always creates 3 rows: <code>auth.users</code> + <code>public.users</code> + <code>teachers</code></li>
+          <li>The <code>role</code> field in <code>users</code> controls app access, not identity</li>
+          <li>Even the admin's profile shows on the teacher list — they just have additional admin privileges</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q44 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q44</span>
+        <h3>What bugs did you find during testing and how did you fix them?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Key bugs fixed during v15 testing:</p>
+        <table class="def-table">
+          <tr><th>Bug</th><th>Root Cause</th><th>Fix</th></tr>
+          <tr><td>Male student avatar white-on-white</td><td>CSS class applied wrong color for male gender</td><td>Added conditional class based on <code>genderColor()</code> utility</td></tr>
+          <tr><td>Report link null check crash</td><td><code>.eq('semester', null)</code> doesn't work in Supabase</td><td>Changed to <code>.is('semester', null)</code></td></tr>
+          <tr><td>Duplicate report links in dropdown</td><td>No deduplication on client side</td><td>Added <code>Map</code>-based dedup by link ID</td></tr>
+          <tr><td>Score views showing wrong empty state offline</td><td>Network timeout → empty state → misleading UI</td><td>Implemented offline read cache with stale-data badge</td></tr>
+          <tr><td>PWA session lost on restart</td><td><code>INITIAL_SESSION</code> event skipped</td><td>Dual session restore + custom backup system</td></tr>
+          <tr><td>Toast icons misleading (error color for info)</td><td>Only success/error icon variants</td><td>Added warning (triangle) and info (circle) icons</td></tr>
+          <tr><td>Offline queue skipped upsert entries</td><td><code>processQueue()</code> missing <code>case 'upsert'</code></td><td>Added upsert handler with <code>.upsert().select()</code></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 15: SCORING ALGORITHM -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-scoring">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(167,139,250,0.15);color:var(--purple)">📊</div>
+      <h2>15. Scoring Algorithm</h2>
+    </div>
+
+    <!-- Q45 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge hard">Q45</span>
+        <h3>How are scores calculated? Explain the algorithms.</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>All calculations happen in <code>src/utils/scoreCalculator.js</code>:</p>
+
+        <p><strong>1. Monthly Average:</strong></p>
+        <pre><code>function computeMonthlyAverage(scores) {
+  // Filter out null/undefined/empty scores
+  const validScores = scores.filter(s => s.score !== null && s.score !== '')
+  if (validScores.length === 0) return 0
+  // Simple arithmetic mean
+  const sum = validScores.reduce((acc, curr) => acc + Number(curr.score), 0)
+  return Number((sum / validScores.length).toFixed(2))
+}
+// Example: Math=8, Khmer=7, Science=9 → Average = 8.00</code></pre>
+
+        <p><strong>2. Semester Average:</strong></p>
+        <pre><code>function computeSemesterAverage(monthlyAverages, examAverage) {
+  // Filter valid monthly averages
+  const validMonths = monthlyAverages.filter(m => m !== null && m > 0)
+  if (validMonths.length === 0) return examAverage
+  // 50% monthly component + 50% exam component
+  const monthlyAvg = validMonths.reduce((a, c) => a + c, 0) / validMonths.length
+  return Number(((monthlyAvg + examAverage) / 2).toFixed(2))
+}
+// Example: Monthly averages = [7.5, 8.0, 7.8] → mean = 7.77
+//          Exam = 8.5 → Semester = (7.77 + 8.5) / 2 = 8.14</code></pre>
+
+        <p><strong>3. Ranking:</strong></p>
+        <pre><code>function computeRank(students) {
+  const sorted = [...students].sort((a, b) => (b.average || 0) - (a.average || 0))
+  let rank = 1
+  return sorted.map((student, i) => {
+    if (i > 0 && sorted[i].average !== sorted[i - 1].average) {
+      rank = i + 1  // Only increment if different from previous
+    }
+    return { ...student, rank }
+  })
+}
+// Standard competition ranking: [9.5, 9.5, 8.2, 7.1] → [1, 1, 3, 4]
+// Ties share rank, next rank skips numbers</code></pre>
+        <div class="keypoint"><strong>Design decision:</strong> Scores are calculated on the <strong>frontend</strong>, not in the database. The DB stores raw scores only. This allows flexible calculation logic (e.g., changing the semester formula) without database migrations.</div>
+      </div>
+    </div>
+
+    <!-- Q46 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q46</span>
+        <h3>What are the score ranges? What grades use English subjects?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <ul>
+          <li><strong>Score range:</strong> 0-10 (with decimal support, e.g., 8.5)</li>
+          <li><strong>Grades 1-3:</strong> No English subject — core subjects only (Math, Khmer, etc.)</li>
+          <li><strong>Grades 4-6:</strong> Includes English as an additional subject</li>
+          <li><strong>Subjects are per-class</strong> — fetched from <code>class_subjects</code> junction table, not global <code>subjects</code> table. Different classes can have different subject sets.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 16: FRONTEND ARCHITECTURE -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-frontend">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(34,197,94,0.15);color:var(--green-dim)">🎨</div>
+      <h2>16. Frontend Architecture</h2>
+    </div>
+
+    <!-- Q47 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q47</span>
+        <h3>How is state management organized? What does each Pinia store do?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <table class="def-table">
+          <tr><th>Store</th><th>Purpose</th><th>Storage</th></tr>
+          <tr><td><code>auth.js</code></td><td>Session, profile, teacherProfile, role, schoolId</td><td>Memory + Supabase localStorage</td></tr>
+          <tr><td><code>school.js</code></td><td>schoolId, schoolName, schoolCode, logo</td><td>Memory + localStorage</td></tr>
+          <tr><td><code>academicYear.js</code></td><td>selectedYearId, selectedYearName</td><td>Memory + localStorage</td></tr>
+          <tr><td><code>classSubjects.js</code></td><td>Subjects cached by classId</td><td>Memory only (per session)</td></tr>
+          <tr><td><code>notifications.js</code></td><td>Unread count, notification list</td><td>Memory + Supabase Realtime</td></tr>
+          <tr><td><code>offlineQueue.js</code></td><td>Pending write operations</td><td>Memory + localStorage</td></tr>
+        </table>
+        <p><strong>Pattern:</strong> Stores that need persistence use both reactive refs (for Vue reactivity) AND localStorage (for survival across page reloads). On app start, stores hydrate from localStorage.</p>
+      </div>
+    </div>
+
+    <!-- Q48 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q48</span>
+        <h3>How do the layout components work? Why separate layouts per role?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Each role has a dedicated layout component that wraps its views:</p>
+        <pre><code>SuperLayout.vue   — Dark sidebar, Lucide icons, page transitions
+AdminLayout.vue   — Custom CSS sidebar, SVG icons, school/year badges, notifications dropdown
+TeacherLayout.vue — Custom CSS sidebar, notifications dropdown
+LibrarianLayout.vue — Minimal sidebar (3 items)
+ParentLayout.vue  — Simple header + content (no sidebar)</code></pre>
+        <p><strong>Why separate?</strong> Each role has different navigation items, visual styles, and features. The admin sidebar has 15+ items; the librarian has 3. Combining them into one component would create a complex, hard-to-maintain mess of conditional rendering.</p>
+        <p><strong>Router structure:</strong></p>
+        <pre><code>{
+  path: '/admin',
+  component: AdminLayout,  // Wraps all /admin/* routes
+  meta: { requiresAuth: true, role: 'admin' },
+  children: [
+    { path: 'dashboard', component: AdminDashboardView },
+    { path: 'classes', component: AdminClassesView },
+    // ... 18 more children
+  ]
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Q49 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q49</span>
+        <h3>How does the toast notification system work? Why was it refactored?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p><strong>Before refactor:</strong> 28 views each had their own toast implementation — a <code>ref(null)</code> for the message, a <code>showToast()</code> function with <code>setTimeout</code>, and a template <code>&lt;div class="toast-container"&gt;</code>. This led to inconsistent behavior, duplicate code, and different icons across views.</p>
+        <p><strong>After refactor (v17):</strong></p>
+        <pre><code>// useToast.js — single module-level singleton
+const toast = ref(null)  // Shared across ALL components
+let timeout = null
+
+export function useToast() {
+  function showToast(msg, type = 'success', duration = 3000) {
+    if (timeout) clearTimeout(timeout)  // Cancel previous
+    toast.value = { msg, type }         // type: success|error|warning|info
+    timeout = setTimeout(() => { toast.value = null }, duration)
+  }
+  return { showToast, toast }
+}
+
+// ToastContainer.vue — mounted ONCE in App.vue
+// Renders the single active toast with consistent icons:
+//   success → CheckIcon (green)
+//   warning → ExclamationTriangleIcon (yellow)
+//   info → InformationCircleIcon (blue)
+//   error → XCircleIcon (red)</code></pre>
+        <p>Every view now imports <code>useToast()</code> and calls <code>showToast()</code>. The <code>ToastContainer</code> renders it globally. One toast at a time, consistent styling everywhere.</p>
+      </div>
+    </div>
+
+    <!-- Q50 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q50</span>
+        <h3>How is Supabase client initialized? Why use custom storage?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <pre><code>// src/lib/supabase.js
+import { createClient } from '@supabase/supabase-js'
+
+const customStorage = {
+  getItem(key) { return localStorage.getItem(key) },
+  setItem(key, value) { localStorage.setItem(key, value) },
+  removeItem(key) { localStorage.removeItem(key) }
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: customStorage,        // Explicit localStorage wrapper
+    storageKey: 'sb-auth-token',   // Custom key name
+    autoRefreshToken: true,        // Auto-refresh before expiry
+    persistSession: true,          // Save to localStorage
+    detectSessionInUrl: false      // No OAuth redirect handling (SPA)
+  }
+})</code></pre>
+        <p><strong>Why custom storage?</strong> Supabase defaults to <code>window.localStorage</code>, but using an explicit wrapper ensures consistent behavior and makes it easy to swap storage backends if needed (e.g., for testing).</p>
+        <p><strong>detectSessionInUrl: false</strong> — Prevents Supabase from parsing URL fragments for OAuth tokens. This app only uses email+password auth, so this avoids unnecessary URL parsing.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 17: TESTING & DEPLOYMENT -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec-testing">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(56,189,248,0.15);color:var(--accent)">🚀</div>
+      <h2>17. Testing & Deployment</h2>
+    </div>
+
+    <!-- Q51 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q51</span>
+        <h3>How is the project deployed? What is the deployment pipeline?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p><strong>Deployment stack:</strong></p>
+        <ul>
+          <li><strong>Vercel</strong> — Static hosting for the Vue SPA. Deploys automatically from Git push.</li>
+          <li><strong>Supabase</strong> — Backend (database, auth, storage, edge functions). Hosted on Supabase cloud.</li>
+        </ul>
+        <p><strong>Build process:</strong></p>
+        <pre><code>npm run build
+# Vite builds the Vue app → dist/ folder
+# vite-plugin-pwa generates service worker + precache manifest (~161 entries)
+# Vercel serves dist/ as static files</code></pre>
+        <p><strong>vercel.json configuration:</strong></p>
+        <pre><code>{
+  "headers": [
+    // Force no-cache on service worker files (ensures updates propagate)
+    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }] },
+    { "source": "/workbox-:hash.js", "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }] },
+    { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }] }
+  ],
+  "rewrites": [
+    // SPA routing: all non-asset URLs → index.html (Vue Router handles client-side)
+    { "source": "/((?!sw\\.js|workbox-.*\\.js).*)", "destination": "/index.html" }
+  ]
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Q52 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q52</span>
+        <h3>How do you verify the build works? What testing approach do you use?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p><strong>Build verification:</strong></p>
+        <pre><code>npm run build
+# Must pass with 0 errors
+# PWA plugin generates service worker with ~161 precached entries</code></pre>
+        <p><strong>Testing approach:</strong></p>
+        <ul>
+          <li><strong>Manual testing</strong> — Primary approach. Testing at a real school in Battambang province with actual teachers and admin.</li>
+          <li><strong>Multi-browser</strong> — Chrome, Safari (iOS), Firefox</li>
+          <li><strong>Multi-device</strong> — Desktop, tablet, mobile phones (primary usage is mobile)</li>
+          <li><strong>Offline testing</strong> — Airplane mode tests for score entry and cache behavior</li>
+          <li><strong>No automated test suite</strong> — This is a known gap. The project uses manual testing primarily.</li>
+        </ul>
+        <div class="keypoint"><strong>Known gap:</strong> Automated testing (unit tests, E2E tests) is not yet implemented. The project relies on manual testing with real users at the Battambang school.</div>
+      </div>
+    </div>
+
+    <!-- Q53 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q53</span>
+        <h3>What are the known gaps and future improvements?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Listed in the roadmap:</p>
+        <ol>
+          <li><strong>Validation</strong> — vee-validate + yup usage inconsistent across forms</li>
+          <li><strong>Responsive polish</strong> — Tablet/mobile layouts need attention in some views</li>
+          <li><strong>Empty/loading states</strong> — Skeleton loaders missing in some views</li>
+          <li><strong>Offline queue extension</strong> — Library borrows, budget, inventory still pending</li>
+          <li><strong>Conflict resolution</strong> — Handling conflicts when same record edited offline and modified elsewhere</li>
+          <li><strong>Multi-tenant testing</strong> — Verify data isolation between 2+ schools</li>
+          <li><strong>Parent portal E2E testing</strong> — Full flow: generate → approve → share → parent views → reply</li>
+          <li><strong>PWA app icon</strong> — Replace default Vite logo with custom icons</li>
+          <li><strong>Automated tests</strong> — Unit tests, E2E tests</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Q54 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q54</span>
+        <h3>How many total files does the project have? What is the codebase size?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-num">81+</div><div class="stat-label">Total Source Files</div></div>
+          <div class="stat-card"><div class="stat-num">55</div><div class="stat-label">Vue Views</div></div>
+          <div class="stat-card"><div class="stat-num">8</div><div class="stat-label">Components</div></div>
+          <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Composables</div></div>
+          <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Pinia Stores</div></div>
+          <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">Utility Files</div></div>
+          <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">Layouts</div></div>
+          <div class="stat-card"><div class="stat-num">20+</div><div class="stat-label">SQL Migrations</div></div>
+        </div>
+        <p>Additionally: 5 layouts, 1 router, 1 main entry, 1 App.vue, 1 style.css (778 lines), 1 Edge Function (TypeScript), and 20+ SQL migration files.</p>
+      </div>
+    </div>
+
+    <!-- Q55 -->
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge medium">Q55</span>
+        <h3>If you were to start over, what would you do differently?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <p>Based on lessons learned:</p>
+        <ol>
+          <li><strong>Automated testing from day one</strong> — Unit tests for composables, E2E tests for critical flows (login, score entry, parent portal). The manual testing approach works but is slow and error-prone.</li>
+          <li><strong>TypeScript</strong> — Would use TypeScript throughout for better type safety and IDE support. The current JavaScript codebase works but has no type checking.</li>
+          <li><strong>Consistent form validation</strong> — Would enforce vee-validate + yup on all forms from the start, instead of patching it in later.</li>
+          <li><strong>Standardized component patterns</strong> — Some views use different patterns for loading states, error handling, and data fetching. Would establish conventions earlier.</li>
+          <li><strong>Offline-first from architecture</strong> — Would design the data layer with offline support built-in from the start, instead of retrofitting it in Phase 12.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ============================================================ -->
+  <!-- BONUS: RAPID-FIRE QUESTIONS -->
+  <!-- ============================================================ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(250,204,21,0.15);color:var(--yellow)">⚡</div>
+      <h2>18. Rapid-Fire Quick Answers</h2>
+    </div>
+
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q56</span>
+        <h3>What is the database used?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer"><p><strong>PostgreSQL</strong> via Supabase. Supabase wraps PostgreSQL with additional features (Auth, Storage, Realtime, Edge Functions).</p></div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q57</span>
+        <h3>How many database tables are there?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer"><p><strong>26 tables</strong> (schema v11). Core: schools, users, teachers, classes, students, scores, attendances, report_links, notifications.</p></div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q58</span>
+        <h3>What is the service worker's caching strategy?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer"><p><strong>Three strategies:</strong> Pre-cache for static assets, NetworkFirst for API calls (5s timeout), CacheFirst for storage assets (30-day expiry).</p></div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q59</span>
+        <h3>How does the app handle Cambodia's Monday-Saturday school week?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer"><p>The attendance calendars and scheduling logic account for <strong>Monday-Saturday</strong> school days. Sundays are excluded by default from attendance marking and holiday calculations.</p></div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q60</span>
+        <h3>Why does the Supabase anon key appear in the frontend code?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer"><p>The anon key is <strong>designed to be public</strong>. It's a JWT that identifies the app but cannot bypass RLS. All data access is enforced by Row Level Security policies at the database level. The key only grants access that RLS allows.</p></div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q61</span>
+        <h3>What is Pinia? Why not Vuex?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer"><p><strong>Pinia</strong> is the official Vue 3 state management library (replaces Vuex). It has simpler API, better TypeScript support, no mutations (only actions), and excellent devtools. Vue 3 documentation recommends Pinia over Vuex.</p></div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q62</span>
+        <h3>What is a Vue composable? Give examples from this project.</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer"><p>A <strong>composable</strong> is a function that encapsulates reusable logic using Vue's Composition API. Examples:</p>
+        <ul>
+          <li><code>useToast()</code> — global toast notifications</li>
+          <li><code>useNetworkStatus()</code> — reactive online/offline detection</li>
+          <li><code>useCache()</code> — localStorage caching with TTL</li>
+          <li><code>useOfflineMutation()</code> — offline-aware Supabase writes</li>
+          <li><code>usePwa()</code> — PWA install/update state</li>
+          <li><code>useVoiceRecorder()</code> — MediaRecorder API wrapper</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q63</span>
+        <h3>How does the notification system work in real-time?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer"><p>Uses <strong>Supabase Realtime</strong> — a WebSocket subscription on the <code>notifications</code> table. When a DB trigger inserts a notification row, the frontend receives it instantly via <code>postgres_changes</code> subscription. The <code>notifications.js</code> Pinia store manages the subscription and unread count badge.</p></div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q64</span>
+        <h3>What are PostgreSQL database triggers used for?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer"><p>DB triggers automatically create notification rows when:</p>
+        <ul>
+          <li>A teacher requests report link approval → trigger creates <code>approval_requested</code> notification for admin</li>
+          <li>An admin approves/rejects → trigger creates <code>approval_approved</code> or <code>approval_rejected</code> notification for teacher</li>
+          <li><code>handle_new_user()</code> trigger creates a <code>public.users</code> row when a new auth user signs up</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge easy">Q65</span>
+        <h3>What is the total line count of the codebase (approximate)?</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer"><p>Approximately:</p>
+        <ul>
+          <li>55 Vue views × ~300 lines avg = ~16,500 lines</li>
+          <li>Composables + stores + utils = ~1,500 lines</li>
+          <li>Components + layouts = ~3,000 lines</li>
+          <li>Router + main + App.vue = ~400 lines</li>
+          <li>style.css = 778 lines</li>
+          <li>SQL migrations/schema = ~2,000 lines</li>
+          <li><strong>Total: ~24,000+ lines of code</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- FINAL TIPS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(74,222,128,0.15);color:var(--green)">💡</div>
+      <h2>Defense Tips</h2>
+    </div>
+
+    <div class="qa open">
+      <div class="qa-question" onclick="this.parentElement.classList.toggle('open')">
+        <span class="q-badge" style="background:var(--purple)">TIP</span>
+        <h3>Key Points to Emphasize During Defense</h3>
+        <span class="qa-toggle">▼</span>
+      </div>
+      <div class="qa-answer">
+        <ol>
+          <li><strong>Real-world problem</strong> — This isn't a toy project. It's being tested at a real school in Battambang with real teachers.</li>
+          <li><strong>Cambodia-specific design</strong> — Khmer language, Monday-Saturday schedule, Cambodian school structure, rural offline needs.</li>
+          <li><strong>Offline-first</strong> — Unique selling point. Teachers in rural areas with unreliable internet can still work.</li>
+          <li><strong>Zero-login parent portal</strong> — Innovative approach. No accounts needed, secure UUID links, RLS-protected.</li>
+          <li><strong>Multi-tenant from day one</strong> — One deployment serves unlimited schools with complete data isolation via RLS.</li>
+          <li><strong>Security via RLS</strong> — Not just client-side checks. Database enforces access rules. Anon key is safe to expose.</li>
+          <li><strong>Progressive enhancement</strong> — PWA with install prompt, service worker, offline caching. Works like a native app.</li>
+          <li><strong>12 phases of development</strong> — Demonstrates iterative development and project management.</li>
+        </ol>
+
+        <p style="margin-top:16px"><strong>When asked "Why did you choose X?":</strong></p>
+        <ul>
+          <li>Always connect back to <strong>Cambodian school requirements</strong></li>
+          <li>Mention <strong>rural internet constraints</strong> for offline decisions</li>
+          <li>Explain <strong>why alternatives wouldn't work</strong> (e.g., Firebase's NoSQL vs PostgreSQL's relational model)</li>
+          <li>Cite <strong>real user feedback</strong> from Battambang testing when available</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <p style="text-align:center;color:var(--text-dim);font-size:13px;margin-top:40px;padding-bottom:40px;">
+    Generated from roadmap_v17.md + codebase analysis · Primary School Management System · July 2026
+  </p>
+</main>
+
+</body>
+</html>
