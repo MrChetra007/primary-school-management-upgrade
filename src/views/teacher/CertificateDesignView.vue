@@ -138,20 +138,67 @@ async function loadTopStudents() {
 
 const certificateRefs = ref([])
 
+// async function downloadCertificates() {
+//   const pdf = new jsPDF('l', 'mm', 'a4') // Landscape A4
+//   const pageWidth = pdf.internal.pageSize.getWidth()
+//   const pageHeight = pdf.internal.pageSize.getHeight()
+
+//   showToast('កំពុងរៀបចំទាញយក...', 'info')
+
+//   for (let i = 0; i < certificateRefs.value.length; i++) {
+//     const element = certificateRefs.value[i]
+//     if (!element) continue
+
+//     const canvas = await html2canvas(element, { scale: 2, useCORS: true, allowTaint: true })
+//     const imgData = canvas.toDataURL('image/png')
+    
+//     if (i > 0) pdf.addPage('l', 'mm', 'a4')
+//     pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight)
+//   }
+
+//   pdf.save(`Certificates_${classInfo.value?.class_name}_Top5.pdf`)
+//   showToast('ទាញយកបានជោគជ័យ!', 'success')
+// }
 async function downloadCertificates() {
-  const pdf = new jsPDF('l', 'mm', 'a4') // Landscape A4
+  showToast('កំពុងរៀបចំទាញយក...', 'info')
+
+  // Force-load the specific Khmer font faces and wait for ALL fonts to be ready.
+  // This is the actual fix — html2canvas will otherwise capture with fallback
+  // font metrics if Muol Light / Hanuman haven't finished loading yet.
+  try {
+    await Promise.all([
+      document.fonts.load('64px "Khmer OS Muol Light"'),
+      document.fonts.load('64px "Hanuman"'),
+      document.fonts.load('16px "Khmer OS Muol Light"'),
+      document.fonts.load('16px "Hanuman"'),
+    ])
+    await document.fonts.ready
+  } catch (e) {
+    console.warn('Font preload check failed, proceeding anyway', e)
+  }
+
+  // Extra frame so layout settles after fonts swap in
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+
+  const pdf = new jsPDF('l', 'mm', 'a4')
   const pageWidth = pdf.internal.pageSize.getWidth()
   const pageHeight = pdf.internal.pageSize.getHeight()
-
-  showToast('កំពុងរៀបចំទាញយក...', 'info')
 
   for (let i = 0; i < certificateRefs.value.length; i++) {
     const element = certificateRefs.value[i]
     if (!element) continue
 
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true, allowTaint: true })
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      // ensures fonts inside the cloned document are also ready
+      onclone: async (clonedDoc) => {
+        await clonedDoc.fonts.ready
+      }
+    })
     const imgData = canvas.toDataURL('image/png')
-    
+
     if (i > 0) pdf.addPage('l', 'mm', 'a4')
     pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight)
   }
@@ -526,7 +573,8 @@ const contextName = computed(() => {
 }
 
 .cert-closing-text {
-  margin-top: 20px;
+  margin-top: 10px;
+  margin-bottom: 16px;
   font-style: italic;
   font-size: 16px;
 }
@@ -558,7 +606,20 @@ const contextName = computed(() => {
   margin: 0 40px 20px;
   flex-shrink: 0;
 }
+.title-section {
+  text-align: center;
+  margin-bottom: 30px;
+  line-height: 1.6; /* was unset — Khmer needs more room than latin default */
+}
 
+.cert-main-title {
+  font-family: 'Khmer OS Muol Light', 'Hanuman', serif;
+  font-size: 64px;
+  line-height: 1.7;      /* add this */
+  color: #d92b34;
+  margin-bottom: 16px;   /* was 10px — give the subtitle more clearance */
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+}
 .signature-space { height: 80px; }
 
 @media (max-width: 1300px) {
