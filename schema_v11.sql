@@ -813,6 +813,11 @@ create policy "school_information: staff read own school"
 -- ACADEMIC YEARS
 -- ------------------------------------------------------------
 
+create policy "academic_years: super_admin full"
+  on academic_years for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "academic_years: admin manage own school"
   on academic_years for all to authenticated
   using (get_user_role() = 'admin' and school_id = get_user_school_id())
@@ -826,6 +831,11 @@ create policy "academic_years: staff read own school"
 -- ------------------------------------------------------------
 -- SUBJECTS
 -- ------------------------------------------------------------
+
+create policy "subjects: super_admin full"
+  on subjects for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
 
 create policy "subjects: admin manage own school"
   on subjects for all to authenticated
@@ -860,6 +870,11 @@ create policy "teachers: self read"
 -- CLASSES
 -- ------------------------------------------------------------
 
+create policy "classes: super_admin full"
+  on classes for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "classes: admin manage own school"
   on classes for all to authenticated
   using (get_user_role() = 'admin' and school_id = get_user_school_id())
@@ -877,6 +892,11 @@ create policy "classes: teacher read own"
 -- ------------------------------------------------------------
 -- CLASS SUBJECTS
 -- ------------------------------------------------------------
+
+create policy "class_subjects: super_admin full"
+  on class_subjects for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
 
 create policy "class_subjects: admin manage own school"
   on class_subjects for all to authenticated
@@ -897,6 +917,11 @@ create policy "class_subjects: librarian read own school"
 -- Anon read scoped to report link context (v9).
 -- No open using (true) — must have a valid report_link_id.
 -- ------------------------------------------------------------
+
+create policy "students: super_admin full"
+  on students for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
 
 create policy "students: admin manage own school"
   on students for all to authenticated
@@ -956,6 +981,11 @@ create policy "students: anon read via report link"
 -- STUDENT HEALTH — no anon access (v9)
 -- ------------------------------------------------------------
 
+create policy "student_health: super_admin full"
+  on student_health for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "student_health: admin manage own school"
   on student_health for all to authenticated
   using (get_user_role() = 'admin' and school_id = get_user_school_id())
@@ -989,6 +1019,11 @@ create policy "student_health: teacher manage own class"
 -- STUDENT CHECKUPS — no anon access (v9)
 -- ------------------------------------------------------------
 
+create policy "student_checkups: super_admin full"
+  on student_checkups for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "student_checkups: admin manage own school"
   on student_checkups for all to authenticated
   using (get_user_role() = 'admin' and school_id = get_user_school_id())
@@ -1017,6 +1052,11 @@ create policy "student_checkups: teacher manage own class"
 -- ------------------------------------------------------------
 -- STUDENT GROWTH — no anon access (v9)
 -- ------------------------------------------------------------
+
+create policy "student_growth: super_admin full"
+  on student_growth for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
 
 create policy "student_growth: admin manage own school"
   on student_growth for all to authenticated
@@ -1047,6 +1087,11 @@ create policy "student_growth: teacher manage own class"
 -- STUDENT VACCINATIONS — no anon access (v9)
 -- ------------------------------------------------------------
 
+create policy "student_vaccinations: super_admin full"
+  on student_vaccinations for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "student_vaccinations: admin manage own school"
   on student_vaccinations for all to authenticated
   using (get_user_role() = 'admin' and school_id = get_user_school_id())
@@ -1075,6 +1120,11 @@ create policy "student_vaccinations: teacher manage own class"
 -- ------------------------------------------------------------
 -- STUDENT SICK DAYS — no anon access (v9)
 -- ------------------------------------------------------------
+
+create policy "student_sick_days: super_admin full"
+  on student_sick_days for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
 
 create policy "student_sick_days: admin manage own school"
   on student_sick_days for all to authenticated
@@ -1105,6 +1155,11 @@ create policy "student_sick_days: teacher manage own class"
 -- ATTENDANCES
 -- Anon read scoped to report link context (v9).
 -- ------------------------------------------------------------
+
+create policy "attendances: super_admin full"
+  on attendances for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
 
 create policy "attendances: admin manage own school"
   on attendances for all to authenticated
@@ -1148,6 +1203,11 @@ create policy "attendances: anon read via report link"
 -- Anon read scoped to report link context (v9).
 -- ------------------------------------------------------------
 
+create policy "scores: super_admin full"
+  on scores for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "scores: admin manage own school"
   on scores for all to authenticated
   using (get_user_role() = 'admin' and school_id = get_user_school_id())
@@ -1189,6 +1249,11 @@ create policy "scores: anon read via report link"
 -- TEACHER ATTENDANCES
 -- ------------------------------------------------------------
 
+create policy "teacher_attendances: super_admin full"
+  on teacher_attendances for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "teacher_attendances: admin manage own school"
   on teacher_attendances for all to authenticated
   using (get_user_role() = 'admin' and school_id = get_user_school_id())
@@ -1208,6 +1273,11 @@ create policy "teacher_attendances: teacher read self"
 -- SCHOOL HOLIDAYS
 -- ------------------------------------------------------------
 
+create policy "school_holidays: super_admin full"
+  on school_holidays for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "school_holidays: admin manage own school"
   on school_holidays for all to authenticated
   using (get_user_role() = 'admin' and school_id = get_user_school_id())
@@ -1221,6 +1291,11 @@ create policy "school_holidays: staff read own school"
 -- ------------------------------------------------------------
 -- BOOKS
 -- ------------------------------------------------------------
+
+create policy "books: super_admin full"
+  on books for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
 
 create policy "books: admin manage own school"
   on books for all to authenticated
@@ -1241,6 +1316,11 @@ create policy "books: teacher read own school"
 -- BOOK BORROWS
 -- ------------------------------------------------------------
 
+create policy "book_borrows: super_admin full"
+  on book_borrows for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "book_borrows: admin manage own school"
   on book_borrows for all to authenticated
   using (get_user_role() = 'admin' and school_id = get_user_school_id())
@@ -1256,6 +1336,11 @@ create policy "book_borrows: librarian manage own school"
 -- BUDGET TRANSACTIONS
 -- ------------------------------------------------------------
 
+create policy "budget_transactions: super_admin full"
+  on budget_transactions for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "budget_transactions: admin manage own school"
   on budget_transactions for all to authenticated
   using (get_user_role() = 'admin' and school_id = get_user_school_id())
@@ -1265,6 +1350,11 @@ create policy "budget_transactions: admin manage own school"
 -- ------------------------------------------------------------
 -- INVENTORY ITEMS
 -- ------------------------------------------------------------
+
+create policy "inventory_items: super_admin full"
+  on inventory_items for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
 
 create policy "inventory_items: admin manage own school"
   on inventory_items for all to authenticated
@@ -1277,6 +1367,11 @@ create policy "inventory_items: admin manage own school"
 -- Teacher (authenticated) manages links for their own class.
 -- Anon can read any report_link by id (the id IS the access token).
 -- ------------------------------------------------------------
+
+create policy "report_links: super_admin full"
+  on report_links for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
 
 create policy "report_links: teacher manage own class"
   on report_links for all to authenticated
@@ -1301,6 +1396,11 @@ create policy "report_links: anon read approved only"
 -- Teacher (authenticated) manages messages for their links.
 -- Anon can read messages and update only parent fields.
 -- ------------------------------------------------------------
+
+create policy "report_messages: super_admin full"
+  on report_messages for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
 
 create policy "report_messages: teacher manage"
   on report_messages for all to authenticated
@@ -1339,7 +1439,11 @@ create policy "report_messages: anon insert"
 -- NOTIFICATIONS (v10)
 -- ------------------------------------------------------------
 
--- Admin inserts notifications for teachers in their school (via trigger, security definer)
+create policy "notifications: super_admin full"
+  on notifications for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "notifications: admin insert own school"
   on notifications for insert to authenticated
   with check (
@@ -1362,7 +1466,11 @@ create policy "notifications: self update is_read"
 -- TEACHER PHRASES (v10)
 -- ------------------------------------------------------------
 
--- Teacher manages only their own phrases
+create policy "teacher_phrases: super_admin full"
+  on teacher_phrases for all to authenticated
+  using (get_user_role() = 'super_admin')
+  with check (get_user_role() = 'super_admin');
+
 create policy "teacher_phrases: teacher manage own"
   on teacher_phrases for all to authenticated
   using (
