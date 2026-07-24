@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { CheckIcon, XCircleIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
@@ -14,6 +14,11 @@ const { showToast } = useToast()
 const users = ref([])
 const loading = ref(true)
 const activeTab = ref('teacher') // teacher, admin, librarian
+
+// School filter (super admin only)
+const schools = ref([])
+const selectedSchoolId = ref('')
+const isSuperAdmin = computed(() => authStore.role === 'super_admin')
 const showCreateModal = ref(false)
 const showResetModal = ref(false)
 const showRoleModal = ref(false)
@@ -46,14 +51,33 @@ const filteredUsers = computed(() => {
   return users.value.filter(u => u.role === activeTab.value)
 })
 
-onMounted(fetchUsers)
+onMounted(() => {
+  if (isSuperAdmin.value) fetchSchools()
+  fetchUsers()
+})
+
+watch(selectedSchoolId, () => fetchUsers())
+
+async function fetchSchools() {
+  const { data } = await supabase
+    .from('schools')
+    .select('id, name_khmer, school_code')
+    .order('name_khmer')
+  schools.value = data || []
+}
 
 async function fetchUsers() {
   loading.value = true
 
-  const { data: usersData, error: usersError } = await supabase
+  let query = supabase
     .from('users')
-    .select('*')
+    .select('*, schools(name_khmer, school_code)')
+
+  if (isSuperAdmin.value && selectedSchoolId.value) {
+    query = query.eq('school_id', selectedSchoolId.value)
+  }
+
+  const { data: usersData, error: usersError } = await query
     .order('created_at', { ascending: false })
 
   if (usersError) {
@@ -282,10 +306,21 @@ async function uploadAvatar() {
         <h1 class="page-title">គ្រប់គ្រងគណនីបុគ្គលិក (Staff Accounts)</h1>
         <p class="page-subtitle">Manage system access. Every account is linked to a mandatory teacher profile (Roadmap (Roadmap v10)</p>
       </div>
-      <button class="btn btn-primary" @click="showCreateModal = true">
+      <button v-if="!isSuperAdmin" class="btn btn-primary" @click="showCreateModal = true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM20 8v6M23 11h-6"/></svg>
         បន្ថែមបុគ្គលិក (Add Staff)
       </button>
+    </div>
+
+    <div v-if="isSuperAdmin" class="school-filter-bar">
+      <div class="school-filter-inner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" class="filter-icon"><path d="M3 7V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M3 7h18"/><path d="M12 12v6"/><path d="M8 12h8"/></svg>
+        <select v-model="selectedSchoolId" class="school-select">
+          <option value="">សាលារៀនទាំងអស់ (All Schools)</option>
+          <option v-for="s in schools" :key="s.id" :value="s.id">{{ s.name_khmer }} ({{ s.school_code }})</option>
+        </select>
+        <span class="school-count">{{ filteredUsers.length }} នាក់</span>
+      </div>
     </div>
 
     <div class="tabs">
@@ -315,6 +350,7 @@ async function uploadAvatar() {
           <thead>
             <tr>
               <th>បុគ្គលិក (Staff)</th>
+              <th v-if="isSuperAdmin">សាលារៀន (School)</th>
               <th>Email / Phone</th>
               <th>កម្រិតវប្បធម៌ (Degree)</th>
               <th>ស្ថានភាព (Status)</th>
@@ -334,6 +370,9 @@ async function uploadAvatar() {
                     <div class="user-sub">{{ isFemale(user.teachers?.[0]?.gender) ? 'ស្រី (Female)' : 'ប្រុស (Male)' }}</div>
                   </div>
                 </div>
+              </td>
+              <td v-if="isSuperAdmin">
+                <div class="school-cell">{{ user.schools?.name_khmer || '—' }}</div>
               </td>
               <td>
                 <div class="user-email">{{ user.email }}</div>
@@ -506,6 +545,13 @@ async function uploadAvatar() {
 
 <style scoped>
 .users-view { display: flex; flex-direction: column; gap: 24px; }
+.school-filter-bar { background: #f8fafc; border: 1px solid var(--border-default); border-radius: 14px; padding: 12px 16px; }
+.school-filter-inner { display: flex; align-items: center; gap: 12px; }
+.filter-icon { color: var(--text-muted); flex-shrink: 0; }
+.school-select { flex: 1; padding: 8px 12px; border: 1px solid var(--border-default); border-radius: 8px; font-size: 14px; font-weight: 600; background: white; cursor: pointer; outline: none; }
+.school-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px var(--primary-100); }
+.school-count { font-size: 12px; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+.school-cell { font-size: 13px; font-weight: 600; color: var(--text-primary); }
 .tabs { display: flex; gap: 12px; border-bottom: 1px solid var(--border-default); padding-bottom: 4px; }
 .tab-item { padding: 12px 24px; font-weight: 600; font-size: 14px; border-bottom: 3px solid transparent; cursor: pointer; color: var(--text-secondary); transition: all 0.2s; }
 .tab-item.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }

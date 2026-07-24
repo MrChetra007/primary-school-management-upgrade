@@ -1,140 +1,1114 @@
 <!DOCTYPE html>
 <html lang="km">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>វិធីចែក - Long Division Step-by-Step</title>
-    <style>
-        body {
-            font-family: 'Khmer OS Siemreap', 'Segoe UI', Tahoma, sans-serif;
-            background-color: #f0f4f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            max-width: 500px;
-            width: 100%;
-        }
-        h2 {
-            text-align: center;
-            color: #2c3e50;
-            margin-top: 0;
-            font-size: 1.5rem;
-        }
-        /* Custom Division Layout matching textbook style */
-        .division-display {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            margin-bottom: 20px;
-        }
-        .math-box {
-            display: grid;
-            grid-template-columns: auto auto auto;
-            column-gap: 12px;
-            row-gap: 6px;
-            font-size: 2.2rem;
-            font-weight: bold;
-            color: #2563eb;
-            position: relative;
-            padding: 10px 20px;
-        }
-        /* Vertical line separator */
-        .math-box::after {
-            content: "";
-            position: absolute;
-            top: 5px;
-            bottom: 5px;
-            right: 85px;
-            width: 3px;
-            background-color: #2563eb;
-        }
-        /* Horizontal line under divisor */
-        .math-box::before {
-            content: "";
-            position: absolute;
-            top: 60px;
-            right: 15px;
-            width: 75px;
-            height: 3px;
-            background-color: #2563eb;
-        }
-        .sub-step {
-            font-size: 1.4rem;
-            color: #64748b;
-        }
-        /* Step-by-step interactive tabs or list */
-        .steps-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .step-item {
-            background: #f1f5f9;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border-left: 4px solid #cbd5e1;
-            font-size: 1rem;
-            color: #334155;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .step-item.active {
-            background: #eff6ff;
-            border-left-color: #2563eb;
-            color: #1e3a8a;
-            font-weight: 600;
-        }
-        .highlight {
-            color: #dc2626;
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSMS ពន្យល់បែបងាយៗ (ដូចក្មេងអាយុ ៥ ឆ្នាំ ប៉ុន្តែស៊ីជម្រៅ)</title>
+<style>
+  :root{
+    --navy:#1E2761;
+    --navy-deep:#12173f;
+    --ice:#CADCFC;
+    --ice-soft:#eef3fe;
+    --paper:#ffffff;
+    --ink:#232946;
+    --muted:#5b6390;
+    --gold:#c9a227;
+    --good:#2f9e6b;
+    --warn:#b23a2f;
+    --font-display: 'Khmer OS Muol Light', 'Iowan Old Style','Palatino Linotype', Georgia, serif;
+    --font-body: 'Khmer OS Siemreap', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:var(--font-display); margin:0; color:var(--navy);}
+  p{margin:0 0 .75em 0;}
+  a{color:inherit;}
+
+  /* ---------- NAV ---------- */
+  header.topbar{
+    position:sticky; top:0; z-index:50;
+    background:var(--navy);
+    color:var(--ice-soft);
+    padding:.7rem 1.2rem;
+    display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+  }
+  header.topbar .brand{
+    font-family:var(--font-display);
+    font-size:1.05rem;
+    letter-spacing:.02em;
+  }
+  header.topbar .brand small{display:block; font-family:var(--font-body); font-size:.65rem; color:var(--ice); opacity:.8; font-weight:400;}
+  nav.toc{display:flex; gap:1.1rem; flex-wrap:wrap;}
+  nav.toc a{
+    font-size:.82rem; text-decoration:none; color:var(--ice);
+    opacity:.85; white-space:nowrap;
+  }
+  nav.toc a:hover{opacity:1; text-decoration:underline;}
+  #menu-toggle{display:none;}
+  .menu-btn{
+    display:none; background:none; border:1px solid var(--ice); color:var(--ice);
+    border-radius:6px; padding:.35rem .6rem; font-size:.9rem; cursor:pointer;
+  }
+  @media (max-width:820px){
+    nav.toc{
+      display:none; position:absolute; top:100%; left:0; right:0;
+      background:var(--navy-deep); flex-direction:column; padding:1rem 1.2rem; gap:.6rem;
+    }
+    #menu-toggle:checked ~ nav.toc{display:flex;}
+    .menu-btn{display:inline-block;}
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:5rem 1.2rem 4rem;
+    background:linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+    color:var(--ice-soft);
+    text-align:center;
+  }
+  .hero h1{
+    color:#fff;
+    font-size:clamp(1.8rem, 4vw, 3rem);
+    max-width:18ch; margin:0 auto .6rem;
+    line-height:1.2;
+  }
+  .hero .sub{
+    max-width:60ch; margin:0 auto 1.6rem;
+    color:var(--ice); font-size:1.05rem;
+  }
+  .hero .badge-row{display:flex; justify-content:center; gap:.6rem; flex-wrap:wrap; font-size:.78rem;}
+  .hero .pill{
+    border:1px solid rgba(202,220,252,.4); color:var(--ice);
+    padding:.3rem .7rem; border-radius:99px;
+  }
+
+  /* ---------- SECTIONS ---------- */
+  main{max-width:980px; margin:0 auto; padding:0 1.2rem;}
+  section.group{padding:3.2rem 0; border-bottom:1px solid #e7ebf7;}
+  section.group:last-of-type{border-bottom:none;}
+  .group-head{margin-bottom:1.8rem;}
+  .group-eyebrow{
+    font-size:.75rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--gold); font-weight:600; margin-bottom:.3rem;
+  }
+  .group-head h2{font-size:clamp(1.3rem,2.5vw,1.8rem);}
+
+  .cards{display:grid; gap:1.4rem;}
+
+  /* ---------- CARD ---------- */
+  .card{
+    border:1px solid #dfe6f7;
+    border-radius:14px;
+    background:var(--paper);
+    overflow:hidden;
+  }
+  .card-head{padding:1.3rem 1.4rem .9rem;}
+  .card-head h3{font-size:1.15rem;}
+  .card-head .subtitle{
+    font-size:.82rem; color:var(--muted); margin-top:.25rem; font-style:italic;
+  }
+  .tabs{
+    display:flex; gap:.4rem; padding:0 1.4rem; flex-wrap:wrap;
+    border-bottom:1px solid #eef1fa;
+  }
+  .tab-btn{
+    background:none; border:none; cursor:pointer;
+    font-family:var(--font-body); font-size:.85rem; font-weight:600;
+    color:var(--muted); padding:.6rem .3rem; border-bottom:3px solid transparent;
+    margin-bottom:-1px;
+  }
+  .tab-btn:hover{color:var(--navy);}
+  .tab-btn.active{color:var(--navy); border-bottom-color:var(--gold);}
+  .panel{display:none; padding:1.1rem 1.4rem 1.4rem; animation:fadeIn .25s ease;}
+  .panel.active{display:block;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+  .panel.story{font-size:1.02rem;}
+  .panel.mechanism{background:var(--ice-soft); font-size:.92rem;}
+  .panel.mechanism code, .term{
+    font-family:var(--font-mono); font-size:.85em;
+  }
+  .term{
+    background:#fff; border:1px solid #c9d2ee; border-radius:4px; padding:0 .35em;
+    cursor:pointer; color:var(--navy); font-weight:600;
+  }
+  .term:hover{background:var(--ice);}
+
+  /* diagram CTA */
+  .diagram-toggle{
+    margin:0 1.4rem 1.4rem; display:inline-flex; align-items:center; gap:.4rem;
+    font-size:.8rem; color:var(--muted);
+  }
+
+  /* ---------- DIAGRAM BLOCKS ---------- */
+  .diagram{
+    margin:0 1.4rem 1.4rem; padding:1.1rem;
+    background:var(--navy); border-radius:12px; color:var(--ice-soft);
+  }
+  .diagram h4{color:#fff; font-size:.95rem; margin-bottom:.6rem; font-family:var(--font-body); font-weight:700;}
+  .diagram-caption{font-size:.8rem; color:var(--ice); margin-top:.6rem; min-height:1.2em;}
+  .diagram button{
+    font-family:var(--font-body); font-size:.78rem; font-weight:600;
+    background:var(--ice); color:var(--navy); border:none; border-radius:8px;
+    padding:.5rem .8rem; cursor:pointer; margin:0 .4rem .4rem 0;
+  }
+  .diagram button:hover{background:#fff;}
+  .diagram button.active{background:var(--gold); color:#fff;}
+
+  /* cabinet */
+  .cabinet{display:flex; flex-direction:column; gap:.5rem; margin-top:.8rem;}
+  .drawer{
+    display:flex; align-items:center; gap:.6rem;
+    background:#2a3370; border:1px solid #3d478f; border-radius:8px;
+    padding:.6rem .8rem; font-size:.85rem; transition:transform .25s, background .25s;
+  }
+  .drawer .lock{font-size:1.1rem;}
+  .drawer.open{background:var(--good); transform:translateX(10px);}
+  .drawer.shake{animation:shake .4s;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);}
+    50%{transform:translateX(4px);} 75%{transform:translateX(-4px);}
+  }
+
+  /* corkboard */
+  .corkboard-diagram .board{
+    min-height:110px; background:#6b4a2b; border-radius:8px; padding:.8rem;
+    display:flex; gap:.5rem; flex-wrap:wrap; align-items:flex-start; margin:.7rem 0;
+  }
+  .note{
+    background:var(--gold); color:#3a2c00; font-size:.72rem; font-weight:700;
+    width:64px; height:64px; padding:.4rem; border-radius:2px;
+    box-shadow:1px 2px 4px rgba(0,0,0,.3);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    transform:rotate(var(--r,-2deg));
+    transition:opacity .5s, transform .5s;
+  }
+  .note.leaving{opacity:0; transform:translateY(60px) rotate(10deg);}
+  .office{
+    background:#0f1435; border:1px dashed var(--ice); border-radius:8px;
+    min-height:56px; padding:.6rem; display:flex; gap:.4rem; flex-wrap:wrap; align-items:center;
+  }
+  .office-label{font-size:.72rem; color:var(--ice); opacity:.8;}
+  .office .note{background:var(--good); color:#fff; width:40px; height:40px; font-size:.65rem;}
+
+  /* cache split */
+  .cache-diagram .split{display:flex; gap:.8rem; flex-wrap:wrap; margin-bottom:.6rem;}
+  .cache-diagram .col{
+    flex:1 1 200px; background:#2a3370; border-radius:8px; padding:.8rem;
+  }
+  .cache-diagram .col h5{margin:0 0 .3rem; font-size:.85rem; color:#fff;}
+  .badge{
+    display:inline-block; font-size:.75rem; font-weight:700; padding:.2rem .55rem;
+    border-radius:99px; margin-top:.4rem;
+  }
+  .badge.fresh{background:var(--good); color:#fff;}
+  .badge.stale{background:var(--warn); color:#fff;}
+
+  /* relationship svg */
+  .relationship-diagram svg{width:100%; height:auto; background:#141a47; border-radius:8px;}
+  .relationship-diagram .hidden{display:none;}
+  .rel-node rect, .rel-node circle{fill:#2a3370; stroke:var(--ice); stroke-width:1;}
+  .rel-node.hub rect{fill:var(--gold); stroke:none;}
+  .rel-node text{fill:#fff; font-size:11px; font-family:var(--font-body);}
+  .rel-line{stroke:var(--ice); stroke-width:1.5; opacity:.8;}
+
+  /* ---------- GLOSSARY ---------- */
+  .glossary-strip{display:flex; flex-wrap:wrap; gap:.5rem;}
+  .glossary-strip .term{background:var(--ice-soft);}
+
+  #tooltip{
+    position:fixed; max-width:260px; background:var(--navy); color:#fff;
+    font-size:.8rem; padding:.6rem .8rem; border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,.25);
+    z-index:200; display:none; line-height:1.4;
+  }
+  #tooltip::after{content:''; position:absolute; bottom:-6px; left:16px; width:12px; height:12px; background:var(--navy); transform:rotate(45deg);}
+
+  footer{
+    text-align:center; padding:2.5rem 1.2rem 3.5rem; color:var(--muted); font-size:.82rem;
+  }
+</style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>វិធីចែក (Long Division)</h2>
-        
-        <!-- Matching Layout -->
-        <div class="division-display">
-            <div class="math-box">
-                <span>42</span>
-                <span>|</span>
-                <span>5</span>
-                <span style="grid-column: 3; font-size: 1.8rem; text-align: center;">8</span>
-                <span style="grid-column: 1; font-size: 1.8rem;">40</span>
-                <span style="grid-column: 1; font-size: 1.8rem; border-top: 2px solid #2563eb; padding-top: 2px;">2</span>
-            </div>
-        </div>
+<header class="topbar">
+  <div class="brand">PSMS, ពន្យល់<small>កម្មវិធីសាលារៀនពិតប្រាកដ។ គ្មានពាក្យបច្ចេកទេសស្មុគស្មាញឡើយ។</small></div>
+  <input type="checkbox" id="menu-toggle" style="display:none">
+  <label for="menu-toggle" class="menu-btn">☰</label>
+  <nav class="toc">
+    <a href="#identity">គណនី</a>
+    <a href="#security">សុវត្ថិភាព</a>
+    <a href="#offline">ក្រៅបណ្ដាញ</a>
+    <a href="#auth">ការរក្សាល็อกอิน</a>
+    <a href="#realtime">ការជូនដំណឹង</a>
+    <a href="#pwa">កម្មវិធីផ្ទាល់</a>
+    <a href="#database">មូលដ្ឋានទិន្នន័យ</a>
+    <a href="#logic">កូដប្រព័ន្ធអាជីវកម្ម</a>
+    <a href="#glossary">វចនានុក្រម</a>
+  </nav>
+</header>
 
-        <!-- Step-by-Step Breakdown -->
-        <div class="steps-list">
-            <div class="step-item active">
-                <strong>ជំហានទី ១៖</strong> មើលលេខខាងឆ្វេងបំផុត <span class="highlight">4</span> តូចជាងតួចែក <span class="highlight">5</span> ដូច្នេះយើងត្រូវយកទាំងមូល <span class="highlight">42</span>។
-            </div>
-            <div class="step-item">
-                <strong>ជំហានទី ២៖</strong> រកផលគុណនឹង <span class="highlight">5</span> ដែលជិត <span class="highlight">42</span> បំផុតគឺ <span class="highlight">5 × 8 = 40</span>។ សរសេរ <span class="highlight">8</span> ជាលទ្ធផល។
-            </div>
-            <div class="step-item">
-                <strong>ជំហានទី ៣៖</strong> យក <span class="highlight">42 - 40 = 2</span>។ លេខ <span class="highlight">2</span> នេះគឺជាសំណល់ (Remainder)។
-            </div>
-            <div class="step-item" style="background: #f0fdf4; border-left-color: #22c55e; color: #166534;">
-                <strong>ចម្លើយ៖</strong> ដូចនេះ ៖ 42 ÷ 5 = 8 សំណល់ 2
-            </div>
+<section class="hero">
+  <h1>វាមានភាពងាយស្រួលជាងអ្វីដែលអ្នកបានឃើញទៅទៀត។</h1>
+  <p class="sub">PSMS គឺជាប្រព័ន្ធគ្រប់គ្រងសាលារៀនដ៏ពិតប្រាកដមួយ ដែលកំពុងប្រើប្រាស់នៅសាលារៀនមួយក្នុងខេត្តបាត់ដំបង ប្រទេសកម្ពុជា — បង្កើតឡើងដោយប្រើ Vue 3 និង Supabase។ រាល់គំនិតខាងក្រោមចាប់ផ្តើមពីរឿងនិទានមួយ បន្ទាប់មកបង្ហាញអ្នកពីដំណើរការជាក់ស្តែងនៅពីក្រោយខ្នងរបស់វា។</p>
+  <div class="badge-row">
+    <span class="pill">រឿងនិទាន → ការបកប្រែ → យន្តការជាក់ស្តែង</span>
+    <span class="pill">ចុចលើកាតណាមួយដើម្បីស្វែងយល់បន្ថែម</span>
+    <span class="pill">ពាក្យគូសបន្ទាត់ក្រោមអាចចុចបាន</span>
+  </div>
+</section>
+
+<main>
+
+<!-- ============ SECTION 1: IDENTITY ============ -->
+<section class="group" id="identity">
+  <div class="group-head">
+    <div class="group-eyebrow">អត្តសញ្ញាណ និង គណនី</div>
+    <h2>ហេតុអ្វីបានជាមនុស្សគ្រប់គ្នាត្រូវចាប់ផ្តើមដំបូងជាប្រភេទបុគ្គលិកដូចគ្នា?</h2>
+  </div>
+  <div class="cards">
+
+    <article class="card">
+      <div class="card-head">
+        <h3>ហេតុអ្វីបានជាផ្លាកឈ្មោះបុគ្គលិកគ្រប់រូបសរសេរថា "គ្រូបង្រៀន" (Teacher)</h3>
+        <p class="subtitle">តារាង <span class="term" data-term="teachers-table">teachers</span> តែមួយរួមជាមួយការកំណត់តួនាទី</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>នៅសាលារៀននេះ មនុស្សធំគ្រប់រូបដែលធ្វើការទីនេះពាក់ផ្លាកឈ្មោះដំបូងដូចគ្នាគឺ៖ "គ្រូបង្រៀន"។ គ្រូបង្រៀនខ្លះក៏កាន់សោបម្រុងផងដែរ — មួយបើកការិយាល័យនាយកសាលា មួយទៀតបើកទូដាក់សៀវភៅបណ្ណាល័យ — ប៉ុន្តែអ្នកត្រូវតែពាក់ផ្លាកឈ្មោះគ្រូបង្រៀនជាមុនសិន ទើបអ្នកត្រូវបានអនុញ្ញាតឱ្យកាន់សោបម្រុងណាមួយបាន។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>នៅក្នុងកម្មវិធី "ផ្លាកឈ្មោះ" គឺជารịchដេញដอง (Row) ក្នុងតារាង <span class="term" data-term="teachers-table">teachers</span> ដែលគណនីបុគ្គលិកនីមួយៗទទួលបាន ហើយ "សោបម្រុង" គឺជាទង់កំណត់ <span class="term" data-term="role-flag">តួនាទី (role)</span> (admin, librarian) ដែលដាក់ត្រួតលើវា។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>រាល់គណនីបុគ្គលិកទាំងអស់ មិនថាជានាយក, admin, គ្រូបង្រៀន, ឬបុគ្គលិកបណ្ណាល័យ គឺជារịchដេញដองតែមួយនៅក្នុងតារាង <code>teachers</code>។ កូឡោន <code>role</code> គឺជាអ្នកកំណត់ថattes សុទ្ធតែអេក្រង់ណាខ្លះនឹងត្រូវបើកឱ្យប្រើប្រាស់ ប៉ុន្តែរịchដេញដองមូលដ្ឋាន និង <code>school_id</code> របស់វាគឺមានទម្រង់ដូចគ្នាសម្រាប់គ្រប់គ្នា។ ប្រព័ន្ធសិទ្ធិតែមួយ គំរូសំណួរទិន្នន័យតែមួយ កន្លែងមើលតែមួយ — ជំនួសឱ្យការបង្កើតតារាង <code>admins</code> និង <code>librarians</code> ដាច់ដោយឡែកពីគ្នាដែលត្រូវការច្បាប់សុវត្ថិភាពរៀងខ្លួនៗ។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>ទូដាក់ឥវ៉ាន់ (Locker) នីមួយៗមានឈ្មោះតែមួយគត់នៅលើនោះ</h3>
+        <p class="subtitle">ទំនាក់ទំនងរវាង <span class="term" data-term="one-to-one">users ↔ teachers</span> គឺបែបមួយទល់នឹងមួយ</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>ទូដាក់ឥវ៉ាន់នីមួយៗនៅតាមរបៀងមានឈ្មោះតែមួយគត់ជាប់នឹងវា ហើយឈ្មោះនីមួយៗក៏មានទូដាក់ឥវ៉ាន់ផ្ទាល់ខ្លួនតែមួយដែរ។ គ្មាននរណាម្នាក់ប្រើទូជាមួយគ្នାନោះទេ ហើយក៏គ្មានឈ្មោះណាដែលវង្វេងវង្វាន់អត់មានទូផ្ទាល់ខ្លួនដែរ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ទូដាក់ឥវ៉ាន់" គឺជារịchដេញដองនៅក្នុងតារាង <code>teachers</code> ហើយ "ឈ្មោះ" គឺជារịchដេញដองនៅក្នុងតារាង <span class="term" data-term="auth-users">users</span> របស់ Supabase ដែលភ្ជាប់គ្នាទៅវិញទៅមកយ៉ាងជាក់លាក់។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>កូឡោន <code>teachers.user_id</code> រក្សាមុខងារគ្រាប់ចុចបរទេស (foreign key) ដែលចង្អុលត្រឡប់ទៅកាន់ <code>auth.users.id</code>។ ការចូលគណនី និងអត្តសញ្ញាណ (អ៊ីមែល, ពាក្យសម្ងាត់, សម័យប្រើប្រាស់) គឺស្ថិតនៅក្នុងតារាង <code>users</code>; ចំណែកឯព័ត៌មានអំពីការជាបុគ្គលិកនៅសាលារៀនជាក់លាក់ណាមួយ (ឈ្មោះ, តួនាទី, <code>school_id</code>) គឺស្ថិតនៅក្នុងតារាង <code>teachers</code>។ ការបែងចែកនេះអនុញ្ញាតឱ្យ Supabase Auth គ្រប់គ្រងព័ត៌មានសម្ងាត់ដោយ PSMS មិនចាំបាច់ប៉ះពាល់ដល់ពាក្យសម្ងាត់ឡើយ ខណៈពេលដែលតារាង <code>teachers</code> មានសេរីភាពក្នុងការបន្ថែមវិសាលភាពជាក់លាក់របស់សាលារៀន។</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ SECTION 2: SECURITY ============ -->
+<section class="group" id="security">
+  <div class="group-head">
+    <div class="group-eyebrow">Multi-tenancy &amp; សុវត្ថិភាព</div>
+    <h2>ហេតុអ្វីបានជាសាលារៀនមួយមិនអាចមើលឃើញសិស្សរបស់សាលាដទៃទៀតបាន?</h2>
+  </div>
+  <div class="cards">
+
+    <article class="card">
+      <div class="card-head">
+        <h3>ទូឯកសារធំមួយ ប៉ុន្តែមានរន្ធសោរាប់រយ</h3>
+        <p class="subtitle"><span class="term" data-term="rls">Row-Level Security (សុវត្ថិភាពកម្រិតរịchដេញដอง)</span> — ការពន្លាត់ដាច់ដោយឡែកសម្រាប់សាលាច្រើន</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>សូមស្រមៃមើលទូដាក់ឯកសារដ៏ធំសម្បើមមួយនៅក្នុងបន្ទប់ក្រោមដី ដែលត្រូវបានប្រើប្រាស់រួមគ្នាដោយសាលារៀនទាំងអស់ក្នុងប្រទេស។ រន្ធដកនីមួយៗមានសោរៀងខ្លួន។ សោរបស់គ្រូបង្រៀនម្នាក់អាចបើកបានតែរន្ធឯកសារសម្រាប់សាលារៀនរបស់គាត់ប៉ុណ្ណោះ ទោះបីជាឈរនៅជិតរន្ធឯកសាររបស់សាលារាប់រយផ្សេងទៀតក៏ដោយ ក៏សោរបស់គាត់មិនអាចបើករន្ធរបស់សាលាដទៃទៀតបានឡើយ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ទូឯកសារ" គឺជាមូលដ្ឋានទិន្នន័យ PSMS តែមួយ, "រន្ធឯកសារ" គឺជារịchដេញដองនៅក្នុងតារាងនីមួយៗ, និង "សោ" គឺជាអត្តសញ្ញាណដែលបានចូលគណនីរបស់គ្រូបង្រៀនដែលត្រូវផ្ទៀងផ្ទាត់ជាមួយនឹងកូឡោន <code>school_id</code>។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>តារាងនីមួយៗដែលបែងចែកតាមសាលា (tenant-scoped) មានកូឡោន <code>school_id</code> និងគោលការណ៍ RLS ដូចជា <code>USING (school_id = (SELECT school_id FROM teachers WHERE user_id = auth.uid()))</code>។ Postgres ធ្វើការវាយតម្លៃរឿងនេះនៅលើរịchដេញដองនីមួយៗនៃសំណួរទិន្នន័យនីមួយៗ ដូច្នេះទោះបីជាមានคำสั่ง <code>SELECT *</code> សាមញ្ញក៏ដោយ ក៏វានឹងទាញយកតែរịchដេញដองណាដែលត្រូវគ្នានឹងសាលារៀនរបស់អ្នកប្រើប្រាស់ប៉ុណ្ណោះដោយស្ងៀមស្ងាត់។ មមូលដ្ឋានទិន្នន័យតែមួយ ស្ថាបត្យកម្មតែមួយ — ការបែងចែកដាច់ដោយឡែកត្រូវបានបង្ខំដោយម៉ាស៊ីនមូលដ្ឋានទិន្នន័យផ្ទាល់ មិនមែនកូដកម្មវិធីទេ។</p>
+      </div>
+      <div class="diagram-toggle">👇 សាកល្បងមើល — ជ្រើសរើសសោខាងក្រោម</div>
+      <div class="diagram cabinet-diagram">
+        <h4>ជ្រើសរើសសោរបស់គ្រូបង្រៀន</h4>
+        <div class="key-picker">
+          <button class="key-btn active" data-school="a">🔑 រីវើសាយ (Riverside)</button>
+          <button class="key-btn" data-school="b">🔑 ហ៊ីលគ្រេស (Hillcrest)</button>
+          <button class="key-btn" data-school="c">🔑 សັນរ៉ាយ (Sunrise)</button>
         </div>
-    </div>
+        <div class="cabinet">
+          <div class="drawer" data-school="a"><span class="lock">🔒</span> សិស្សរបស់សាលារៀន រីវើសាយ</div>
+          <div class="drawer" data-school="b"><span class="lock">🔒</span> សិស្សរបស់សាលារៀន ហ៊ីលគ្រេស</div>
+          <div class="drawer" data-school="c"><span class="lock">🔒</span> សិស្សរបស់សាលារៀន សັນរ៉ាយ</div>
+        </div>
+        <p class="diagram-caption" id="cabinet-caption">សោរបស់រីវើសាយអាចបើកបានតែសោរបស់រីវើសាយប៉ុណ្ណោះ។ ចុចលើសោផ្សេងទៀត។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>សំបុត្រឆ្នោតដែលបង្ហាញតែរង្វាន់មួយប៉ុណ្ណោះ</h3>
+        <p class="subtitle">ការចូលប្រើប្រាស់ដោយគ្មានការផ្ទៀងផ្ទាត់ (Anon) / <span class="term" data-term="report-link">តាមតំណភ្ជាប់ប៉ុណ្ណោះ</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>អាណាព្យាបាលម្នាក់ទទួលបានសំបុត្រឆ្នោតមួយសន្លឹក។ មិនថាគាត់មើលវាប៉ុន្មានដង ត្រឡប់វាចុះឡើង ឬអង្រួនវាយ៉ាងណាក៏ដោយ ក៏វាបង្ហាញតែរង្វាន់មួយគត់គឺ៖ របាយការណ៍សិក្សារបស់កូនខ្លួនឯង។ វាមិនអាចប្តូរយករបស់កូនអ្នកដទៃបានទេ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"សំបុត្រឆ្នោត" គឺជាតំណភ្ជាប់ (link) ដែលមានផ្ទុកលេខសម្គាល់អត្តសញ្ញាណ <code>report_link_id</code> តែមួយគត់ ហើយ "រង្វាន់តែមួយ" គឺជាកំណត់ត្រាសិស្សតែមួយដែលគោលការណ៍នៃតំណភ្ជាប់នោះអនុញ្ញាតឱ្យមើល។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>តំណភ្ជាប់របាយការណ៍ប្រើប្រាស់កូនសោដែលមិនចាំបាច់ផ្ទៀងផ្ទាត់ (<code>anon</code>) ដូច្នេះគោលការណ៍ RLS មិនអាចពិនិត្យមើល <code>auth.uid()</code> បានទេ។ ផ្ទុយទៅវិញ វាពិនិត្យមើលថាតើលេខសម្គាល់ (id) របស់រịchដេញដองនោះត្រូវគ្នានឹង <code>report_link_id</code> ដែលបង្កប់នៅក្នុង URL ដែរឬទេ — ដែលជា UUID ចៃដន្យ និងមិនអាចទាយដឹង ដែលដើរតួជាពាក្យសម្ងាត់។ មិនបាច់ចូលគណនី និងសំខាន់បំផុតគឺគ្មានផ្លូវណាអាចចូលទៅមើលទិន្នន័យរបស់សិស្សផ្សេងទៀតបានឡើយ។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>នាយកសាលាត្រូវតែចុះហត្ថលេខាមុនពេលវាត្រូវបានផ្ញើចេញ</h3>
+        <p class="subtitle">ដំណើរការអនុម័តតំណភ្ជាប់របាយការណ៍</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>មុនពេលសំបុត្រមួយច្បាប់ត្រូវបានបញ្ជូនត្រឡប់ទៅផ្ទះដោយមានត្រាផ្លូវការរបស់សាលា នាយកសាលាត្រូវតែអាននិងចុះហត្ថលេខាលើវាជាមុនសិន។ គ្រូបង្រៀនម្នាក់អាចសរសេរសំបុត្រនោះបាន ប៉ុន្តែគាត់មិនអាចបោះត្រា និងផ្ញើវាចេញដោយខ្លួនឯងបានទេ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ត្រា" គឺស្ថានភាព (<code>status</code>) របស់តំណភ្ជាប់របាយការណ៍ដែលប្តូរទៅជា <code>approved</code> (បានអនុម័ត) ហើយ "តុរបស់នាយកសាលា" គឺជាអេក្រង់សម្រាប់ admin ប៉ុណ្ណោះដែលអាចកំណត់វាបាន។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>គ្រូបង្រៀនបង្កើតរបាយការណ៍មួយដែលមាន <code>status = 'draft'</code> (សេចក្តីព្រាង); RLS រារាំងកូនសោ anon មិនឱ្យអានរịchដេញដองที่เป็นសេចក្តីព្រាងឡើយ។ មានតែគណនីដែលមានតួនាទីជា admin ប៉ុណ្ណោះដែលអាចប្តូរ <code>status</code> ទៅជា <code>'approved'</code> — ដែលជាខណៈពេលជាក់លាក់ដែលរịchដេញដองនោះអាចមើលឃើញតាមរយៈគោលការណ៍តំណភ្ជាប់សាធារណៈ។ គ្រូបង្រៀនរៀបចំអ្វីៗគ្រប់យ៉ាង ប៉ុន្តែការផ្លាស់ប្តូរទៅជា "ការផ្សព្វផ្សាយ" ត្រូវបានគ្រប់គ្រងដោយតួនាទីផ្សេងទាំងស្រុង។</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ SECTION 3: OFFLINE ============ -->
+<section class="group" id="offline">
+  <div class="group-head">
+    <div class="group-eyebrow">ក្រៅបណ្ដាញ (Offline-first) &amp; ការធ្វើសមកាលកម្ម (Syncing)</div>
+    <h2>តើមានអ្វីកើតឡើងនៅពេលអ៊ីនធឺណិតក្នុងបន្ទប់រៀនដាច់?</h2>
+  </div>
+  <div class="cards">
+
+    <article class="card">
+      <div class="card-head">
+        <h3>ក្រដាសស្ទីគ័រនៅលើក្តារខៀនបិតសេចក្តីជូនដំណឹង (Corkboard)</h3>
+        <p class="subtitle">ជួររង់ចាំការសរសេរក្រៅបណ្ដាញ (offline write queue), ច្រោះចេញតាមរបៀប <span class="term" data-term="fifo">FIFO (ចូលមុន ចេញមុន)</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>ខ្សែទូរស័ព្ទក្នុងបន្ទប់រៀនដាច់។ ជំនួសឱ្យការបោះបង់ចោល គ្រូបង្រៀនបានសរសេរពិន្ទូនីមួយៗនៅលើក្រដាសស្ទីគ័រដាច់ដោយឡែកពីគ្នា ហើយបិតវានៅលើក្តារខៀនតាមលំដាប់លំដោយដែលគាត់បានសរសេរ។ នៅពេលដែលខ្សែទូរស័ព្ទដំណើរការឡើងវិញ គាត់មិនបានស្រែកប្រាប់វាទាំងអស់គ្នាតែម្តងនោះទេ — គឺគាត់អានវាចេញពីក្តារខៀនពីរសន្លឹក ពីលើចុះក្រោម តាមលំដាប់លំដោយពិតប្រាកដដែលបានបិតវាឡើង។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ក្តារខៀន" គឺជាជួររង់ចាំក្នុងអង្គចងចាំក្នុងឧបករណ៍ (local queue) សម្រាប់រាល់ការកែប្រែដែលកំពុងរង់ចាំ។ "ការអានវាចេញតាមលំដាប់" គឺជាវិធីសាស្ត្រដែលជួររង់ចាំនោះបញ្ចេញទិន្នន័យ (drains) នៅពេលដែលការតភ្ជាប់អ៊ីនធឺណិតត្រឡប់មកវិញ។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>មុខងារ <code>useOfflineMutation</code> ធ្វើការស្ទាក់ចាប់រាល់ការសរសេរទិន្នន័យនៅពេលដែល <code>navigator.onLine</code> មានតម្លៃជា false ហើយបន្ថែមវាទៅក្នុងជួររង់ចាំដែលគាំទ្រដោយ IndexedDB ជំនួបរួចបរាជ័យ។ ការបញ្ចូលនីមួយៗរក្សាទុកពេលវេលា (timestamp) និងទិន្នន័យរបស់វា។ អ្នកស្តាប់អនឡាញ (online listener) ជំរុញមុខងារសម្អាតជួររង់ចាំដែលចាក់សារថ្មីនូវការកែប្រែដែលបានតម្រង់ជួរទៅកាន់ Supabase យ៉ាងតឹងរឹងតាមលំដាប់លំដោយនៃការបញ្ចូល — ពិន្ទុដែលបានបញ្ចូលនៅម៉ោង 9:01 នឹងមិនត្រូវបានបញ្ជូនទៅក្រោយពិន្ទុដែលបញ្ចូលនៅម៉ោង 9:04 នោះទេ។</p>
+      </div>
+      <div class="diagram-toggle">👇 សាកល្បងមើល</div>
+      <div class="diagram corkboard-diagram">
+        <h4>ជួររង់ចាំការសរសេរក្រៅបណ្ដាញ</h4>
+        <div>
+          <button id="add-note-btn">✏️ សរសេរពិន្ទុ (ក្រៅបណ្ដាញ)</button>
+          <button id="sync-btn">📶 ការតភ្ជាប់បានត្រឡប់មកវិញ — ធ្វើសមកាលកម្មឥឡូវនេះ</button>
+        </div>
+        <div class="board" id="corkboard"></div>
+        <div class="office" id="office-tray"><span class="office-label">🏫 ការិយាល័យ (បានធ្វើសមកាលកម្ម, តាមលំដាប់លំដោយ)</span></div>
+        <p class="diagram-caption" id="cork-caption">សរសេរកំណត់ចំណាំបន្តិចបន្តួចពេលក្រៅបណ្ដាញ រួចធ្វើសមកាលកម្ម — មើលពួកវាទៅដល់តាមលំដាប់លំដោយពិតប្រាកដដែលបានសរសេរ។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>សរសេរមុន អានមុន</h3>
+        <p class="subtitle">ហេតុអ្វីបានជាជួររង់ចាំមិនអាចផ្លាស់ប្តូរលំដាប់ដោយខ្លួនឯង</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>ក្រដាសស្ទីគ័រត្រូវបានទាញចេញពីក្តារខៀនក្នុងលំដាប់លំដោយពិតប្រាកដ — សរសេរមុន អានចេញឮៗមុន។ គ្មាននរណាម្នាក់ត្រូវបានអនុញ្ញាតឱ្យទាញយករបស់ពីកណ្តាលគំនរមកស្រែកប្រាប់មុនពេលនោះទេ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"សរសេរមុន អានមុន" គឺ <span class="term" data-term="fifo">FIFO</span> (First-In, First-Out — ចូលមុន ចេញមុន) ដែលជាការធានាលំដាប់នៅលើជួររង់ចាំក្រៅបណ្ដាញ។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>ជួររង់ចាំត្រូវបានកំណត់ដោយលេខលំដាប់តម្រៀបដោយស្វ័យប្រវត្តិ (auto-incrementing sequence number) ដែលកំណត់នៅពេលសរសេរ មិនមែនពេលធ្វើសមកាលកម្មទេ។ រង្វិលជុំសម្អាត (drain loop) តែងតែស្នើសុំលេខលំដាប់ទាបបំផុតដែលមិនទាន់បានធ្វើសមកាលកម្មជាបន្តបន្ទាប់ និងរង់ចាំឱ្យវាជោគជ័យមុនពេលបន្តទៅមុខទៀត។ នេះមានសារៈសំខាន់សម្រាប់ការសរសេរទិន្នន័យពឹងផ្អែកលើគ្នា — ឧទាហរណ៍ ពិន្ទុដែលយោងទៅលើកំណត់ត្រាវត្តមានដែលបានបង្កើតឡើងប្រាំនាទីមុន — ដែលការចាក់សារថ្មីខុសលំដាប់អាចបំពានលើកូនសោបរទេស ឬសរសេរជាន់លើការកែសម្រួលពេលក្រោយជាមួយនឹងការកែសម្រួលមុន។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>ឯកសារថតចម្លងដែលមានត្រា "ប្រើបានត្រឹមតែ ២៤ ម៉ោងប៉ុណ្ណោះ"</h3>
+        <p class="subtitle">ការរក្សាទុកទិន្នន័យអានជាបណ្តោះអាសន្ន (Read cache) ជាមួយ <span class="term" data-term="ttl">TTL (ថិរវេលាអាយុកាល)</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>គ្រូបង្រៀនម្នាក់រក្សាទុកឯកសារថតចម្លងបញ្ជីឈ្មោះសិស្សថ្ងៃនេះក្នុងកាបូបរបស់គាត់ ក្នុងករណីដែលការិយាល័យបិទនៅពេលដែលគាត់ត្រូវការវា។ ឯកសារថតចម្លងនោះដំណើរការបានល្អមួយរយៈ — ប៉ុន្តែវាមានត្រាអុចមួយថា៖ "ប្រើបានត្រឹមតែ ២៤ ម៉ោងប៉ុណ្ណោះ"។ បន្ទាប់ពីពេលនោះមក វាចាស់ពេកមិនអាចទុកចិត្តបានដោយមិនបាច់ពិនិត្យម្តងទៀតទេ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ឯកសារថតចម្លងដែលមានត្រា" គឺជាទិន្នន័យអានដែលបានរក្សាទុកក្នុងឃ្លាំងទិន្នន័យបណ្តោះអាសន្ន (cache) ជាមួយពេលវេលាទាញយកដែលបានរក្សាទុក។ "ចាស់ពេកមិនអាចទុកចិត្តបាន" គឺជាការផុតកំណត់អាយុកាល (TTL) នៃ cache នោះ។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>សំណួរទិន្នន័យដែលត្រូវការអានច្រើន (បញ្ជីឈ្មោះថ្នាក់, បញ្ជីមុខវិជ្ជា) ត្រូវបានរក្សាទុកក្នុង IndexedDB រួមជាមួយនឹងពេលវេលាទាញយក <code>fetched_at</code>។ ស្ថិតក្រោម TTL, ឃ្លាំងទិន្នន័យបណ្តោះអាសន្នបម្រើការបានយ៉ាងលឿនភ្លាមៗដោយគ្មានការបញ្ជូនទិន្នន័យឆ្លងបណ្តាញ (network round-trip)។ លើសពីនេះទៅទៀត ច្បាប់ចម្លងដែលបានរក្សាទុកនៅតែបង្ហាញភ្លាមៗ — មិនដែលមានអេក្រង់ទទេឡើយ — ប៉ុន្តែដំណើរការទាញយកទិន្នន័យថ្មីនៅផ្ទៃខាងក្រោយ (background refetch) នឹងជំនួសវា។ ជួររង់ចាំការសរសេរ និងឃ្លាំងទិន្នន័យបណ្តោះអាសន្នអានគឺជាប្រព័ន្ធដាច់ដោយឡែកពីគ្នាដោយចេតនា ដែលមានរបៀបបរាជ័យផ្ទុយគ្នា៖ ការសរសេរមិនត្រូវបាត់បង់ឡើយ ចំណែកឯការអានត្រូវបានអនុញ្ញាតឱ្យចាស់បន្តិចបន្តួចបាន។</p>
+      </div>
+      <div class="diagram-toggle">👇 សាកល្បងមើល</div>
+      <div class="diagram cache-diagram">
+        <h4>ជួររង់ចាំការសរសេរ vs. ឃ្លាំងទិន្នន័យបណ្តោះអាសន្នអាន</h4>
+        <div class="split">
+          <div class="col write-col">
+            <h5>✍️ ជួររង់ចាំការសរសេរ</h5>
+            <p style="font-size:.82rem; margin:0;">មិនចេះផុតកំណត់។ រង់ចាំដោយអត់ធ្មត់ តាមលំដាប់លំដោយពិតប្រាកដ រហូតដល់អាចផ្ញើបាន។</p>
+          </div>
+          <div class="col read-col">
+            <h5>📋 ឃ្លាំងទិន្នន័យបណ្តោះអាសន្នអាន (Read Cache)</h5>
+            <p style="font-size:.82rem; margin:0;" id="cache-age">បានទាញយកទើបតែពេលនេះ។</p>
+            <span class="badge fresh" id="cache-badge">🟢 ថ្មី</span>
+          </div>
+        </div>
+        <button id="advance-time-btn">⏩ រំលងពេលវេលាទៅមុខ ៦ ម៉ោង</button>
+        <button id="reset-time-btn">↺ កំណត់នាឡិកាឡើងវិញ</button>
+        <p class="diagram-caption">បន្តរំលងពេលវេលាទៅមុខ — មើលឃ្លាំងទិន្នន័យបណ្តោះអាសន្នឆ្លងកាត់ត្រា ២៤ ម៉ោងរបស់វា។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>"ប្រយ័ត្ន — នេះអាចជាទិន្នន័យចាស់"</h3>
+        <p class="subtitle">ផ្លាកសញ្ញាទិន្នន័យចាស់ (Stale-data badge)</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>បិតជាប់នឹងឯកសារថតចម្លងនោះគឺក្រដាសស្ទីគ័រតូចមួយ៖ "ប្រយ័ត្ន — នេះអាចជាបញ្ជីឈ្មោះរបស់ម្សិលមិញ។" គ្មាននរណាម្នាក់ច្រឡំថាក្រដាសចម្លងនោះជាឯកសារពិតប្រាកដដែលទើបតែបោះពុម្ពថ្មីនោះទេ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ក្រដាសស្ទីគ័រ" គឺជាផ្លាកសញ្ញា UI តូចមួយដែលបង្ហាញនៅពេលណាដែលទិន្នន័យត្រូវបានទាញចេញពីឃ្លាំងទិន្នន័យបណ្តោះអាសន្នដែលបានផុតកំណត់។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>នៅពេលដែលសមាសភាគ (component) បង្ហាញទិន្នន័យពីឃ្លាំងទិន្នន័យបណ្តោះអាសន្នដែលមានអាយុកាលចាស់ជាង TTL, វាបានកំណត់ទង់ <code>isStale</code> ភ្ជាប់ជាមួយទិន្នន័យមុនពេលការទាញយកទិន្នន័យថ្មីនៅផ្ទៃខាងក្រោយត្រូវបានបញ្ចប់។ UI អានទង់នោះដើម្បីបង្ហាញផ្លាកសញ្ញាតូចមួយ "អាចជាទិន្នន័យចាស់" ដែលនឹងបាត់ទៅវិញភ្លាមៗនៅពេលដែលការទាញយកថ្មីបានបញ្ចប់ ហើយពេលវេលារបស់ឃ្លាំងទិន្នន័យត្រូវបានធ្វើបច្ចុប្បន្នភាព — ដែលเป็นการទទួលស្គាល់ដោយបើកចំហចំពោះភាពមិនប្រាកដប្រជា ជំនួសឱ្យការទាយដោយស្ងៀមស្ងាត់។</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ SECTION 4: AUTH ============ -->
+<section class="group" id="auth">
+  <div class="group-head">
+    <div class="group-eyebrow">ការរក្សាអត្តសញ្ញាណ (Auth Persistence)</div>
+    <h2>ហេតុអ្វីបានជាការបិទកម្មវិធីមិនធ្វើឱ្យអ្នកត្រូវចាកចេញពីប្រព័ន្ធ (Log out)?</h2>
+  </div>
+  <div class="cards">
+
+    <article class="card">
+      <div class="card-head">
+        <h3>ខ្សែដៃសួនកម្សាន្ត (Amusement park wristband)</h3>
+        <p class="subtitle">โทเค็นเซสชัน (<span class="term" data-term="jwt">token</span>) ที่เก็บไว้ในเครื่อง</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>នៅមាត់ទ្វារសួនកម្សាន្ត អ្នកទទួលបានការបោះត្រាជាខ្សែដៃ។ អ្នកអាចចាកចេញពីសួនកម្សាន្ត ញ៉ាំអាហារថ្ងៃត្រង់ ត្រឡប់ចូលមកវិញ ជិះទូកលេងម្តងទៀត — ទ្វារចូលចងចាំខ្សែដៃរបស់អ្នកពេញមួយថ្ងៃ ដោយមិនចាំបាច់ទិញសំបុត្រថ្មីទេ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ខ្សែដៃ" គឺជានិមិត្តសញ្ញាសម័យដែលបានចុះហត្ថលេខា (JWT) ដែលបានរក្សាទុកនៅលើឧបករណ៍។ "ទ្វារចងចាំវា" គឺជាកម្មវិធីដែលពិនិត្យមើលនិមិត្តសញ្ញានោះ ជំនួសឱ្យការស្នើសុំឱ្យអ្នកចូលគណនីម្តងទៀត។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>ពេលចូលគណនី Supabase Auth ចេញ access token និង refresh token ដែល PSMS រក្សាទុកក្នុងកន្លែងផ្ទុក (storage) ជំនួសឱ្យការរក្សាទុកតែក្នុងអង្គចងចាំ (memory)។ រាល់ពេលចាប់ផ្តើមកម្មវិធី គ라이언트 Supabase អានគូដែលបានរក្សាទុក និងបង្កើតសម័យឡើងវិញដោយស្ងៀមស្ងាត់មុនពេលអេក្រង់ណាមួយបង្ហាញ — អេក្រង់ចូលគណនីនឹងបង្ហាញក៏ต่อเมื่อគ្មាននិមិត្តសញ្ញាដែលសុពលភាពសោះតែប៉ុណ្ណោះ។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>ខ្សែដៃដដែល ដើរចូលមកថ្ងៃបន្ទាប់</h3>
+        <p class="subtitle">ហេតុអ្វីបានជាការបើកកម្មវិធីឡើងវិញមិនធ្វើឱ្យអ្នកหลุดពីប្រព័ន្ធ</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>ទោះបីជាអ្នកត្រឡប់ទៅផ្ទះហើយត្រឡប់មកវិញនៅថ្ងៃស្អែកដោយពាក់ខ្សែដៃដដែលនៅលើដៃរបស់អ្នកក៏ដោយ ក៏ទ្វារចូលចងចាំវាហើយគ្រវីដៃឱ្យអ្នកចូល — ដរាបណាខ្សែដៃនោះមិនទាន់ផុតកំណត់។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ទ្វារចងចាំវាស្អែក" គឺជាព្រឹត្តិការណ៍ <span class="term" data-term="initial-session">INITIAL_SESSION</span> ដែលគ라이언트 Supabase បាញ់ចេញពីនិមិត្តសញ្ញាដែលបានរក្សាទុកនិងនៅតែถูกต้อง មុនពេលអ្នកប្រើប្រាស់ធ្វើសកម្មភាពអ្វីទាំងអស់។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>ពេលចាប់ផ្តើមប្រព័ន្ធ <code>supabase.auth.onAuthStateChange</code> បាញ់ព្រឹត្តិការណ៍ <code>INITIAL_SESSION</code> ដែលមានសម័យណាមួយដែលបានស្តារឡើងវិញពីកន្លែងផ្ទុក (ឬ <code>null</code>)។ ឧបករណ៍ការពាររ៉ោតទ័ររបស់ PSMS (router guard) ត្រូវតែរង់ចាំព្រឹត្តិការណ៍នេះមុនពេលសម្រេចចិត្តថាតើត្រូវបញ្ជូនបន្តទៅកាន់ទំព័រចូលគណនីដែរឬទេ។ កំហុសដែលត្រូវបានជួសជុលនៅក្នុងគម្រោងនេះគឺការការពារពិនិត្យមើលស្ថានភាពសម័យមុនពេល <code>INITIAL_SESSION</code> ត្រូវបានបាញ់ — ដូច្នេះសម័យដែលបានរក្សាទុកយ៉ាងត្រឹមត្រូវនៅតែបំប៉ោងអ្នកប្រើប្រាស់ទៅកាន់ទំព័រចូលគណនីមួយវិនាទីពេលចាប់ផ្តើមដំបូង។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>ខ្សែដៃដែលឈប់ដំណើរការដោយស្ងៀមស្ងាត់</h3>
+        <p class="subtitle">និមិត្តសញ្ញាផុតកំណត់ពេលក្រៅបណ្ដាញ</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>ប្រសិនបើខ្សែដៃរបស់អ្នកផុតកំណត់ដោយស្ងៀមស្ងាត់ពេលយប់ អ្នកនឹងមិនដឹងរហូតដល់អ្នកដើរទៅមាត់ទ្វារម្តងទៀតហើយវាបន្លឺសំឡេងក្រហម។ អ្នកមើលទៅហាក់ដូចជាពាក់ខ្សែដៃដែលមានសុពលភាពពេញមួយពេល — វាគ្រាន់តែលែងដំណើរការជាក់ស្តែងទៀតប៉ុណ្ណោះ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"សំឡេងបន្លឺ" គឺជាការឆ្លើយតបកូដ 401 ពី Supabase នៅពេលក្រោយដែលនិមិត្តសញ្ញាត្រូវបានប្រើប្រាស់ពិតប្រាកដទល់នឹងម៉ាស៊ីនមេ (server) ដោយសារតែមិនមានវិធីណាដើម្បីពិនិត្យមើលការផុតកំណត់ពេលក្រៅបណ្ដាញពេញលេញនោះទេ។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>JWTs មានការផុតកំណត់ផ្ទាល់ខ្លួន (<code>exp</code> claim) ប៉ុន្តែឧបករណ៍ក្រៅបណ្ដាញមិនអាចសួរ Supabase ដើម្បីផ្ទៀងផ្ទាត់ ឬបន្តវាបានទេ — វាអាចគ្រាន់តែជឿជាក់លើនិមិត្តសញ្ញាដែលវាមានស្រាប់ប៉ុណ្ណោះ។ ជាទូទៅ និមិត្តសញ្ញាបន្ត (refresh token) ต่ออายุសម័យដោយស្ងៀមស្ងាត់មុនពេលផុតកំណត់ ប៉ុន្តែប្រសិនបើឧបករណ៍នៅតែក្រៅបណ្ដាញហួសពេលកំណត់នោះ សំណើដំបូងបន្ទាប់ពីភ្ជាប់ឡើងវិញនឹងបរាជ័យដោយសារកូដ 401 ដែលជំរុញឱ្យ PSMS ព្យាយាមបន្ត និងបើបរាជ័យ នឹងត្រឡប់ទៅអេក្រង់ចូលគណនីពិតប្រាកដវិញ។</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ SECTION 5: REALTIME ============ -->
+<section class="group" id="realtime">
+  <div class="group-head">
+    <div class="group-eyebrow">ពេលវេលាពិត (Real-time) &amp; ការជូនដំណឹង</div>
+    <h2>តើអ្នកនាយកសាលាដឹងភ្លាមៗនៅពេលមានរឿងអ្វីមួយកើតឡើងយ៉ាងដូចម្ដេច?</h2>
+  </div>
+  <div class="cards">
+
+    <article class="card">
+      <div class="card-head">
+        <h3>កណ្តឹងដែលភ្ជាប់ជាមួយទូសំបុត្រ</h3>
+        <p class="subtitle">ការជាវទិន្នន័យ <span class="term" data-term="realtime">Supabase Realtime</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>ជំនួសឱ្យការដើរទៅទូសំបុត្ររាល់ប្រាំនាទីម្តងដើម្បីពិនិត្យរកមើលសំបុត្រថ្មី ទូសំបុត្រមានកណ្តឹងតូចមួយភ្ជាប់ជាមួយវា។ ពេលដែលមានសំបុត្រធ្លាក់ចូលភ្លាម កណ្តឹងក៏រោទ៍ឡើង — គ្មាននរណាម្នាក់ត្រូវដើររកមើលនោះទេ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"កណ្តឹង" គឺជាការជាវ Supabase Realtime តាមរយៈ WebSocket។ "សំបុត្រធ្លាក់ចូល" គឺជាការបញ្ចូលរịchដេញដองចូលទៅក្នុងតារាងដែលកំពុងត្រូវបានតាមដាន។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>PSMS បើកការជាវ <code>supabase.channel(...)</code> ដែលត្រងទៅលើ <code>postgres_changes</code> លើតារាង <code>notifications</code> សម្រាប់ <code>school_id</code> បច្ចុប្បន្ន។ រាល់ពេលដែលរịchដេញដងដែលត្រូវគ្នាត្រូវបានបញ្ចូល ស្ទ្រីមការចម្លងទិន្នន័យរបស់ Supabase ជំរុញទិន្នន័យទៅកាន់គ라이언트ផ្ទាល់តាមរយៈ WebSocket ដែលបើកស្រាប់ — គ្មានរង្វិលជុំស្វែងរកទិន្នន័យដដែលៗ (polling loop) គ្មានការស្នើសុំ <code>SELECT</code> ដដែលៗរាល់ពីរបីវិនាទីដែលស៊ីថ្មនិងកម្រិតបញ្ជូនអ៊ីនធឺណិតឡើយ។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>នរណាជាអ្នករោទ៍កណ្តឹង?</h3>
+        <p class="subtitle">ตัวกระตุ้นฐานข้อมูล (<span class="term" data-term="trigger">Database trigger</span>)</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>កណ្តឹងត្រូវបានភ្ជាប់ដោយផ្ទាល់ទៅនឹងទូសំបុត្រផ្ទាល់ មិនមែនភ្ជាប់ទៅនឹងអ្នកបញ្ជូនសំបុត្រណាម្នាក់ឡើយ។ ដូច្នេះវាទោះបីជាអ្នកណាជាអ្នកបញ្ជូនសំបុត្រក៏ដោយ ក៏វារោទ៍ដែរ — មិនថាអ្នកបញ្ជូនធម្មតា អ្នកជំនួស ឬនរណាម្នាក់យកមកដាក់ដោយផ្ទាល់ដៃទេ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ការភ្ជាប់ខ្សែ" គឺជាຕົວกระตุ้น (trigger) របស់ Postgres លើតារាងដើម។ "មិនថាអ្នកណាជាអ្នកបញ្ជូន" មានន័យថាការជូនដំណឹងដំណើរការដោយមិនគិតថាកម្មវិធីផ្នែកណាមួយជាអ្នកសរសេរទិន្នន័យនោះទេ។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>ฟังก์ชัน <code>AFTER INSERT</code> trigger บนตารางอย่าง <code>grades</code> ឬ <code>attendance</code> ដំណើរការមុខងារដែលបញ្ចូលរịchដេញដងដែលត្រូវគ្នាទៅក្នុង <code>notifications</code>។ ដោយសារតែកម្មវិធីกระตุ้นនេះស្ថិតនៅក្នុងមូលដ្ឋានទិន្នន័យជំនួសឱ្យកូដរបស់គ라이언트ណាមួយ ពិន្ទុដែលបានបញ្ចូលពីកម្មវិធីมือถือ កម្មវិធីเว็บ ឬสคริปต์นำเข้าของผู้ดูแลระบบในอนาคត ล้วនបង្កើតការជូនដំណឹងដូចគ្នា — ការធានានេះស្ថិតនៅក្រោមស្រទាប់កម្មវិធី (application layer)។</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ SECTION 6: PWA ============ -->
+<section class="group" id="pwa">
+  <div class="group-head">
+    <div class="group-eyebrow">PWA &amp; Service Worker</div>
+    <h2>ហេតុអ្វីបានជាកម្មវិធីមានអារម្មណ៍ថាលឿនរហ័ស ទោះបីជាក្រៅបណ្ដាញក៏ដោយ?</h2>
+  </div>
+  <div class="cards">
+
+    <article class="card">
+      <div class="card-head">
+        <h3>អ្នកជំនួយការដ៏ចិត្តល្អដែលចាំថា តើសៀវភៅស្ថិតនៅឯណា</h3>
+        <p class="subtitle"><span class="term" data-term="service-worker">Service worker (កម្មវិធីជំនួយផ្ទៃខាងក្រោយ)</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>សូមស្រមៃមើលអ្នកជំនួយការដ៏ចិត្តល្អម្នាក់ដែលឈរនៅចន្លោះអ្នកនិងបណ្ណាល័យសាលារៀន។ លើកដំបូងដែលអ្នកសុំសៀវភៅ ពួកគេដើរទៅយកវា ប៉ុន្តែពួកគេចាំយ៉ាងច្បាស់ថាវាស្ថិតនៅឯណា — ដូច្នេះលើកក្រោយ ពួកគេប្រគល់វាឱ្យអ្នកភ្លាមៗដោយមិនបាច់ដើរទៅទីនោះម្តងទៀតទេ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"អ្នកជំនួយការ" គឺ service worker — ដែលជាស្គ្រីបស្ទាក់ចាប់សំណើបណ្តាញ (network requests) "ការចាំថាវាស្ថិតនៅឯណា" គឺជាឃ្លាំងទិន្នន័យបណ្តោះអាសន្នសម្រាប់ឯកសារដែលធ្លាប់ទាញយកមកហើយ។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>PSMS ចុះឈ្មោះ service worker ដែលស្ទាក់ចាប់ព្រឹត្តិការណ៍ <code>fetch</code> សម្រាប់ទ្រព្យសម្បត្តិថេររបស់ខ្លួន (ชุดคำสั่ง JS, ไอคอน, ฟอนต์) និងឃ្លាំងទិន្នន័យបណ្តោះអាសន្នពួកវាក្នុងការផ្ទុកលើកដំបូងតាមរយៈ Cache API ការផ្ទុកលើកក្រោយនឹងបម្រើការដោយตรงពីឃ្លាំងទិន្នន័យបណ្តោះអាសន្នទាំងនោះមុនពេលពិនិត្យមើលបណ្តាញទៅទៀត — ស្រោមកម្មវិធីបង្ហាញឡើងភ្លាមៗ ទោះបីជាក្នុងការតភ្ជាប់ที่ไม่เสถียរ ខណៈដែលទិន្នន័យពិតប្រាកដនៅតែឆ្លងកាត់ប្រព័ន្ធឃ្លាំងអាន និងជួររង់ចាំការសរសេរដាច់ដោយឡែក។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>អ្នកជំនួយការរង់ចាំរហូតដល់អ្នកនិយាយថា "យល់ព្រម"</h3>
+        <p class="subtitle">ជូនដំណឹងអំពីការធ្វើបច្ចុប្បន្នភាព មិនមែនធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិទេ</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>អ្នកប្រាកដជាមិនចង់ឱ្យអ្នកជំនួយការបណ្ណាល័យប្តូរសៀវភៅក្នុងដៃរបស់អ្នកទៅជាច្បាប់ថ្មីជាងនេះ ខណៈពេលដែលអ្នកកំពុងអានពាក់កណ្តាលប្រយោគនោះទេ។ ពួកគេរង់ចាំរហូតដល់អ្នកនិយាយថា "យល់ព្រម ខ្ញុំរួចរាល់ហើយ" មុនពេលបញ្ជូនច្បាប់ចម្លងថ្មីឱ្យ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ច្បាប់ចម្លងថ្មី" គឺជាកំណែកម្មវិធីដែលเพิ่งปรับใช้ใหม่ "ការរង់ចាំពាក្យថា យល់ព្រម" គឺជាការជូនដំណឹងធ្វើបច្ចុប្បន្នភាពដែលបង្ហាញឡើងជំនួសឱ្យការบังคับให้ផ្ទុកឡើងវិញភ្លាមៗ។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>កំណែ service worker ថ្មីដំឡើងនៅផ្ទៃខាងក្រោយប៉ុន្តែនៅតែស្ថិតក្នុងស្ថានភាព <code>waiting</code> ជំនួសឱ្យការបើកដំណើរការភ្លាមៗ — ការបើកដំណើរការនឹងបំផ្លាញសំណើដែលកំពុងដំណើរការ និងស្ថានភាពក្នុងเครื่องកណ្តាលគំនិត។ PSMS ស្តាប់ព្រឹត្តិការណ៍នេះ និងបង្ហាញការជូនដំណឹង "មានបច្ចុប្បន្នភាពថ្មី" តូចមួយ; មានតែពេលអ្នកប្រើប្រាស់ប៉ះវាប៉ុណ្ណោះ ទើបកម្មវិធីហៅ <code>skipWaiting()</code> និងផ្ទុកឡើងវិញ ដែលធានាថាការធ្វើបច្ចុប្បន្នភាពមិនរំខាននរណាម្នាក់ក្នុងពេលកំពុងกรอกข้อมูล។</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ SECTION 7: DATABASE ============ -->
+<section class="group" id="database">
+  <div class="group-head">
+    <div class="group-eyebrow">โครงสร้างฐานข้อมูล</div>
+    <h2>តើទិន្នន័យភ្ជាប់គ្នាពិតប្រាកដយ៉ាងដូចម្ដេច?</h2>
+  </div>
+  <div class="cards">
+
+    <article class="card">
+      <div class="card-head">
+        <h3>គ្រូបង្រៀនម្នាក់ សិស្សច្រើននាក់</h3>
+        <p class="subtitle">ទំនាក់ទំនងបែប <span class="term" data-term="one-to-many">មួយទៅក្រុម (One-to-many)</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>គ្រូបង្រៀនម្នាក់មានសិស្សច្រើននាក់ក្នុងថ្នាក់រៀនប្រចាំ — ប៉ុន្តែប្រសិនបើត្រឡប់ទិសដៅ សិស្សម្នាក់ៗមានគ្រូបង្រៀនប្រចាំថ្នាក់តែម្នាក់ប៉ុណ្ណោះ។ វាដំណើរការបានតែផ្លូវเดียวប៉ុណ្ណោះ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"គ្រូបង្រៀនម្នាក់ សិស្សច្រើននាក់" គឺជាទំនាក់ទំនងបែបមួយទៅក្រុម — ដែលជាទម្រង់ដែលพบច្រើនបំផុតនៅក្នុងមូលដ្ឋានទិន្នន័យទាំងមូល។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>រịchដេញដងតារាង <code>students</code> រក្សាទុកកូនសោបរទេស <code>homeroom_teacher_id</code> តែមួយគត់ដែលចង្អុលទៅរịchដេញដង <code>teachers</code> មួយ។ "សិស្សរបស់គ្រូបង្រៀនរូបនេះ" ដូច្នេះគ្រាន់តែជា <code>WHERE homeroom_teacher_id = :id</code> — មិនចាំបាច់មានតារាងខ័ណ្ឌកណ្តាលទេ ព្រោះទំនាក់ទំនងចង្អុលទៅទិសដៅតែមួយជានិច្ច។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>ពាក្យសុំរៀនគណិតវិទ្យាដែលប្រើរួមគ្នា</h3>
+        <p class="subtitle">ទំនាក់ទំនងបែបกลุ่มต่อกลุ่ม + <span class="term" data-term="junction-table">តារាងតភ្ជាប់ (junction table)</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>ថ្នាក់រៀនជាច្រើនរៀនមុខវិជ្ជា "គណិតវិទ្យា" ហើយមុខវិជ្ជា "គណិតវិទ្យា" ក៏ត្រូវបានបង្រៀននៅថ្នាក់រៀនជាច្រើនផងដែរ។ ដូច្នេះ ជំនួសឱ្យថ្នាក់នីមួយៗសរសេរមុខវិជ្ជា "គណិតវិទ្យា" ចូលក្នុងសៀវភៅកំណត់ត្រាផ្ទាល់ខ្លួនឡើងវិញទាំងអស់ មានពាក្យសុំរួមគ្នាម្យ៉ាងដែលបង្ហាញបញ្ជីគូថ្នាក់និងមុខវិជ្ជានីមួយៗ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ពាក្យសុំរួមគ្នា" គឺជាតារាងតភ្ជាប់ (junction table) — តារាងដែលមានหน้าที่บันทึกเฉพาะคู่ความสัมพันธ์เท่านั้น។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>តារាង <code>class_subjects</code> មានកូនសោបរទេសត្រឹមតែពីរគឺ <code>class_id</code> និង <code>subject_id</code> ដោយមានរịchដេញដងមួយต่อหนึ่งคู่ที่ถูกต้อง ทั้งតារាង <code>classes</code> និង <code>subjects</code> មិនចាំបាច់ដឹងពីគ្នាទៅវិញទៅមកដោយផ្ទាល់ទេ — ការបន្ថែមគូថ្មីគឺការបន្ថែមរịchដេញដងថ្មីមួយ មិនមែនការប្តូររចនាសម្ព័ន្ធតារាងចាស់ទាំងពីរឡើយ។</p>
+      </div>
+      <div class="diagram-toggle">👇 សាកល្បងមើល</div>
+      <div class="diagram relationship-diagram">
+        <h4>ទម្រង់ទំនាក់ទំនង</h4>
+        <div>
+          <button class="rel-btn active" data-rel="one-many">មួយទៅក្រុម</button>
+          <button class="rel-btn" data-rel="many-many">ក្រុមទៅក្រុម</button>
+        </div>
+        <svg id="rel-svg" viewBox="0 0 420 220" xmlns="http://www.w3.org/2000/svg">
+          <g id="rel-one-many">
+            <g class="rel-node hub"><rect x="30" y="95" width="90" height="34" rx="6"/><text x="75" y="116" text-anchor="middle">គ្រូ</text></g>
+            <line class="rel-line" x1="120" y1="112" x2="290" y2="30"/>
+            <line class="rel-line" x1="120" y1="112" x2="290" y2="80"/>
+            <line class="rel-line" x1="120" y1="112" x2="290" y2="140"/>
+            <line class="rel-line" x1="120" y1="112" x2="290" y2="190"/>
+            <g class="rel-node"><rect x="290" y="13" width="100" height="30" rx="6"/><text x="340" y="33" text-anchor="middle">សិស្ស A</text></g>
+            <g class="rel-node"><rect x="290" y="63" width="100" height="30" rx="6"/><text x="340" y="83" text-anchor="middle">សិស្ស B</text></g>
+            <g class="rel-node"><rect x="290" y="123" width="100" height="30" rx="6"/><text x="340" y="143" text-anchor="middle">សិស្ស C</text></g>
+            <g class="rel-node"><rect x="290" y="173" width="100" height="30" rx="6"/><text x="340" y="193" text-anchor="middle">សិស្ស D</text></g>
+          </g>
+          <g id="rel-many-many" class="hidden">
+            <g class="rel-node"><rect x="10" y="20" width="90" height="30" rx="6"/><text x="55" y="40" text-anchor="middle">ថ្នាក់ 3A</text></g>
+            <g class="rel-node"><rect x="10" y="95" width="90" height="30" rx="6"/><text x="55" y="115" text-anchor="middle">ថ្នាក់ 3B</text></g>
+            <g class="rel-node"><rect x="10" y="170" width="90" height="30" rx="6"/><text x="55" y="190" text-anchor="middle">ថ្នាក់ 4A</text></g>
+            <g class="rel-node hub"><rect x="160" y="95" width="100" height="34" rx="6"/><text x="210" y="116" text-anchor="middle">class_subjects</text></g>
+            <g class="rel-node"><rect x="320" y="20" width="90" height="30" rx="6"/><text x="365" y="40" text-anchor="middle">គណិតវិទ្យា</text></g>
+            <g class="rel-node"><rect x="320" y="95" width="90" height="30" rx="6"/><text x="365" y="115" text-anchor="middle">ភាសាខ្មែរ</text></g>
+            <g class="rel-node"><rect x="320" y="170" width="90" height="30" rx="6"/><text x="365" y="190" text-anchor="middle">វិទ្យាសាស្ត្រ</text></g>
+            <line class="rel-line" x1="100" y1="35" x2="160" y2="105"/>
+            <line class="rel-line" x1="100" y1="110" x2="160" y2="112"/>
+            <line class="rel-line" x1="100" y1="185" x2="160" y2="119"/>
+            <line class="rel-line" x1="260" y1="105" x2="320" y2="35"/>
+            <line class="rel-line" x1="260" y1="112" x2="320" y2="110"/>
+            <line class="rel-line" x1="260" y1="119" x2="320" y2="185"/>
+          </g>
+        </svg>
+        <p class="diagram-caption" id="rel-caption">ទំនាក់ទំនងបែបមួយទៅក្រុម: ខ្សែបន្ទាត់រីករាលដាលទៅទិសដៅតែមួយជានិច្ច ទំនាក់ទំនងបែបក្រុមទៅក្រុម: អ្វីៗទាំងអស់ឆ្លងកាត់តារាងតភ្ជាប់កណ្តាល</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>ប័ណ្ណឆ្លងកាត់ផ្លូវ មិនមែនแฟ้มข้อมูลทั้งหมด</h3>
+        <p class="subtitle"><span class="term" data-term="foreign-key">កូនសោបរទេស (Foreign keys)</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>សិស្សមិនចាំបាច់កាន់แฟ้มข้อมูลទាំងអស់ដើរជុំវិញអគារទេ។ ពួកគេកាន់ប័ណ្ណឆ្លងកាត់ផ្លូវខ្នាតតូចដែលបញ្ជាក់ត្រឹមតែថាពួកគេនៅថ្នាក់រៀនណាមួយ — អ្នកណាក៏អាចស្វែងរកព័ត៌មានដែលនៅសល់ពីតម្រុយដ៏តូចនោះបានដែរ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ប័ណ្ណឆ្លងកាត់ផ្លូវ" គឺជាកូនសោបរទេស — កូឡោនដែលរក្សាទុកเฉพาะรหัส (id) ដែលចង្អុលទៅរịchដេញដងដែលមានទិន្នន័យពិតប្រាកដ។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>កូនសោបរទេសដូចជា <code>students.homeroom_teacher_id → teachers.id</code> រក្សាទុកការយោង មិនមែនច្បាប់ចម្លងទិន្នន័យទេ។ Postgres ក៏បង្ខំឱ្យមានភាពសុចរិតនៃការយោងពីកិច្ចការនេះផងដែរ៖ វាបដិសេធតម្លៃដែលគ្មានរịchដេញដងពិតប្រាកដដែលត្រូវគ្នា និងអាចលុបតាមរង្វិលជុំ ឬកំណត់ការលុប — ដូច្នេះគ្រូមិនអាចត្រូវលុបចោលបានទេ ខណៈពេលដែលនៅមានសិស្សចង្អុលមកពួកគេ ដោយគ្មានការសម្រេចចិត្តច្បាស់លាស់ថាតើនឹងមានអ្វីកើតឡើងបន្តទៀត។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>កាតាឡុកប័ណ្ណបណ្ណាល័យ</h3>
+        <p class="subtitle"><span class="term" data-term="index">សន្ទស្សន៍ (Indexes)</span></p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>អ្នកអាចស្វែងរកទូដាក់សៀវភៅនីមួយៗម្តងមួយៗសម្រាប់ចំណងជើងតែមួយ ឬអ្នកអាចពិនិត្យមើលកាតាឡុកប័ណ្ណជាមុនសិន រួចដើរត្រង់ទៅកាន់ទូដាក់សៀវភៅដែលត្រឹមត្រូវ។ កាតាឡុកមិនបានរក្សាទុកសៀវភៅទេ — វាគ្រាន់តែប្រាប់អ្នកពីកន្លែងដែលត្រូវមើលឱ្យបានច្បាស់លាស់ប៉ុណ្ណោះ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"កាតាឡុកប័ណ្ណ" គឺជាសន្ទស្សន៍មូលដ្ឋានទិន្នន័យ — រចនាសម្ព័ន្ធតូចជាងនិងតម្រៀបរួច ដែលបង្កើតឡើងដើម្បីឱ្យការស្វែងរកធ្វើឡើងបានយ៉ាងលឿន។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>PSMS រៀបចំសន្ទស្សន៍កូឡោនស្វែងរកដែលមានបរិមាណប្រើប្រាស់ខ្ពស់ ដូចជា <code>students.school_id</code> និង <code>grades.student_id</code> ដូច្នេះ Postgres ធ្វើការស្វែងរកបែបไบนารีនៅលើ B-tree ខ្នាតតូច ជំនួសឱ្យការស្កេនរịchដេញដងទាំងអស់។ ការប្តូរវេននោះគឺពិតប្រាកដ៖ សន្ទស្សន៍ជួយពន្លឿនការអាន ប៉ុន្តែបង្កើនតម្លៃនៃការសរសេរ ព្រោះរាល់ការបញ្ចូលក៏ធ្វើបច្ចុប្បន្នភាពកាតាឡុកផងដែរ — វាคุ้มค่าសម្រាប់កូឡោនដែលមានការចម្រោះគ្រប់ពេលវេលា និងខ្ជះខ្ជាយសម្រាប់កូឡោនដែលកម្រត្រូវបានស្វែងរក។</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ SECTION 8: BUSINESS LOGIC ============ -->
+<section class="group" id="logic">
+  <div class="group-head">
+    <div class="group-eyebrow">លុបមុខងារអាជីវកម្ម (Business Logic)</div>
+    <h2>តើកម្មវិធីសម្រេចចិត្តបង្ហាញអ្វីខ្លះយ៉ាងដូចម្ដេច?</h2>
+  </div>
+  <div class="cards">
+
+    <article class="card">
+      <div class="card-head">
+        <h3>ក្មេងពីរនាក់ចូលដល់បន្ទាត់ទីបញ្ចប់ជាមួយគ្នាទទួលបានចំណាត់ថ្នាក់លេខមួយរួមគ្នា</h3>
+        <p class="subtitle">ការគណនាចំណាត់ថ្នាក់ដោយការរំលងលេខ (Rank computation with tie-skipping)</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>ក្មេងពីរនាក់រត់ចូលបន្ទាត់ទីបញ្ចប់ក្នុងពេលជាមួយគ្នាเป๊ะ ពួកគេទទួលបានខ្សែបូ "លេខ 1" ទាំងពីរនាក់។ ដោយសារតែមានក្មេងពីរនាក់គ្រងចំណាត់ថ្នាក់លេខ 1 និងលេខ 2 ទៅហើយ ក្មេងបន្ទាប់ក្នុងជួរនឹងទទួលបានខ្សែបូ "លេខ 3" — នឹងគ្មានថ្ងៃទទួលបាន "លេខ 2" ដាច់ខាត។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"រំលងទៅលេខ 3 ភ្លាម" គឺជាสิ่งที่មុខងាររៀបចំចំណាត់ថ្នាក់ដ៏ត្រឹមត្រូវធ្វើនៅពេលមានពិន្ទុស្មើគ្នា ជំនួសឱ្យការគ្រាន់តែរាប់ទីតាំងម្តងមួយៗ។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>ការរៀបចំចំណាត់ថ្នាក់ថ្នាក់រៀនប្រើប្រាស់คำสั่ง <code>RANK() OVER (ORDER BY average_score DESC)</code> របស់ Postgres ជំនួសឱ្យ <code>ROW_NUMBER()</code>។ <code>RANK()</code> ផ្តល់តម្លៃដូចគ្នាដល់រịchដេញដងដែលស្មើគ្នា និងរំលងចំណាត់ថ្នាក់បន្ទាប់តាមភាពសមស្រប (1, 1, 3) ដែលត្រូវគ្នាទៅនឹងពិធីប្រគល់ខ្សែបូពិតប្រាកដ — ខណៈពេលដែល <code>ROW_NUMBER()</code> នឹងកាត់លទ្ធផលដោយចៃដន្យជានิจ និងចែក "លេខ 2" ដែលមិនสะท้อนការពិត។</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>មធ្យមភាគនៅលើក្ដារខៀនតូចសរសេរលេខ</h3>
+        <p class="subtitle">ហ្វីលដែលបានគណនាផ្នែកគ라이언트 (Client-side calculated fields)</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="story">រឿងនិទាន</button>
+        <button class="tab-btn" data-tab="translation">ការបកប្រែ</button>
+        <button class="tab-btn" data-tab="mechanism">🔍 យន្តការជាក់ស្តែង</button>
+      </div>
+      <div class="panel story active" data-panel="story">
+        <p>សៀវភៅពិន្ទុរបស់គ្រូបង្រៀនកត់ត្រាតែពិន្ទុប្រឡងនីមួយៗប៉ុណ្ណោះ។ មធ្យមភាគរបស់ថ្នាក់រៀនត្រូវបានគណនាឡើងវិញរាល់ពេលដែលមានคนសួរ នៅលើក្ដារខៀនតូចសរសេរលេខនៅខាងចំហៀង — វាត្រូវបានសរសេរជាប់ជានិច្ចក្នុងសៀវភៅពិន្ទុខ្លួនឯងឡើយ។</p>
+      </div>
+      <div class="panel translation" data-panel="translation">
+        <p>"ក្ដារខៀនតូចសរសេរលេខ" គឺជាតម្លៃដែលបានគណនាឡើងក្នុងកម្មវិធីពេលអាន មិនដែលត្រូវបានរក្សាទុកជាកូឡោនផ្ទាល់ខ្លួនទេ។</p>
+      </div>
+      <div class="panel mechanism" data-panel="mechanism">
+        <p>ហ្វីលផ្សេងៗដូចជា មធ្យមភាគរបស់សិស្ស ឬចំណាត់ថ្នាក់ក្នុងថ្នាក់ ត្រូវបានគណនាក្នុង Vue <code>computed()</code> (ឬมุมมอง Postgres សម្រាប់ការរួមបញ្ចូលទិន្នន័យធ្ងន់ជាង) ពីរịchដេញដង <code>grades</code> ឆៅ រាល់ពេលដែលបង្ហាញ ជំនួសឱ្យការរក្សាទុកជាច្បាប់ចម្លងដដែលៗក្នុងកូឡោន <code>students.average</code>។ ការណ៍នេះធានាថាចំនួនដែលទទួលបាននឹងមិនខុសគ្នា — គ្មានច្បាប់ចម្លងទីពីរណាមួយដែលអាចប្រែជាទិន្នន័យចាស់បន្ទាប់ពីมีการកែសម្រួល ឬលុបពិន្ទុឡើយ។</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section class="group" id="glossary">
+  <div class="group-head">
+    <div class="group-eyebrow">ទិន្នន័យឯកសារយោង</div>
+    <h2>វចនានុក្រម</h2>
+    <p style="color:var(--muted); font-size:.9rem; margin-top:.5rem;">ពាក្យបច្ចេកទេសទាំងអស់ដែលបានប្រើខាងលើ ស្ថិតនៅកន្លែងតែមួយ។ ចុចលើពាក្យណាមួយដើម្បីមើលនិយមន័យរបស់វា។</p>
+  </div>
+  <div class="glossary-strip" id="glossary-strip"></div>
+</section>
+
+</main>
+
+<footer>បង្កើតឡើងដើម្បីអธิบาย មិនមែនដើម្បីលក់ PSMS គឺជាប្រព័ន្ធពិតដែលកំពុងប្រើប្រាស់ក្នុងសាលារៀនមួយក្នុងខេត្តព្រះសីហនុ និងបាត់ដំបង</footer>
+
+<div id="tooltip"></div>
+
+<script>
+  // ---------- TAB SWITCHING ----------
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.tab-btn');
+    if(!btn) return;
+    var card = btn.closest('.card');
+    card.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    card.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+    btn.classList.add('active');
+    var target = card.querySelector('.panel[data-panel="'+btn.dataset.tab+'"]');
+    if(target) target.classList.add('active');
+  });
+
+  // ---------- MOBILE MENU AUTO-CLOSE ----------
+  document.querySelectorAll('nav.toc a').forEach(function(a){
+    a.addEventListener('click', function(){
+      var cb = document.getElementById('menu-toggle');
+      if(cb) cb.checked = false;
+    });
+  });
+
+  // ---------- GLOSSARY DATA ----------
+  var glossary = {
+    'teachers-table': "តារាងដែលប្រើរួមគ្នាដែលរក្សាទុកគណនីបុគ្គលិកទាំងអស់ (គ្រូបង្រៀន, admin, បុគ្គលិកបណ្ណាល័យ) ដែលត្រូវបានបែងចែកដោយកូឡោនតួនាទី (role) ជំនួសឱ្យការប្រើតារាងដាច់ដោយឡែក។",
+    'role-flag': "កូឡោនក្នុងរịchដេញដង teachers ដែលបញ្ជាក់កម្រិតសិទ្ធិរបស់ពួកគេ — ដូចជា 'teacher', 'admin', 'librarian' — ដែលដាក់ត្រួតលើគណនីមូលដ្ឋានដូចគ្នា។",
+    'auth-users': "តារាងក្នុងខ្លួនរបស់ Supabase សម្រាប់ព័ត៌មានអត្តសញ្ញាណក្នុងការចូលប្រព័ន្ធ៖ អ៊ីមែល, แฮชពាក្យសម្ងាត់, និងព័ត៌មានសម័យ ឃ្លាតឆ្ងាយពីទិន្នន័យប្រវត្តិរូបជាក់លាក់របស់កម្មវិធី។",
+    'one-to-one': "ទំនាក់ទំនងដែលរịchដេញដងនីមួយៗក្នុងផ្នែកម្ខាងត្រូវគ្នានឹងរịchដេញដងតែមួយគត់ក្នុងផ្នែកម្ខាងទៀត — មិនសូន្យ និងមិនលើសពីមួយ។",
+    'rls': "Row-Level Security (សុវត្ថិភាពកម្រិតរịchដេញដង)៖ ច្បាប់របស់ Postgres ដែលចម្រោះថាតើសំណួរទិន្នន័យត្រូវបានអនុញ្ញាតឱ្យឃើញ ឬផ្លាស់ប្តូររịchដេញដងណាមួយ ដោយវាយតម្លៃម្តងមួយរịchដេញដងដោយមូលដ្ឋានទិន្នន័យផ្ទាល់។",
+    'report-link': "URL ที่แชร์ได้ซึ่งมีรหัสสุ่มที่ให้สิทธิ์การอ่านสำหรับเรกคอร์ดเดียวเท่านั้น โดยไม่ต้องเข้าสู่ระบบ។",
+    'fifo': "First-In, First-Out (ចូលមុន ចេងមុន) — รายการต่างๆ จะถูกประมวลผลตามลำดับที่เพิ่มเข้ามาเป๊ะๆ ไม่มี the การจัดลำดับใหม่หรือทำขนานกัน។",
+    'ttl': "Time-To-Live — រយៈពេលដែលតម្លៃក្នុងឃ្លាំងទិន្នន័យបណ្តោះអាសន្នត្រូវបានចាត់ទុកថាគួរឱ្យទុកចិត្ត មុនពេលត្រូវបានមើលឃើញថាជាទិន្នន័យចាស់ និងត្រូវទាញយកថ្មី។",
+    'jwt': "JSON Web Token — สตริงที่ลงนามและป้องกันการปลอมแปลง พิสูจน์ว่าผู้ใช้คือใครและเซสชันหมดอายุเมื่อใด โดยไม่ต้องค้นหาในเซิร์ฟเวอร์เพื่อตรวจสอบ។",
+    'initial-session': "ព្រឹត្តិការណ៍ម្តងគត់ដែលគ라이언트 Supabase បាញ់ឡើងនៅពេលចាប់ផ្តើមកម្មវិធី រាយការណ៍សម័យណាមួយ (ឬគ្មានសម័យ) ដែលបានស្តារឡើងវិញពីកន្លែងផ្ទុកក្នុងឧបករណ៍។",
+    'realtime': "មុខងាររបស់ Supabase សម្រាប់ការជំរុញការផ្លាស់ប្តូរមូលដ្ឋានទិន្នន័យទៅកាន់គ라이언트ដែលបានជាវភ្លាមៗតាមរយៈ WebSocket ជំនួសឱ្យការឱ្យគ라이언트កอยខំទាមទារការធ្វើបច្ចុប្បន្នភាពដដែលៗ។",
+    'trigger': "មុខងារដែល Postgres ហៅប្រើប្រាស់ដោយស្វ័យប្រវត្តិរាល់ពេលដែលមានការបញ្ចូល ធ្វើបច្ចុប្បន្នភាព ឬលុបសញ្ញារịchដេញដង — បង្ខំឱ្យប្រើប្រាស់ដោយមូលដ្ឋានទិន្នន័យ មិនមែនកូដកម្មវិធីទេ។",
+    'service-worker': "ស្គ្រីបនៅផ្ទៃខាងក្រោយដែលកម្មវិធីរុករកដំណើរការ ដែលអាចស្ទាក់ចាប់សំណើបណ្តាញ និងបម្រើការឯកសារឃ្លាំងទិន្នន័យបណ្តោះអាសន្ន ជួយឱ្យកម្មវិធីដំណើរការក្រៅបណ្ដាញ និងផ្ទុកបានភ្លាមៗ។",
+    'one-to-many': "ទំនាក់ទំនងដែលរịchដេញដងមួយក្នុងផ្នែកម្ខាងអាចភ្ជាប់ទៅកាន់រịchដេញដងច្រើនក្នុងផ្នែកម្ខាងទៀត ប៉ុន្តែរịchដេញដងនីមួយៗក្នុងចំណោមរịchដេញដងច្រើនទាំងនោះភ្ជាប់ត្រឡប់មកវិញបានតែមួយគត់។",
+    'junction-table': "តារាងដែលមានមុខងារសម្រាប់កត់ត្រាគូទំនាក់ទំនងដែលถูกต้องរវាងតារាងផ្សេងទៀតពីរ ដែលបង្កើតបានជាទំនាក់ទំនងបែបក្រុមទៅក្រុម។",
+    'foreign-key': "កូឡោនដែលរក្សាទុករស (id) របស់រịchដេញដងក្នុងតារាងផ្សេង ដោយចង្អុលទៅរịchដេញដងនោះជំនួសឱ្យការចម្លងទឹកដីទិន្នន័យซ้ำ។",
+    'index': "រចនាសម្ព័ន្ធដាច់ដោយឡែកដែលបានតម្រៀបរួចរាល់ដែលមូលដ្ឋានទិន្នន័យរក្សាទុកលើកូឡោន ដើម្បីអាចស្វែងរករịchដេញដងដែលត្រូវាគ្នាបានយ៉ាងរហ័ស ជំនួសឱ្យការស្កេនទាំងតារាង។"
+  };
+
+  // populate glossary strip
+  var stripHost = document.getElementById('glossary-strip');
+  var seen = {};
+  document.querySelectorAll('.term').forEach(function(t){
+    var key = t.dataset.term;
+    if(seen[key]) return;
+    seen[key] = true;
+  });
+  Object.keys(glossary).sort().forEach(function(key){
+    var chip = document.createElement('button');
+    chip.className = 'term';
+    chip.dataset.term = key;
+    chip.textContent = key.replace(/-/g,' ');
+    stripHost.appendChild(chip);
+  });
+
+  // ---------- TOOLTIP ----------
+  var tip = document.getElementById('tooltip');
+  document.addEventListener('click', function(e){
+    var term = e.target.closest('.term');
+    if(!term){
+      if(!e.target.closest('#tooltip')) tip.style.display = 'none';
+      return;
+    }
+    var def = glossary[term.dataset.term] || "មិនរកឃើញនិយមន័យ";
+    tip.textContent = def;
+    tip.style.display = 'block';
+    var rect = term.getBoundingClientRect();
+    var top = rect.bottom + 10;
+    var left = Math.min(rect.left, window.innerWidth - 280);
+    tip.style.top = top + 'px';
+    tip.style.left = Math.max(10,left) + 'px';
+    e.stopPropagation();
+  });
+
+  // ---------- DIAGRAM 1: FILING CABINET ----------
+  document.querySelectorAll('.key-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.key-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var school = btn.dataset.school;
+      var names = {a:'រីវើសាយ (Riverside)', b:'ហ៊ីលគ្រេស (Hillcrest)', c:'សັນរ៉ាយ (Sunrise)'};
+      document.querySelectorAll('.drawer').forEach(function(d){
+        d.classList.remove('open','shake');
+        if(d.dataset.school === school){
+          void d.offsetWidth;
+          d.classList.add('open');
+          d.querySelector('.lock').textContent = '✅';
+        } else {
+          void d.offsetWidth;
+          d.classList.add('shake');
+          d.querySelector('.lock').textContent = '🔒';
+        }
+      });
+      document.getElementById('cabinet-caption').textContent =
+        "សោរបស់ " + names[school] + " ສາມາດបើកបានតែសោរបស់ " + names[school] + " ប៉ុណ្ណោះ។ រន្ធផ្សេងទៀតមិនអាចបើកបានទេ — សូមសាកល្បងសោផ្សេងទៀត។";
+    });
+  });
+
+  // ---------- DIAGRAM 2: CORKBOARD FIFO ----------
+  var noteQueue = [];
+  var noteCounter = 0;
+  var board = document.getElementById('corkboard');
+  var officeTray = document.getElementById('office-tray');
+  var corkCaption = document.getElementById('cork-caption');
+
+  document.getElementById('add-note-btn').addEventListener('click', function(){
+    noteCounter++;
+    var id = noteCounter;
+    var note = document.createElement('div');
+    note.className = 'note';
+    note.style.setProperty('--r', (Math.random()*8-4)+'deg');
+    note.textContent = 'ពិន្ទុ #' + id;
+    note.dataset.id = id;
+    board.appendChild(note);
+    noteQueue.push(id);
+    corkCaption.textContent = noteQueue.length + ' កំណត់ចំណាំកំពុងរង់ចាំនៅលើក្តារខៀន តាមលំដាប់លំដោយ។';
+  });
+
+  document.getElementById('sync-btn').addEventListener('click', function(){
+    if(noteQueue.length === 0){
+      corkCaption.textContent = 'មិនទាន់មានអ្វីត្រូវធ្វើសមកាលកម្មទេ — សូមសរសេរកំណត់ចំណាំជាមុនសិន។';
+      return;
+    }
+    corkCaption.textContent = 'កំពុងធ្វើសមកាលកម្មតាមលំដាប់ — យកកំណត់ចំណាំទីមួយជាមុន…';
+    var delay = 0;
+    var queueCopy = noteQueue.slice();
+    noteQueue = [];
+    queueCopy.forEach(function(id, i){
+      setTimeout(function(){
+        var el = board.querySelector('.note[data-id="'+id+'"]');
+        if(!el) return;
+        el.classList.add('leaving');
+        setTimeout(function(){
+          el.remove();
+          var mini = document.createElement('div');
+          mini.className = 'note';
+          mini.textContent = '#' + id + ' ✓';
+          officeTray.appendChild(mini);
+          if(i === queueCopy.length - 1){
+            corkCaption.textContent = 'បានធ្វើសមកាលកម្មរួចរាល់ តាមលំដាប់លំដោយពិតប្រាកដដែលបានសរសេរ។';
+          }
+        }, 480);
+      }, delay);
+      delay += 550;
+    });
+  });
+
+  // ---------- DIAGRAM 3: CACHE TTL ----------
+  var hoursElapsed = 0;
+  var cacheAgeEl = document.getElementById('cache-age');
+  var cacheBadgeEl = document.getElementById('cache-badge');
+
+  function updateCacheDisplay(){
+    if(hoursElapsed === 0){
+      cacheAgeEl.textContent = 'បានទាញយកទើបតែពេលនេះ។';
+    } else {
+      cacheAgeEl.textContent = 'បានទាញយកកាលពី ' + hoursElapsed + ' ម៉ោងមុន។';
+    }
+    if(hoursElapsed >= 24){
+      cacheBadgeEl.textContent = '🟡 ទិន្នន័យចាស់ — กำลังดึงข้อมูลใหม่ที่พื้นหลัง';
+      cacheBadgeEl.className = 'badge stale';
+    } else {
+      cacheBadgeEl.textContent = '🟢 ថ្មី';
+      cacheBadgeEl.className = 'badge fresh';
+    }
+  }
+
+  document.getElementById('advance-time-btn').addEventListener('click', function(){
+    hoursElapsed += 6;
+    updateCacheDisplay();
+  });
+  document.getElementById('reset-time-btn').addEventListener('click', function(){
+    hoursElapsed = 0;
+    updateCacheDisplay();
+  });
+
+  // ---------- DIAGRAM 4: RELATIONSHIP SHAPES ----------
+  document.querySelectorAll('.rel-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.rel-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var rel = btn.dataset.rel;
+      document.getElementById('rel-one-many').classList.toggle('hidden', rel !== 'one-many');
+      document.getElementById('rel-many-many').classList.toggle('hidden', rel !== 'many-many');
+      document.getElementById('rel-caption').textContent =
+        rel === 'one-many'
+        ? 'មួយទៅក្រុម: ខ្សែបន្ទាត់រីករាលដាលទៅទិសដៅតែមួយជានិច្ច — គ្រូបង្រៀនម្នាក់ សិស្សច្រើននាក់ គ្មានផ្លូវប្តូរត្រឡប់គ្នាទេ'
+        : 'ក្រុមទៅក្រុម: គ្មានអ្វីភ្ជាប់គ្នាដោយផ្ទាល់ អ្វីៗទាំងអស់ឆ្លងកាត់តារាងតភ្ជាប់កណ្តាល';
+    });
+  });
+</script>
 
 </body>
 </html>
