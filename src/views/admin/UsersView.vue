@@ -226,7 +226,8 @@ async function handleResetPassword() {
     })
     if (error) throw error
     showToast('Password updated', 'success')
-    showResetModalState(false)
+    showResetModal.value = false
+    await fetchUsers()
   } catch (err) {
     showToast(err.message, 'error')
   } finally {
