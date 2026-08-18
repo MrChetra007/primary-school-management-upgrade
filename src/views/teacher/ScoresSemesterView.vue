@@ -163,15 +163,21 @@ async function fetchAllScores() {
     if (!examError && examData) {
       examScores.value = examData
 
-      const { data: mData, error: mError } = await supabase
-        .from('scores')
-        .select('*')
-        .in('student_id', studentIds)
-        .eq('academic_year_id', academicYearId)
-        .eq('score_type', 'monthly')
-        .in('month', semesterMonths.value)
+      const monthResults = await Promise.all(
+        semesterMonths.value.map(m =>
+          supabase
+            .from('scores')
+            .select('*')
+            .in('student_id', studentIds)
+            .eq('academic_year_id', academicYearId)
+            .eq('score_type', 'monthly')
+            .eq('month', m)
+        )
+      )
+      const mError = monthResults.find(r => r.error)?.error
+      const mData = monthResults.flatMap(r => r.data || [])
 
-      if (!mError && mData) {
+      if (!mError) {
         monthlyScores.value = mData
         cacheSet(cacheKey, { examScores: examData, monthlyScores: mData }, 120)
         buildMatrix()
@@ -307,8 +313,6 @@ async function saveAll() {
 
   saving.value = false
 }
-
-
 
 watch(selectedSemester, fetchAllScores)
 </script>

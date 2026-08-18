@@ -108,14 +108,17 @@ async function loadTopStudents() {
           .eq('semester', semester)
           .maybeSingle()
         const months = configs?.months || (semester === 1 ? [12, 1, 2] : [5, 6, 7])
-        const [examRes, monthRes] = await Promise.all([
+        const [examRes, ...monthResults] = await Promise.all([
           supabase.from('scores').select('*').in('student_id', studentIds).eq('semester', semester).eq('score_type', 'semester'),
-          supabase.from('scores').select('*').in('student_id', studentIds).in('month', months).eq('score_type', 'monthly')
+          ...months.map(m =>
+            supabase.from('scores').select('*').in('student_id', studentIds).eq('score_type', 'monthly').eq('month', m)
+          )
         ])
         
+        const allMonthScores = monthResults.flatMap(r => r.data || [])
         list = stuData.map(student => {
           const mAvgs = months.map(m => {
-            const s = monthRes.data?.filter(sc => sc.student_id === student.id && sc.month === m).map(sc => ({ score: sc.score }))
+            const s = allMonthScores.filter(sc => sc.student_id === student.id && sc.month === m).map(sc => ({ score: sc.score }))
             return computeMonthlyAverage(s)
           })
           const examScores = examRes.data?.filter(sc => sc.student_id === student.id).map(sc => ({ score: sc.score }))

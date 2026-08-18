@@ -141,18 +141,20 @@ async function fetchData() {
     rawScores.value = data || []
     buildMonthlyMatrix()
   } else {
-    const [examRes, monthRes] = await Promise.all([
+    const [examRes, ...monthResults] = await Promise.all([
       supabase.from('scores').select('*')
         .in('student_id', studentIds)
         .eq('semester', selectedSemester.value)
         .eq('score_type', 'semester'),
-      supabase.from('scores').select('*')
-        .in('student_id', studentIds)
-        .in('month', semesterMonths.value)
-        .eq('score_type', 'monthly')
+      ...semesterMonths.value.map(m =>
+        supabase.from('scores').select('*')
+          .in('student_id', studentIds)
+          .eq('score_type', 'monthly')
+          .eq('month', m)
+      )
     ])
     rawScores.value = examRes.data || []
-    buildSemesterMatrix(monthRes.data || [])
+    buildSemesterMatrix(monthResults.flatMap(r => r.data || []))
   }
 
   loading.value = false
