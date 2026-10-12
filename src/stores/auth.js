@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useSchoolStore } from './school'
+import { usePlanStore } from './plan'
 
 export const useAuthStore = defineStore('auth', () => {
   const session = ref(null)
@@ -44,6 +45,8 @@ export const useAuthStore = defineStore('auth', () => {
         const schoolStore = useSchoolStore()
         if (data.school_id) {
           await schoolStore.fetchSchool(data.school_id)
+          const planStore = usePlanStore()
+          await planStore.fetchPlan(data.school_id)
         }
 
         const { data: tData } = await supabase
@@ -187,6 +190,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     const schoolStore = useSchoolStore()
     schoolStore.clearSchool()
+    const planStore = usePlanStore()
+    planStore.clearPlan()
   }
 
   return {

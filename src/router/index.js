@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
+import { usePlanStore } from '@/stores/plan'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -29,6 +30,12 @@ const router = createRouter({
       name: 'unauthorized',
       component: () => import('@/views/auth/UnauthorizedView.vue'),
       meta: { public: true },
+    },
+    {
+      path: '/upgrade',
+      name: 'upgrade',
+      component: () => import('@/views/UpgradeView.vue'),
+      meta: { requiresAuth: true },
     },
 
     // ── Super Admin (Platform Level) ───────────────────────
@@ -74,15 +81,18 @@ const router = createRouter({
         { path: 'scores',          name: 'admin-scores',          component: () => import('@/views/admin/ScoresView.vue') },
         { path: 'health',          name: 'admin-health',          component: () => import('@/views/admin/HealthView.vue') },
         { path: 'sick-days',       name: 'admin-sick-days',       component: () => import('@/views/admin/SickDaysView.vue') },
-        { path: 'budget',          name: 'admin-budget',          component: () => import('@/views/admin/BudgetView.vue') },
-        { path: 'inventory',       name: 'admin-inventory',       component: () => import('@/views/admin/InventoryView.vue') },
-        { path: 'library',         name: 'admin-library',         component: () => import('@/views/admin/LibraryView.vue') },
+        { path: 'budget',          name: 'admin-budget',          component: () => import('@/views/admin/BudgetView.vue'), meta: { feature: 'budget' } },
+        { path: 'inventory',       name: 'admin-inventory',       component: () => import('@/views/admin/InventoryView.vue'), meta: { feature: 'inventory' } },
+        { path: 'library',         name: 'admin-library',         component: () => import('@/views/admin/LibraryView.vue'), meta: { feature: 'library' } },
         { path: 'users',           name: 'admin-users',           component: () => import('@/views/admin/UsersView.vue') },
+        { path: 'billing',         name: 'admin-billing',         component: () => import('@/views/admin/BillingView.vue') },
+        { path: 'fees',            name: 'admin-fees',            component: () => import('@/views/admin/FeesView.vue'), meta: { feature: 'fees' } },
+        { path: 'fees/structures', name: 'admin-fee-structures',  component: () => import('@/views/admin/FeeStructuresView.vue'), meta: { feature: 'fees' } },
         // { path: 'reports',         name: 'admin-reports',         component: () => import('@/views/admin/ReportsView.vue') },
         { path: 'approvals',       name: 'admin-approvals',              component: () => import('@/views/admin/ApprovalsView.vue') },
         { path: 'approvals/:reportLinkId', name: 'admin-approvals-preview', component: () => import('@/views/admin/AdminReportPreviewView.vue') },
         // {path: 'honor-board', name: 'admin-honor-board', component: () => import('@/views/admin/Honorboard.vue')},
-        {path: 'honor-board-editor', name: 'admin-honor-board-editor', component: () => import('@/views/admin/Honorboardeditor.vue')},
+        {path: 'honor-board-editor', name: 'admin-honor-board-editor', component: () => import('@/views/admin/Honorboardeditor.vue'), meta: { feature: 'honor_board' }},
       ],
     },
 
@@ -102,8 +112,8 @@ const router = createRouter({
         { path: 'scores/monthly',  name: 'teacher-scores-monthly',  component: () => import('@/views/teacher/ScoresMonthlyView.vue') },
         { path: 'scores/semester', name: 'teacher-scores-semester', component: () => import('@/views/teacher/ScoresSemesterView.vue') },
         { path: 'scores/ranking',  name: 'teacher-scores-ranking',  component: () => import('@/views/teacher/ScoresRankingView.vue') },
-        { path: 'scores/certificates', name: 'teacher-scores-certificates', component: () => import('@/views/teacher/CertificateDesignView.vue') },
-        { path: 'scores/honor-board-editor', name: 'teacher-honor-board-editor', component: () => import('@/views/teacher/Honorboardeditor.vue') },
+        { path: 'scores/certificates', name: 'teacher-scores-certificates', component: () => import('@/views/teacher/CertificateDesignView.vue'), meta: { feature: 'certificates' } },
+        { path: 'scores/honor-board-editor', name: 'teacher-honor-board-editor', component: () => import('@/views/teacher/Honorboardeditor.vue'), meta: { feature: 'honor_board' } },
         { path: 'scores/report-link',    name: 'teacher-scores-report-link',    component: () => import('@/views/teacher/ReportLinkView.vue') },
         { path: 'scores/report-card-print', name: 'teacher-scores-report-card-print', component: () => import('@/views/teacher/ReportCardPrintView.vue') },
         { path: 'scores/report-replies', name: 'teacher-scores-report-replies', component: () => import('@/views/teacher/ReportRepliesView.vue') },
@@ -120,7 +130,7 @@ const router = createRouter({
     {
       path: '/librarian',
       component: () => import('@/layouts/LibrarianLayout.vue'),
-      meta: { requiresAuth: true, role: 'librarian' },
+      meta: { requiresAuth: true, role: 'librarian', feature: 'library' },
       children: [
         { path: '', redirect: '/librarian/dashboard' },
         { path: 'dashboard', name: 'librarian-dashboard', component: () => import('@/views/librarian/DashboardView.vue') },
@@ -184,8 +194,33 @@ router.beforeEach(async (to) => {
     return { name: 'unauthorized' }
   }
 
+  // 3b. Plan feature gate (Pro-only modules)
+  const requiredFeature = to.matched.map(record => record.meta.feature).find(Boolean)
+  if (requiredFeature && !usePlanStore().hasFeature(requiredFeature)) {
+    return { name: 'upgrade' }
+  }
+
+  // 3c. Subscription hard-block: an admin whose school is not on an active
+  // plan is forced to the billing page. Guarded on `plan` being loaded so a
+  // transient fetch failure never locks anyone out (RLS still enforces at DB).
+  const planStore = usePlanStore()
+  if (
+    auth.role === 'admin' &&
+    planStore.plan &&
+    !planStore.isActive &&
+    !['admin-billing', 'admin-academic-years', 'upgrade'].includes(to.name)
+  ) {
+    return { name: 'admin-billing' }
+  }
+
   // 4. Academic Year Guard for Admin
-  if (auth.role === 'admin' && requiresAuth && to.name !== 'admin-academic-years') {
+  if (
+    auth.role === 'admin' &&
+    requiresAuth &&
+    to.name !== 'admin-academic-years' &&
+    to.name !== 'admin-billing' &&
+    to.name !== 'upgrade'
+  ) {
     const yearStore = useAcademicYearStore()
     if (!yearStore.selectedYearId) {
       return { name: 'admin-academic-years' }

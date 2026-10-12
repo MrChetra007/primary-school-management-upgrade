@@ -14,7 +14,9 @@ const form = ref({
   school_code: '',
   province: '',
   district: '',
-  status: 'active'
+  status: 'active',
+  plan: 'basic',
+  plan_expires_at: ''
 })
 const loading = ref(false)
 const saving = ref(false)
@@ -39,7 +41,9 @@ onMounted(async () => {
       school_code: data.school_code || '',
       province: data.province || '',
       district: data.district || '',
-      status: data.status || 'active'
+      status: data.status || 'active',
+      plan: data.plan || 'basic',
+      plan_expires_at: data.plan_expires_at ? data.plan_expires_at.slice(0, 10) : ''
     }
   } catch (e) {
     error.value = e.message || 'Failed to load school'
@@ -67,7 +71,11 @@ async function handleSave() {
         school_code: form.value.school_code,
         province: form.value.province,
         district: form.value.district,
-        status: form.value.status
+        status: form.value.status,
+        plan: form.value.plan,
+        plan_expires_at: form.value.plan_expires_at
+          ? new Date(form.value.plan_expires_at).toISOString()
+          : null
       })
       .eq('id', schoolId)
 
@@ -155,6 +163,23 @@ async function handleSave() {
           <div class="space-y-2">
             <label class="text-sm font-bold text-slate-700">ស្រុក/ខណ្ឌ</label>
             <input v-model="form.district" type="text" class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium" />
+          </div>
+        </div>
+
+        <div class="pt-6 border-t border-slate-100 space-y-6">
+          <h3 class="text-sm font-black text-slate-900 uppercase tracking-wide">ការជាវប្រើប្រាស់ (Subscription)</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-slate-700">គម្រោង</label>
+              <select v-model="form.plan" class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium appearance-none">
+                <option value="basic">Basic — $30/ខែ</option>
+                <option value="pro">Pro — $50/ខែ</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-slate-700">ផុតកំណត់នៅ</label>
+              <input v-model="form.plan_expires_at" type="date" class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium" />
+            </div>
           </div>
         </div>
 

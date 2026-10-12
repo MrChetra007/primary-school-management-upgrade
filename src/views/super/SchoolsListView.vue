@@ -32,7 +32,7 @@ function closeMenu() {
 async function fetchSchools() {
   try {
     loading.value = true
-    let query = supabase.from('schools').select('*')
+    let query = supabase.from('schools').select('*, plans(display_name, monthly_fee, max_students)')
     
     if (filterStatus.value !== 'all') {
       query = query.eq('status', filterStatus.value)
@@ -70,6 +70,19 @@ async function toggleSchoolStatus(school) {
 onMounted(() => {
   fetchSchools()
 })
+
+function planLabel(school) {
+  return school.plans?.display_name || school.plan || 'Basic'
+}
+
+function planExpiry(school) {
+  if (!school.plan_expires_at) return 'មិនបានកំណត់'
+  return new Date(school.plan_expires_at).toLocaleDateString('km-KH')
+}
+
+function isExpired(school) {
+  return Boolean(school.plan_expires_at && new Date(school.plan_expires_at).getTime() < Date.now())
+}
 </script>
 
 <template>
@@ -135,6 +148,14 @@ onMounted(() => {
               <img v-else :src="school.logo_url" class="w-full h-full object-cover rounded-2xl" />
             </div>
             <div class="flex items-center gap-2">
+              <span
+                :class="[
+                  school.plan === 'pro' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600',
+                  'px-3 py-1 rounded-full text-[10px] font-black uppercase'
+                ]"
+              >
+                {{ planLabel(school) }}
+              </span>
               <span 
                 :class="[
                   school.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700',
@@ -172,6 +193,10 @@ onMounted(() => {
             <div class="flex items-center gap-3 text-sm text-slate-600 font-medium">
               <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
               <span>បង្កើតនៅ: {{ new Date(school.created_at).toLocaleDateString('km-KH') }}</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm font-medium" :class="isExpired(school) ? 'text-rose-600' : 'text-slate-600'">
+              <div class="w-1.5 h-1.5 rounded-full" :class="isExpired(school) ? 'bg-rose-400' : 'bg-slate-300'"></div>
+              <span>ផុតកំណត់: {{ planExpiry(school) }}</span>
             </div>
           </div>
 

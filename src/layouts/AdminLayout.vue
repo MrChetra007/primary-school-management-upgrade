@@ -4,6 +4,7 @@ import { RouterView, useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useAcademicYearStore } from "@/stores/academicYear";
 import { useSchoolStore } from "@/stores/school";
+import { usePlanStore } from "@/stores/plan";
 import { useNotificationsStore } from "@/stores/notifications";
 import NotificationsDropdown from "@/components/shared/NotificationsDropdown.vue";
 
@@ -12,6 +13,7 @@ const route = useRoute();
 const auth = useAuthStore();
 const yearStore = useAcademicYearStore();
 const schoolStore = useSchoolStore();
+const planStore = usePlanStore();
 const notificationsStore = useNotificationsStore();
 
 onMounted(() => {
@@ -42,73 +44,84 @@ async function logout() {
   router.push("/login");
 }
 
-const navGroups = [
-  {
-    label: "ទិដ្ឋភាពទូទៅ", // Overview
-    items: [
-      { to: "/admin/dashboard", icon: "grid", label: "ផ្ទាំងគ្រប់គ្រង" }, // Dashboard
-    ],
-  },
+const navGroups = computed(() =>
+  [
+    {
+      label: "ទិដ្ឋភាពទូទៅ", // Overview
+      items: [
+        { to: "/admin/dashboard", icon: "grid", label: "ផ្ទាំងគ្រប់គ្រង" }, // Dashboard
+      ],
+    },
 
-  {
-    label: "បុគ្គលិក និង សិស្ស", // People
-    items: [
-      { to: "/admin/teachers", icon: "users", label: "គ្រូបង្រៀន" }, // Teachers
-      { to: "/admin/classes", icon: "layers", label: "ថ្នាក់រៀន" }, // Classes
-      { to: "/admin/students", icon: "user", label: "សិស្ស" }, // Students
-      { to: "/admin/students/age", icon: "calendar", label: "អាយុសិស្ស" }, // Student Age
-      { to: "/admin/users", icon: "shield", label: "គណនីអ្នកប្រើប្រាស់" }, // User Accounts
-    ],
-  },
-  {
-    label: "វត្តមាន", // Attendance
-    items: [
-      {
-        to: "/admin/attendance/students",
-        icon: "check-square",
-        label: "វត្តមានសិស្ស",
-      }, // Student Attendance
-      {
-        to: "/admin/attendance/teachers",
-        icon: "user-check",
-        label: "វត្តមានគ្រូ",
-      }, // Teacher Attendance
-    ],
-  },
-  {
-    label: "ការសិក្សា", // Academics
-    items: [
-      { to: "/admin/scores", icon: "bar-chart-2", label: "ពិន្ទុ" }, // Scores
-      { to: "/admin/health", icon: "heart", label: "សុខភាព" }, // Health Records
-      { to: "/admin/sick-days", icon: "thermometer", label: "ថ្ងៃឈឺ" }, // Sick Days
-      { to: "/admin/approvals", icon: "check-circle", label: "ការអនុញ្ញាត" }, // Approvals
-    ],
-  },
-  {
-    label: "ហិរញ្ញវត្ថុ និង ធនធាន", // Finance & Resources
-    items: [
-      { to: "/admin/budget", icon: "dollar-sign", label: "ថវិកា" }, // Budget
-      { to: "/admin/inventory", icon: "package", label: "សម្ភារៈ/ឧបករណ៍" }, // Inventory
-      { to: "/admin/library", icon: "book", label: "បណ្ណាល័យ" }, // Library
-    ],
-  },
-  // {
-  //   label: "របាយការណ៍", // Reports
-  //   items: [
-  //     {
-  //       to: "/admin/reports",
-  //       icon: "printer",
-  //       label: "របាយការណ៍ និង បោះពុម្ព",
-  //     }, // Reports & Print
-  //   ],
-  // },
-  {
-    label: "ការរៀបចំសាលារៀន", // School Setup
-    items: [
-      { to: "/admin/settings", icon: "settings", label: "ការកំណត់" }, // Settings
-    ],
-  },
-];
+    {
+      label: "បុគ្គលិក និង សិស្ស", // People
+      items: [
+        { to: "/admin/teachers", icon: "users", label: "គ្រូបង្រៀន" }, // Teachers
+        { to: "/admin/classes", icon: "layers", label: "ថ្នាក់រៀន" }, // Classes
+        { to: "/admin/students", icon: "user", label: "សិស្ស" }, // Students
+        { to: "/admin/students/age", icon: "calendar", label: "អាយុសិស្ស" }, // Student Age
+        { to: "/admin/users", icon: "shield", label: "គណនីអ្នកប្រើប្រាស់" }, // User Accounts
+      ],
+    },
+    {
+      label: "វត្តមាន", // Attendance
+      items: [
+        {
+          to: "/admin/attendance/students",
+          icon: "check-square",
+          label: "វត្តមានសិស្ស",
+        }, // Student Attendance
+        {
+          to: "/admin/attendance/teachers",
+          icon: "user-check",
+          label: "វត្តមានគ្រូ",
+        }, // Teacher Attendance
+      ],
+    },
+    {
+      label: "ការសិក្សា", // Academics
+      items: [
+        { to: "/admin/scores", icon: "bar-chart-2", label: "ពិន្ទុ" }, // Scores
+        { to: "/admin/health", icon: "heart", label: "សុខភាព" }, // Health Records
+        { to: "/admin/sick-days", icon: "thermometer", label: "ថ្ងៃឈឺ" }, // Sick Days
+        { to: "/admin/approvals", icon: "check-circle", label: "ការអនុញ្ញាត" }, // Approvals
+      ],
+    },
+    {
+      label: "ហិរញ្ញវត្ថុ និង ធនធាន", // Finance & Resources
+      items: [
+        { to: "/admin/fees", icon: "receipt", label: "ថ្លៃសិក្សា", feature: "fees" }, // Student Fees
+        { to: "/admin/budget", icon: "dollar-sign", label: "ថវិកា", feature: "budget" }, // Budget
+        { to: "/admin/inventory", icon: "package", label: "សម្ភារៈ/ឧបករណ៍", feature: "inventory" }, // Inventory
+        { to: "/admin/library", icon: "book", label: "បណ្ណាល័យ", feature: "library" }, // Library
+      ],
+    },
+    // {
+    //   label: "របាយការណ៍", // Reports
+    //   items: [
+    //     {
+    //       to: "/admin/reports",
+    //       icon: "printer",
+    //       label: "របាយការណ៍ និង បោះពុម្ព",
+    //     }, // Reports & Print
+    //   ],
+    // },
+    {
+      label: "ការរៀបចំសាលារៀន", // School Setup
+      items: [
+        { to: "/admin/settings", icon: "settings", label: "ការកំណត់" }, // Settings
+        { to: "/admin/billing", icon: "credit-card", label: "ការជាវប្រើប្រាស់" }, // Billing
+      ],
+    },
+  ]
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => !item.feature || planStore.hasFeature(item.feature),
+      ),
+    }))
+    .filter((group) => group.items.length > 0),
+);
 
 // Icon SVG paths
 const icons = {
@@ -142,6 +155,10 @@ const icons = {
   shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
   settings:
     "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z",
+  "credit-card":
+    "M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM1 10h22",
+  receipt:
+    "M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1zM8 7h8M8 11h8M8 15h5",
 };
 
 function getIconPath(name) {
@@ -311,6 +328,36 @@ function isActive(path) {
         </div>
       </header>
 
+      <div
+        v-if="planStore.plan && (!planStore.isActive || planStore.expiringSoon)"
+        class="plan-banner"
+        :class="planStore.isActive ? 'plan-banner-warning' : 'plan-banner-danger'"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          width="18"
+          height="18"
+        >
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <span v-if="!planStore.isActive">
+          ការជាវរបស់សាលាបានផុតកំណត់ — សូមបន្តការជាវដើម្បីប្រើប្រាស់ប្រព័ន្ធ។
+        </span>
+        <span v-else>
+          ការជាវនឹងផុតកំណត់ក្នុង {{ planStore.daysLeft }} ថ្ងៃ — សូមបន្តការជាវជាមុន។
+        </span>
+        <RouterLink to="/admin/billing" class="plan-banner-btn">
+          បន្តការជាវ
+        </RouterLink>
+      </div>
+
       <main class="page-content">
         <RouterView />
       </main>
@@ -413,5 +460,38 @@ function isActive(path) {
   background: var(--primary-50);
   padding: 4px 10px;
   border-radius: 20px;
+}
+.plan-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.plan-banner svg {
+  flex-shrink: 0;
+}
+.plan-banner-warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+.plan-banner-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.plan-banner-btn {
+  margin-left: auto;
+  padding: 5px 14px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.65);
+  color: inherit;
+  font-weight: 700;
+  font-size: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.plan-banner-btn:hover {
+  background: #fff;
 }
 </style>
