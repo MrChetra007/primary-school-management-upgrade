@@ -2,7 +2,7 @@
 
 A comprehensive school management platform for Cambodian primary schools, built for multi-tenant use across multiple schools.
 
-**Stack:** Vue 3 + Vite + Tailwind CSS + Supabase (PostgreSQL) — schema v10
+**Stack:** Vue 3 + Vite + Tailwind CSS + Supabase (PostgreSQL) — schema v11
 
 ## Roles
 
@@ -44,9 +44,9 @@ A comprehensive school management platform for Cambodian primary schools, built 
 
 ## Database
 
-Full schema in `schema_v10.sql` (fresh install) — covers 27 tables (incl. `notifications`, `teacher_phrases`), 30+ indexes, RLS policies, storage buckets, DB functions (student rollup, teacher check-in, approval triggers), and Edge Function (`manage-user`).
+Full schema in `database/schema/schema_v11.sql` (fresh install) — covers 27 tables (incl. `notifications`, `teacher_phrases`), 30+ indexes, RLS policies, storage buckets, DB functions (student rollup, teacher check-in, approval triggers), and Edge Function (`manage-user`).
 
-Migration files: `migration_v2_to_v3.sql` through `migration_v9_v10.sql`.
+Migration files: `database/migrations/migration_v2_to_v3.sql` through `database/migrations/migration_v9_v10.sql`. Seeds and one-off SQL live in `database/seeds` and `database/scripts`. Older schema/roadmap versions are archived under `database/schema/_archive` and `docs/_archive`.
 
 ## Develop
 
