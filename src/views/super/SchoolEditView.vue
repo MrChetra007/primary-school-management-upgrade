@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { School, ArrowLeft, Save, Loader2 } from 'lucide-vue-next'
+import { SCHOOL_TYPE_OPTIONS } from '@/config/schoolTypes'
 
 const router = useRouter()
 const route = useRoute()
@@ -15,6 +16,8 @@ const form = ref({
   province: '',
   district: '',
   status: 'active',
+  school_type: 'primary',
+  rollup_mode: 'grade_promotion',
   plan: 'basic',
   plan_expires_at: ''
 })
@@ -42,6 +45,8 @@ onMounted(async () => {
       province: data.province || '',
       district: data.district || '',
       status: data.status || 'active',
+      school_type: data.school_type || 'primary',
+      rollup_mode: data.rollup_mode || 'grade_promotion',
       plan: data.plan || 'basic',
       plan_expires_at: data.plan_expires_at ? data.plan_expires_at.slice(0, 10) : ''
     }
@@ -72,6 +77,8 @@ async function handleSave() {
         province: form.value.province,
         district: form.value.district,
         status: form.value.status,
+        school_type: form.value.school_type,
+        rollup_mode: form.value.rollup_mode,
         plan: form.value.plan,
         plan_expires_at: form.value.plan_expires_at
           ? new Date(form.value.plan_expires_at).toISOString()
@@ -163,6 +170,23 @@ async function handleSave() {
           <div class="space-y-2">
             <label class="text-sm font-bold text-slate-700">ស្រុក/ខណ្ឌ</label>
             <input v-model="form.district" type="text" class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="text-sm font-bold text-slate-700">ប្រភេទសាលារៀន</label>
+            <select v-model="form.school_type" class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium appearance-none">
+              <option v-for="opt in SCHOOL_TYPE_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-bold text-slate-700">របៀបបញ្ចប់ឆ្នាំ / វគ្គ</label>
+            <select v-model="form.rollup_mode" class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium appearance-none">
+              <option value="grade_promotion">រុញថ្នាក់តាមលេខថ្នាក់ (ថ្នាក់ទី១ → ២)</option>
+              <option value="level_up">បន្តកម្រិត (ឈ្មោះថ្នាក់ដូចគ្នា)</option>
+              <option value="complete_only">បញ្ចប់តែម្ដង (គ្មានឡើងថ្នាក់)</option>
+            </select>
           </div>
         </div>
 

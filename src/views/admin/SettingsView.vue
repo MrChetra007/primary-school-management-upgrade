@@ -3,6 +3,7 @@ import { ref, onMounted, computed, nextTick } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
+import { useSchoolStore } from '@/stores/school'
 import { toInputDate, formatDate } from '@/utils/formatDate'
 import KhmerDatePicker from '@/components/shared/KhmerDatePicker.vue'
 import { getKhmerHolidays } from 'khmer-chhankitek-calendar'
@@ -11,6 +12,7 @@ import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
+const school = useSchoolStore()
 const { showToast } = useToast()
 const currentTab = ref('school')
 const loading = ref(false)
@@ -24,6 +26,7 @@ const tabs = [
   { id: 'subjects', label: 'មុខវិជ្ជា' },
   { id: 'holidays', label: 'ថ្ងៃឈប់សម្រាក' },
   { id: 'attendance', label: 'ការកំណត់វត្តមាន' },
+  { id: 'scoring', label: 'ការវាយតម្លៃ និងកាលវិភាគ' },
   { id: 'semester', label: 'ការកំណត់ឆមាស' },
   { id: 'signature', label: 'ហត្ថលេខា និងត្រា' },
 ]
@@ -369,6 +372,63 @@ async function saveAttConfig() {
   else showToast('បានរក្សាទុកការកំណត់វត្តមានដោយជោគជ័យ!')
 }
 
+// ── SCORING & WEEKLY SCHEDULE DEFAULTS ─────────────────────
+const weekDays = [
+  { id: 'mon', name: 'ចន្ទ' }, { id: 'tue', name: 'អង្គារ' }, { id: 'wed', name: 'ពុធ' },
+  { id: 'thu', name: 'ព្រហស្បតិ៍' }, { id: 'fri', name: 'សុក្រ' }, { id: 'sat', name: 'សៅរ៍' },
+  { id: 'sun', name: 'អាទិត្យ' }
+]
+
+const scoringConfig = ref({
+  id: null,
+  default_scoring_mode: 'subject_scores',
+  schedule: { days: [], start: '', end: '' }
+})
+
+function toggleScoringDay(day) {
+  const days = [...(scoringConfig.value.schedule?.days || [])]
+  const i = days.indexOf(day)
+  if (i >= 0) days.splice(i, 1)
+  else days.push(day)
+  scoringConfig.value.schedule = { ...scoringConfig.value.schedule, days }
+}
+
+async function loadScoringConfig() {
+  loading.value = true
+  const { data } = await supabase
+    .from('school_settings')
+    .select('id, default_scoring_mode, default_weekly_schedule')
+    .limit(1)
+    .maybeSingle()
+  if (data) {
+    scoringConfig.value.id = data.id
+    scoringConfig.value.default_scoring_mode = data.default_scoring_mode || 'subject_scores'
+    scoringConfig.value.schedule =
+      data.default_weekly_schedule || { days: [], start: '', end: '' }
+  }
+  loading.value = false
+}
+
+async function saveScoringConfig() {
+  saving.value = true
+  const payload = {
+    default_scoring_mode: scoringConfig.value.default_scoring_mode,
+    default_weekly_schedule: scoringConfig.value.schedule || { days: [], start: '', end: '' },
+    updated_at: new Date().toISOString()
+  }
+  const { error } = scoringConfig.value.id
+    ? await supabase.from('school_settings').update(payload).eq('id', scoringConfig.value.id)
+    : await supabase.from('school_settings').insert({ ...payload, school_id: auth.schoolId })
+  saving.value = false
+  if (error) { showToast(error.message, 'error'); return }
+  school.setDefaults({
+    scoringMode: payload.default_scoring_mode,
+    weeklySchedule: payload.default_weekly_schedule
+  })
+  showToast('បានរក្សាទុកការកំណត់ការវាយតម្លៃ និងកាលវិភាគ!')
+  loadScoringConfig()
+}
+
 // ── SEMESTER CONFIG ────────────────────────────────────────
 const semesterList = ref([])
 
@@ -421,6 +481,7 @@ function switchTab(id) {
   if (id === 'subjects') loadSubjects()
   if (id === 'holidays') loadHolidays()
   if (id === 'attendance') loadAttConfig()
+  if (id === 'scoring') loadScoringConfig()
   if (id === 'semester') loadSemesterConfig()
   if (id === 'signature') loadSchool()
 }
@@ -551,6 +612,63 @@ function switchTab(id) {
             
             <div style="grid-column:1/-1;background:var(--primary-50);padding:12px;border-radius:8px;font-size:12px;color:var(--primary-700);">
               <InformationCircleIcon class="w-4 h-4 inline-block align-middle" /> <strong>របៀបដំណើរការ៖</strong> ប្រសិនបើនរណាម្នាក់ចុចចូលរៀន<em>បន្ទាប់ពី</em>ម៉ោងកំណត់ ពួកគេនឹងត្រូវចាត់ទុកថា <strong>យឺត</strong> ដោយស្វ័យប្រវត្ត។ បើពុំនោះទេ ពួកគេត្រូវបានកត់ត្រាថា <strong>មានវត្តមាន</strong>។
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="currentTab === 'scoring'" class="tab-pane">
+        <div class="card" style="max-width:640px;">
+          <div class="card-header">
+            <span class="card-title">ការវាយតម្លៃពិន្ទុ និងកាលវិភាគប្រចាំសប្តាហ៍</span>
+            <button class="btn btn-primary btn-sm" @click="saveScoringConfig" :disabled="saving">
+              <ArrowDownTrayIcon class="w-4 h-4" /> {{ saving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុក' }}
+            </button>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:20px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">ប្រភេទការវាយតម្លៃពិន្ទុ (លំនាំដើម)</label>
+              <select class="form-input" v-model="scoringConfig.default_scoring_mode">
+                <option value="subject_scores">ពិន្ទុតាមមុខវិជ្ជា</option>
+                <option value="simple_result">លទ្ធផលសាមញ្ញ (ជាប់/ធ្លាក់)</option>
+              </select>
+              <p style="font-size:12px;color:var(--text-secondary);margin-top:6px;">
+                ថ្នាក់ថ្មីៗនឹងប្រើប្រភេទនេះជាលំនាំដើម។ អ្នកអាចកែជាក់លាក់ក្នុងថ្នាក់នីមួយៗ។
+              </p>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">កាលវិភាគប្រចាំសប្តាហ៍ (លំនាំដើម)</label>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                <button
+                  v-for="d in weekDays" :key="d.id"
+                  type="button"
+                  class="day-toggle"
+                  :class="{ active: (scoringConfig.schedule?.days || []).includes(d.id) }"
+                  @click="toggleScoringDay(d.id)"
+                >
+                  {{ d.name }}
+                </button>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label">ម៉ោងចាប់ផ្តើម</label>
+                  <input type="time" class="form-input" v-model="scoringConfig.schedule.start" />
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label">ម៉ោងបញ្ចប់</label>
+                  <input type="time" class="form-input" v-model="scoringConfig.schedule.end" />
+                </div>
+              </div>
+              <p style="font-size:12px;color:var(--text-secondary);margin-top:6px;">
+                ថ្នាក់ថ្មីៗនឹងត្រូវបំពេញកាលវិភាគនេះជាលំនាំដើម។ អ្នកអាចកែជាក់លាក់ក្នុងថ្នាក់នីមួយៗ។
+              </p>
+            </div>
+
+            <div style="background:var(--primary-50);padding:12px;border-radius:8px;font-size:12px;color:var(--primary-700);">
+              <InformationCircleIcon class="w-4 h-4 inline-block align-middle" />
+              <strong>ចំណាំ៖</strong> ការកំណត់នេះជាលំនាំដើមសម្រាប់ថ្នាក់ថ្មីតែប៉ុណ្ណោះ។
+              ថ្នាក់ដែលមានស្រាប់រក្សាតម្លៃរៀងៗខ្លួន។
             </div>
           </div>
         </div>

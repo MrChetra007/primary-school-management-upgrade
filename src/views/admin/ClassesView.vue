@@ -3,12 +3,14 @@ import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
+import { useSchoolStore } from '@/stores/school'
 import { formatDate, toInputDate } from '@/utils/formatDate'
 import { CheckIcon, XCircleIcon, BuildingOfficeIcon, SunIcon, MoonIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
+const school = useSchoolStore()
 const { showToast } = useToast()
 const classes = ref([])
 const teachers = ref([])
@@ -19,7 +21,30 @@ const isEdit = ref(false)
 const deleteTarget = ref(null)
 const search = ref('')
 
-const emptyForm = () => ({ id: null, class_name: '', teacher_id: '', academic_year_id: yearStore.selectedYearId, turn: 'morning', subjects: [] })
+const weekDays = [
+  { id: 'mon', name: 'ចន្ទ' }, { id: 'tue', name: 'អង្គារ' }, { id: 'wed', name: 'ពុធ' },
+  { id: 'thu', name: 'ព្រហស្បតិ៍' }, { id: 'fri', name: 'សុក្រ' }, { id: 'sat', name: 'សៅរ៍' },
+  { id: 'sun', name: 'អាទិត្យ' }
+]
+
+const defaultSchedule = () => {
+  const s = school.defaultWeeklySchedule || { days: [], start: '', end: '' }
+  return { days: [...(s.days || [])], start: s.start || '', end: s.end || '' }
+}
+
+const emptyForm = () => ({
+  id: null,
+  class_name: '',
+  teacher_id: '',
+  academic_year_id: yearStore.selectedYearId,
+  turn: 'morning',
+  subjects: [],
+  scoring_mode: school.defaultScoringMode || school.typeConfig.defaultScoringMode,
+  start_date: '',
+  end_date: '',
+  room: '',
+  schedule: defaultSchedule()
+})
 const form = ref(emptyForm())
 const allSubjects = ref([])
 
@@ -63,8 +88,25 @@ async function openEdit(c) {
   isEdit.value = true; 
   // Get existing subject IDs
   const subjectIds = c.class_subjects?.map(cs => cs.subject_id) || []
-  form.value = { ...c, subjects: subjectIds }
+  form.value = {
+    ...emptyForm(),
+    ...c,
+    subjects: subjectIds,
+    scoring_mode: c.scoring_mode || school.defaultScoringMode || school.typeConfig.defaultScoringMode,
+    start_date: c.start_date || '',
+    end_date: c.end_date || '',
+    room: c.room || '',
+    schedule: c.schedule || defaultSchedule()
+  }
   showModal.value = true 
+}
+
+function toggleDay(day) {
+  const days = form.value.schedule?.days || []
+  const idx = days.indexOf(day)
+  if (idx === -1) days.push(day)
+  else days.splice(idx, 1)
+  form.value.schedule = { ...form.value.schedule, days }
 }
 
 async function save() {
@@ -73,8 +115,11 @@ async function save() {
   
   const { id, teachers: _t, academic_years: _y, class_subjects: _cs, subjects: selectedSubjects, ...payload } = form.value
   
-  // Sanitize optional UUIDs
+  // Sanitize optional UUIDs / dates
   if (!payload.teacher_id) payload.teacher_id = null
+  if (!payload.start_date) payload.start_date = null
+  if (!payload.end_date) payload.end_date = null
+  if (!payload.room) payload.room = null
   
   try {
     // 1. Save/Update Class
@@ -150,7 +195,7 @@ async function doDelete() {
       </div>
       <div v-else class="table-wrapper">
         <table>
-          <thead><tr><th>ឈ្មោះថ្នាក់</th><th>គ្រូបង្រៀន</th><th>មុខវិជ្ជា</th><th>វេនរៀន</th><th>សកម្មភាព</th></tr></thead>
+          <thead><tr><th>ឈ្មោះថ្នាក់</th><th>គ្រូបង្រៀន</th><th>មុខវិជ្ជា</th><th>វេនរៀន</th><th>ប្រភេទពិន្ទុ</th><th>សកម្មភាព</th></tr></thead>
           <tbody>
             <tr v-for="c in filtered" :key="c.id">
               <td style="font-weight:600;">{{ c.class_name }}</td>
@@ -166,6 +211,11 @@ async function doDelete() {
               <td>
                 <span class="badge" :class="c.turn === 'morning' ? 'badge-blue' : 'badge-yellow'">
                   <SunIcon v-if="c.turn === 'morning'" class="w-4 h-4" /><MoonIcon v-else class="w-4 h-4" /> {{ c.turn === 'morning' ? 'ព្រឹក' : 'រសៀល' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" :class="c.scoring_mode === 'simple_result' ? 'badge-yellow' : 'badge-gray'" style="font-size:10px;">
+                  {{ c.scoring_mode === 'simple_result' ? 'លទ្ធផលសាមញ្ញ' : 'តាមមុខវិជ្ជា' }}
                 </span>
               </td>
               <td>
@@ -208,6 +258,49 @@ async function doDelete() {
               <option value="morning">ព្រឹក</option>
               <option value="afternoon">រសៀល</option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ប្រភេទការវាយតម្លៃពិន្ទុ</label>
+            <select class="form-select" v-model="form.scoring_mode">
+              <option value="subject_scores">ពិន្ទុតាមមុខវិជ្ជា (ប្រចាំខែ / ឆមាស)</option>
+              <option value="simple_result">លទ្ធផលសាមញ្ញ (ជាប់ / ធ្លាក់)</option>
+            </select>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div class="form-group">
+              <label class="form-label">ថ្ងៃចាប់ផ្ដើម</label>
+              <input type="date" class="form-input" v-model="form.start_date" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ថ្ងៃបញ្ចប់</label>
+              <input type="date" class="form-input" v-model="form.end_date" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">បន្ទប់រៀន</label>
+            <input class="form-input" v-model="form.room" placeholder="ឧ. បន្ទប់ A1" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">កាលវិភាគប្រចាំសប្តាហ៍</label>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+              <button
+                v-for="d in weekDays"
+                :key="d.id"
+                type="button"
+                class="day-toggle"
+                :class="{ active: (form.schedule?.days || []).includes(d.id) }"
+                @click="toggleDay(d.id)"
+              >{{ d.name }}</button>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+              <input type="time" class="form-input" v-model="form.schedule.start" />
+              <input type="time" class="form-input" v-model="form.schedule.end" />
+            </div>
+            <p class="form-hint" style="font-size:11px; color:var(--text-secondary); margin-top:4px;">មោងចាប់ផ្ដើម — មោងបញ្ចប់</p>
           </div>
 
           <div class="form-group">

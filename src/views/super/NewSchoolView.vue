@@ -2,19 +2,20 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
-import { 
-  School, 
-  User, 
-  Shield, 
-  ArrowLeft, 
-  ArrowRight, 
-  Check, 
+import {
+  School,
+  User,
+  Shield,
+  ArrowLeft,
+  ArrowRight,
+  Check,
   Loader2,
   Lock,
   Mail,
   MapPin,
   Smartphone
 } from 'lucide-vue-next'
+import { SCHOOL_TYPE_OPTIONS } from '@/config/schoolTypes'
 
 const router = useRouter()
 const step = ref(1)
@@ -30,7 +31,8 @@ const schoolForm = ref({
   name_english: '',
   school_code: '',
   province: '',
-  district: ''
+  district: '',
+  school_type: 'primary'
 })
 
 const adminForm = ref({
@@ -56,6 +58,12 @@ async function handleSubmit() {
 
       if (schoolError) throw new Error(schoolError.message || 'Failed to create school.')
       if (!schoolId)   throw new Error('No school ID returned from database.')
+
+      // Apply the chosen school type (drives labels / scoring / fee defaults)
+      await supabase
+        .from('schools')
+        .update({ school_type: schoolForm.value.school_type })
+        .eq('id', schoolId)
 
       createdSchoolId.value = schoolId
       console.log('School created:', schoolId)
@@ -193,6 +201,16 @@ async function handleSubmit() {
               placeholder="បាត់ដំបង"
               class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium"
             />
+          </div>
+          <div class="space-y-2 md:col-span-2">
+            <label class="text-sm font-bold text-slate-700">ប្រភេទសាលារៀន</label>
+            <select
+              v-model="schoolForm.school_type"
+              class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium"
+            >
+              <option v-for="opt in SCHOOL_TYPE_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+            </select>
+            <p class="text-xs text-slate-400">ប្រភេទសាលាកំណត់ ស្លាកឈ្មោះ ប្រភេទពិន្ទុលំនាំដើម និងវដ្តថ្លៃសិក្សា។</p>
           </div>
         </div>
 

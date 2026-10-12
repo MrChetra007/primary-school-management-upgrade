@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
+import { useSchoolStore } from '@/stores/school'
 import { toInputDate, formatDate } from '@/utils/formatDate'
 import KhmerDatePicker from '@/components/shared/KhmerDatePicker.vue'
 import { 
@@ -21,6 +22,7 @@ import { useToast } from '@/composables/useToast'
 const router = useRouter()
 const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
+const school = useSchoolStore()
 const { showToast } = useToast()
 const years = ref([])
 const loading = ref(true)
@@ -193,6 +195,18 @@ async function executeRollup() {
       newYearName: years.value.find(y => y.id === targetYearId.value)?.year_name,
       schoolId: auth.schoolId
     })
+    const { data: cap, error: capError } = await supabase.rpc('check_rollup_capacity', {
+      p_old_year_id: rollupSource.value.id,
+      p_new_year_id: targetYearId.value
+    })
+    if (capError) throw capError
+    if (cap && cap.allowed === false) {
+      throw new Error(
+        `ចំនួនសិស្សបន្ទាប់ពីបញ្ជូន (${cap.projected}) លើសកំណត់គម្រោង (${cap.max_students})។ ` +
+        `សូមដំឡើងទៅ Pro ឬកាត់បន្ថយចំនួនសិស្ស។`
+      )
+    }
+
     const { data, error } = await supabase.rpc('perform_student_rollup', {
       p_old_year_id: rollupSource.value.id,
       p_new_year_id: targetYearId.value
@@ -399,7 +413,8 @@ async function executeRollup() {
                 <ArrowPathRoundedSquareIcon class="w-5 h-5" />
                 <div>
                   <p class="font-bold">សិស្សសរុបចំនួន <strong>{{ rollupStudentCount }}</strong> នាក់ នឹងត្រូវបានបញ្ជូនបន្ត</p>
-                  <p style="font-size:12px;margin-top:4px;">ថ្នាក់ទី១ → ទី២, ទី២ → ទី៣, ... , ទី៦ → បញ្ចប់ការសិក្សា</p>
+                  <p v-if="school.typeConfig.usesGradeParsing" style="font-size:12px;margin-top:4px;">ថ្នាក់ទី១ → ទី២, ទី២ → ទី៣, ... , ទី៦ → បញ្ចប់ការសិក្សា</p>
+                  <p v-else style="font-size:12px;margin-top:4px;">សិស្សនឹងបន្តទៅកម្រិត/វគ្គបន្ទាប់ ឬត្រូវបានបញ្ចប់វគ្គសិក្សា</p>
                 </div>
               </div>
 
@@ -419,7 +434,8 @@ async function executeRollup() {
               </div>
 
               <p v-if="targetYearId && targetClassesCount > 0 && rollupStudentCount === 0" class="form-hint mt-2">
-                សិស្សថ្នាក់ទី១ នឹងទៅថ្នាក់ទី២, ថ្នាក់ទី៥ ទៅថ្នាក់ទី៦ និងថ្នាក់ទី៦ នឹងត្រូវបញ្ចប់ការសិក្សា។
+                <template v-if="school.typeConfig.usesGradeParsing">សិស្សថ្នាក់ទី១ នឹងទៅថ្នាក់ទី២, ថ្នាក់ទី៥ ទៅថ្នាក់ទី៦ និងថ្នាក់ទី៦ នឹងត្រូវបញ្ចប់ការសិក្សា។</template>
+                <template v-else>សិស្សនឹងបន្តទៅកម្រិត/វគ្គបន្ទាប់ ឬត្រូវបានបញ្ចប់វគ្គសិក្សា។</template>
               </p>
             </div>
 

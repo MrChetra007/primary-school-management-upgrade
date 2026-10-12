@@ -293,6 +293,30 @@ a:hover { color: var(--primary-700); }
 .badge-gray    { background: var(--gray-100); color: var(--gray-600); }
 .badge-purple  { background: #ede9fe; color: #6d28d9; }
 
+/* Pill toggle used for weekday / option selection (filled when active) */
+.day-toggle {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-default);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease,
+              border-color .15s ease, box-shadow .15s ease;
+}
+.day-toggle:hover {
+  border-color: var(--primary-500);
+  color: var(--primary-700);
+}
+.day-toggle.active {
+  background: var(--primary-500);
+  border-color: var(--primary-500);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(74, 127, 165, 0.35);
+}
+
 /* ============================================================
    TABLE
    ============================================================ */

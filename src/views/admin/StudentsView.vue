@@ -173,6 +173,26 @@ async function loadClasses() {
   classes.value = data || [];
 }
 
+async function getStudentUsage() {
+  const { data } = await supabase.rpc("school_student_usage");
+  const row = Array.isArray(data) ? data[0] : data;
+  return row || { used: 0, max_students: null };
+}
+
+async function createEnrollments(rows) {
+  const enrolls = (rows || [])
+    .filter((r) => r.student_id && r.class_id)
+    .map((r) => ({
+      school_id: auth.schoolId,
+      student_id: r.student_id,
+      class_id: r.class_id,
+      start_date: new Date().toISOString().slice(0, 10),
+      status: "active",
+    }));
+  if (!enrolls.length) return { error: null };
+  return supabase.from("student_enrollments").insert(enrolls);
+}
+
 function openAdd() {
   isEdit.value = false;
   form.value = emptyForm();
@@ -193,16 +213,46 @@ async function save() {
   saving.value = true;
   const { id, classes: _c, ...payload } = form.value;
   if (!payload.class_id) payload.class_id = null;
-  const { error } = isEdit.value
+
+  if (!isEdit.value) {
+    const usage = await getStudentUsage();
+    if (usage.max_students != null && usage.used + 1 > usage.max_students) {
+      saving.value = false;
+      showToast(
+        `គម្រោង ${usage.max_students} នាក់ ពេញហើយ។ សូមដំឡើងទៅ Pro សម្រាប់សិស្សគ្មានកំណត់។`,
+        "error",
+      );
+      return;
+    }
+  }
+
+  const { data, error } = isEdit.value
     ? await supabase.from("students").update(payload).eq("id", id)
     : await supabase
         .from("students")
-        .insert({ ...payload, school_id: auth.schoolId });
-  saving.value = false;
+        .insert({ ...payload, school_id: auth.schoolId })
+        .select("id, class_id")
+        .single();
+
   if (error) {
+    saving.value = false;
     showToast(error.message, "error");
     return;
   }
+
+  if (!isEdit.value && data) {
+    const { error: enrollError } = await createEnrollments([
+      { student_id: data.id, class_id: data.class_id },
+    ]);
+    if (enrollError) {
+      await supabase.from("students").delete().eq("id", data.id);
+      saving.value = false;
+      showToast(enrollError.message, "error");
+      return;
+    }
+  }
+
+  saving.value = false;
   showToast(
     isEdit.value ? "បានកែប្រែព័ត៌មានសិស្ស!" : "បានបន្ថែមសិស្សថ្មី!",
     "success",
@@ -427,6 +477,20 @@ async function doImport() {
   if (!validRows.value.length) return;
   importing.value = true;
 
+  const usage = await getStudentUsage();
+  if (
+    usage.max_students != null &&
+    usage.used + validRows.value.length > usage.max_students
+  ) {
+    importing.value = false;
+    showToast(
+      `គម្រោង ${usage.max_students} នាក់ មានប្រើរួច ${usage.used}។ ` +
+        `បន្ថែម ${validRows.value.length} នាក់ លើសកំណត់។ សូមដំឡើងទៅ Pro។`,
+      "error",
+    );
+    return;
+  }
+
   const payload = validRows.value.map((r) => ({
     full_name: r.fullName,
     gender: r.gender || null,
@@ -442,10 +506,27 @@ async function doImport() {
     school_id: auth.schoolId,
   }));
 
-  const { error } = await supabase.from("students").insert(payload);
-  importing.value = false;
+  const { data, error } = await supabase
+    .from("students")
+    .insert(payload)
+    .select("id, class_id");
   if (error) {
+    importing.value = false;
     showToast(error.message, "error");
+    return;
+  }
+
+  const { error: enrollError } = await createEnrollments(data || []);
+  importing.value = false;
+  if (enrollError) {
+    await supabase
+      .from("students")
+      .delete()
+      .in(
+        "id",
+        (data || []).map((d) => d.id),
+      );
+    showToast(enrollError.message, "error");
     return;
   }
 

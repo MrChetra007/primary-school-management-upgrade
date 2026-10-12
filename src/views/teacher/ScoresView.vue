@@ -1,5 +1,23 @@
 <script setup>
-import { CalendarIcon, TrophyIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
+import { ref, onMounted } from 'vue'
+import { CalendarIcon, TrophyIcon, ChartBarIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
+import { useAuthStore } from '@/stores/auth'
+import { supabase } from '@/lib/supabase'
+
+const auth = useAuthStore()
+const isSimpleResult = ref(false)
+
+onMounted(async () => {
+  const t = auth.teacherProfile
+  if (!t) return
+  const { data } = await supabase
+    .from('classes')
+    .select('scoring_mode, academic_years!inner(status)')
+    .eq('teacher_id', t.id)
+    .eq('academic_years.status', 'active')
+    .maybeSingle()
+  isSimpleResult.value = data?.scoring_mode === 'simple_result'
+})
 </script>
 
 <template>
@@ -11,7 +29,20 @@ import { CalendarIcon, TrophyIcon, ChartBarIcon } from '@heroicons/vue/24/outlin
       </div>
     </div>
 
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:24px;">
+    <div v-if="isSimpleResult" class="card" style="margin-bottom:24px;">
+      <div class="card-body" style="display:flex; gap:14px; align-items:flex-start;">
+        <InformationCircleIcon class="w-6 h-6 text-amber-500" style="flex-shrink:0;" />
+        <div>
+          <h2 style="font-size:16px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">ថ្នាក់នេះប្រើលទ្ធផលសាមញ្ញ</h2>
+          <p style="color:var(--text-secondary); font-size:14px;">
+            ថ្នាក់របស់អ្នកវាយតម្លៃជាជាប់/ធ្លាក់ ជំនួសពិន្ទុតាមមុខវិជ្ជា។
+            មិនអាចបញ្ចូលពិន្ទុប្រចាំខែ ឬឆមាសនៅទីនេះទេ។
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div v-else style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:24px;">
       <!-- Monthly Scores -->
       <router-link to="/teacher/scores/monthly" class="card hover-card" style="text-decoration:none;">
         <div class="card-body" style="text-align:center; padding:48px 24px;">

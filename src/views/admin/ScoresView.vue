@@ -24,6 +24,9 @@ const scoreMode        = ref('monthly')   // 'monthly' | 'semester' | 'yearly'
 const selectedMonth    = ref(new Date().getMonth() + 1)
 const selectedSemester = ref(1)
 
+const selectedClass  = computed(() => classes.value.find(c => c.id === selectedClassId.value) || null)
+const isSimpleResult = computed(() => selectedClass.value?.scoring_mode === 'simple_result')
+
 // ─── Score Data ───────────────────────────────────────────────────────────────
 const rawScores  = ref([])
 const scoreMatrix = ref([])
@@ -98,7 +101,7 @@ onMounted(async () => {
 async function fetchClasses() {
   const { data } = await supabase
     .from('classes')
-    .select('id, class_name')
+    .select('id, class_name, scoring_mode')
     .eq('academic_year_id', yearStore.selectedYearId)
     .order('class_name')
   classes.value = data || []
@@ -113,11 +116,22 @@ async function fetchSubjects() {
   subjects.value = data?.map(s => s.subjects) || []
 }
 
-async function fetchData() {
+function fetchData() {
   if (!selectedClassId.value) return
   loading.value = true
   rankedList.value = []
 
+  if (isSimpleResult.value) {
+    scoreMatrix.value = []
+    rawScores.value = []
+    loading.value = false
+    return
+  }
+
+  return fetchDataAsync()
+}
+
+async function fetchDataAsync() {
   await fetchSubjects()
 
   const { data: stuData } = await supabase
@@ -489,6 +503,16 @@ watch(() => yearStore.selectedYearId, async () => {
     <div v-else-if="!selectedClassId" class="empty-state">
       <BuildingOfficeIcon class="w-12 h-12 text-gray-400" />
       <p class="empty-state-title">សូមជ្រើសរើសថ្នាក់ដើម្បីមើលពិន្ទុ</p>
+    </div>
+
+    <!-- ── Simple-result class ─────────────────────────────────────────────── -->
+    <div v-else-if="isSimpleResult" class="empty-state">
+      <DocumentIcon class="w-12 h-12 text-gray-400" />
+      <p class="empty-state-title">ថ្នាក់នេះប្រើប្រព័ន្ធលទ្ធផលសាមញ្ញ</p>
+      <p style="color:var(--text-secondary); font-size:13px; max-width:420px; text-align:center;">
+        ថ្នាក់ «{{ selectedClass?.class_name }}» វាយតម្លៃជាជាប់/ធ្លាក់ ជំនួសពិន្ទុតាមមុខវិជ្ជា។
+        សូមប្រើទំព័រលទ្ធផលសាមញ្ញជំនួសវិញ។
+      </p>
     </div>
 
     <!-- ── Empty: no scores ────────────────────────────────────────────────── -->
