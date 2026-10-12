@@ -27,6 +27,21 @@ export function computeSemesterAverage(monthlyAverages, examAverage) {
 }
 
 /**
+ * Computes the yearly average from semester averages.
+ * Yearly = average of whichever semesters have a value,
+ * so a single available semester is used as-is.
+ * @param {Array} semesterAverages - Array of semester averages (e.g. [7.5, 8.0]).
+ * @returns {number} Yearly average rounded to 2 decimal places.
+ */
+export function computeYearlyAverage(semesterAverages) {
+  const valid = (semesterAverages || []).filter(m => m !== null && m !== undefined && m > 0);
+  if (valid.length === 0) return 0;
+
+  const sum = valid.reduce((acc, curr) => acc + curr, 0);
+  return Number((sum / valid.length).toFixed(2));
+}
+
+/**
  * Computes the rank for a list of students based on their average.
  * Logic: Ties share the same rank, next rank skips (e.g., 1, 1, 3).
  * @param {Array} students - Array of objects containing { average }.

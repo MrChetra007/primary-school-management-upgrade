@@ -37,6 +37,12 @@ const router = createRouter({
       component: () => import('@/views/UpgradeView.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/school-inactive',
+      name: 'school-inactive',
+      component: () => import('@/views/auth/SchoolInactiveView.vue'),
+      meta: { requiresAuth: true },
+    },
 
     // ── Super Admin (Platform Level) ───────────────────────
     {
@@ -111,6 +117,7 @@ const router = createRouter({
         { path: 'scores',          name: 'teacher-scores',          component: () => import('@/views/teacher/ScoresView.vue') },
         { path: 'scores/monthly',  name: 'teacher-scores-monthly',  component: () => import('@/views/teacher/ScoresMonthlyView.vue') },
         { path: 'scores/semester', name: 'teacher-scores-semester', component: () => import('@/views/teacher/ScoresSemesterView.vue') },
+        { path: 'scores/yearly',   name: 'teacher-scores-yearly',   component: () => import('@/views/teacher/ScoresYearlyView.vue') },
         { path: 'scores/ranking',  name: 'teacher-scores-ranking',  component: () => import('@/views/teacher/ScoresRankingView.vue') },
         { path: 'scores/certificates', name: 'teacher-scores-certificates', component: () => import('@/views/teacher/CertificateDesignView.vue'), meta: { feature: 'certificates' } },
         { path: 'scores/honor-board-editor', name: 'teacher-honor-board-editor', component: () => import('@/views/teacher/Honorboardeditor.vue'), meta: { feature: 'honor_board' } },
@@ -194,23 +201,32 @@ router.beforeEach(async (to) => {
     return { name: 'unauthorized' }
   }
 
-  // 3b. Plan feature gate (Pro-only modules)
-  const requiredFeature = to.matched.map(record => record.meta.feature).find(Boolean)
-  if (requiredFeature && !usePlanStore().hasFeature(requiredFeature)) {
-    return { name: 'upgrade' }
-  }
-
-  // 3c. Subscription hard-block: an admin whose school is not on an active
-  // plan is forced to the billing page. Guarded on `plan` being loaded so a
-  // transient fetch failure never locks anyone out (RLS still enforces at DB).
+  // 3b. Subscription hard-block (whole school). Guarded on `plan` being
+  // loaded so a transient fetch failure never locks anyone out — RLS still
+  // enforces at the database level regardless.
   const planStore = usePlanStore()
+  const inactive = planStore.plan && !planStore.isActive
+
   if (
+    inactive &&
     auth.role === 'admin' &&
-    planStore.plan &&
-    !planStore.isActive &&
     !['admin-billing', 'admin-academic-years', 'upgrade'].includes(to.name)
   ) {
     return { name: 'admin-billing' }
+  }
+
+  if (
+    inactive &&
+    (auth.role === 'teacher' || auth.role === 'librarian') &&
+    to.name !== 'school-inactive'
+  ) {
+    return { name: 'school-inactive' }
+  }
+
+  // 3c. Plan feature gate (Pro-only modules)
+  const requiredFeature = to.matched.map(record => record.meta.feature).find(Boolean)
+  if (requiredFeature && !planStore.hasFeature(requiredFeature)) {
+    return { name: 'upgrade' }
   }
 
   // 4. Academic Year Guard for Admin

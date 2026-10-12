@@ -1,5 +1,5 @@
 <script setup>
-import { CalendarIcon, TrophyIcon } from '@heroicons/vue/24/outline'
+import { CalendarIcon, TrophyIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
 </script>
 
 <template>
@@ -7,11 +7,11 @@ import { CalendarIcon, TrophyIcon } from '@heroicons/vue/24/outline'
     <div class="page-header">
       <div>
         <h1 class="page-title">ពិន្ទុសិស្ស</h1>
-        <p class="page-subtitle">បញ្ចូល និងគ្រប់គ្រងពិន្ទុប្រចាំខែ ឬពិន្ទុឆមាស</p>
+        <p class="page-subtitle">បញ្ចូល និងគ្រប់គ្រងពិន្ទុប្រចាំខែ ពិន្ទុឆមាស ឬលទ្ធផលប្រចាំឆ្នាំ</p>
       </div>
     </div>
 
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:24px;">
       <!-- Monthly Scores -->
       <router-link to="/teacher/scores/monthly" class="card hover-card" style="text-decoration:none;">
         <div class="card-body" style="text-align:center; padding:48px 24px;">
@@ -32,8 +32,18 @@ import { CalendarIcon, TrophyIcon } from '@heroicons/vue/24/outline'
         </div>
       </router-link>
 
+      <!-- Yearly Results -->
+      <router-link to="/teacher/scores/yearly" class="card hover-card" style="text-decoration:none;">
+        <div class="card-body" style="text-align:center; padding:48px 24px;">
+          <ChartBarIcon class="w-12 h-12 text-gray-400" style="margin-bottom:16px;" />
+          <h2 style="font-size:20px; font-weight:800; color:var(--text-primary); margin-bottom:8px;">លទ្ធផលប្រចាំឆ្នាំ</h2>
+          <p style="color:var(--text-secondary); font-size:14px;">មធ្យមភាគប្រចាំឆ្នាំ គណនាពីឆមាសទី១ និងឆមាសទី២</p>
+          <div class="btn btn-secondary" style="margin-top:24px;">មើលលទ្ធផលប្រចាំឆ្នាំ</div>
+        </div>
+      </router-link>
+
       <!-- Student Ranking -->
-      <!-- <router-link to="/teacher/scores/ranking" class="card hover-card" style="text-decoration:none; grid-column: span 2;">
+      <!-- <router-link to="/teacher/scores/ranking" class="card hover-card" style="text-decoration:none;">
         <div class="card-body" style="text-align:center; padding:32px 24px; display:flex; align-items:center; justify-content:center; gap:24px;">
           <div style="background:var(--primary-color); padding:12px; border-radius:12px; color:white;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32">

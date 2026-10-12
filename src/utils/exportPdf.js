@@ -56,7 +56,9 @@ function buildRankingHtml({ rankedList, metadata, mode, filename }) {
   // ── Report title ──────────────────────────────────────────────────────────
   const reportTitle = mode === 'monthly'
     ? `តារាងចំណាត់ថ្នាក់ប្រចាំខែ ${month}`
-    : `តារាងចំណាត់ថ្នាក់ប្រចាំឆមាសទី ${khmerSemester}`
+    : mode === 'yearly'
+      ? `តារាងចំណាត់ថ្នាក់ប្រចាំឆ្នាំ`
+      : `តារាងចំណាត់ថ្នាក់ប្រចាំឆមាសទី ${khmerSemester}`
 
   // ── Row builder — 25 rows per column, supports up to 50 students ──────────
   function buildRows(slice, startNum) {
@@ -317,4 +319,14 @@ export async function generateMonthlyScorePDF(rankedList, metadata) {
 export async function generateSemesterScorePDF(rankedList, metadata) {
   const filename = `ranking_${metadata.className}_semester${metadata.semester}`
   openPrintWindow(buildRankingHtml({ rankedList, metadata, mode: 'semester', filename }))
+}
+
+/**
+ * Generate Yearly Ranking PDF
+ * @param {Array}  rankedList  [{ full_name, gender, average, rank }, ...]
+ * @param {Object} metadata   { schoolName, districtName, className, year }
+ */
+export async function generateYearlyScorePDF(rankedList, metadata) {
+  const filename = `ranking_${metadata.className}_yearly`
+  openPrintWindow(buildRankingHtml({ rankedList, metadata, mode: 'yearly', filename }))
 }

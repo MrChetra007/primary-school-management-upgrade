@@ -2,8 +2,8 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAcademicYearStore } from '@/stores/academicYear'
-import { computeMonthlyAverage, computeSemesterAverage, computeRank } from '@/utils/scoreCalculator'
-import { generateMonthlyScorePDF, generateSemesterScorePDF } from '@/utils/exportPdf'
+import { computeMonthlyAverage, computeSemesterAverage, computeYearlyAverage, computeRank } from '@/utils/scoreCalculator'
+import { generateMonthlyScorePDF, generateSemesterScorePDF, generateYearlyScorePDF } from '@/utils/exportPdf'
 import { BuildingOfficeIcon, DocumentIcon } from '@heroicons/vue/24/outline'
 import { useRouter } from 'vue-router'
 import { isFemale } from '@/utils/gender'
@@ -20,7 +20,7 @@ const exporting = ref(false)
 
 // ─── Filters ──────────────────────────────────────────────────────────────────
 const selectedClassId  = ref(null)
-const scoreMode        = ref('monthly')   // 'monthly' | 'semester'
+const scoreMode        = ref('monthly')   // 'monthly' | 'semester' | 'yearly'
 const selectedMonth    = ref(new Date().getMonth() + 1)
 const selectedSemester = ref(1)
 
@@ -76,6 +76,11 @@ const semesterMonths = computed(() => {
   const cfg = semesterConfigs.value.find(s => s.semester === selectedSemester.value)
   return cfg?.months || (selectedSemester.value === 1 ? [1, 2, 3] : [4, 5, 6])
 })
+
+function monthsForSemester(sem) {
+  const cfg = semesterConfigs.value.find(s => s.semester === sem)
+  return cfg?.months || (sem === 1 ? [1, 2, 3] : [4, 5, 6])
+}
 
 
 
@@ -140,7 +145,7 @@ async function fetchData() {
       .eq('score_type', 'monthly')
     rawScores.value = data || []
     buildMonthlyMatrix()
-  } else {
+  } else if (scoreMode.value === 'semester') {
     const [examRes, ...monthResults] = await Promise.all([
       supabase.from('scores').select('*')
         .in('student_id', studentIds)
@@ -155,6 +160,26 @@ async function fetchData() {
     ])
     rawScores.value = examRes.data || []
     buildSemesterMatrix(monthResults.flatMap(r => r.data || []))
+  } else {
+    const semNums = [1, 2]
+    const examResults = await Promise.all(semNums.map(sem =>
+      supabase.from('scores').select('*')
+        .in('student_id', studentIds)
+        .eq('score_type', 'semester')
+        .eq('semester', sem)
+    ))
+    const allMonths = [...new Set(semNums.flatMap(sem => monthsForSemester(sem)))]
+    const monthResults = await Promise.all(allMonths.map(m =>
+      supabase.from('scores').select('*')
+        .in('student_id', studentIds)
+        .eq('score_type', 'monthly')
+        .eq('month', m)
+    ))
+    rawScores.value = examResults.flatMap(r => r.data || [])
+    buildYearlyMatrix(
+      { 1: examResults[0].data || [], 2: examResults[1].data || [] },
+      monthResults.flatMap(r => r.data || [])
+    )
   }
 
   loading.value = false
@@ -212,6 +237,45 @@ function buildSemesterMatrix(mScores) {
       monthlyAverages: mAvgs,
       examAverage:     examAvg,
       average:         finalAvg
+    }
+  })
+
+  const ranked = computeRank(matrix)
+  scoreMatrix.value = ranked.slice().sort((a, b) => a.full_name.localeCompare(b.full_name))
+  rankedList.value  = ranked
+  calculateStats()
+}
+
+function buildYearlyMatrix(examBySem, mScores) {
+  const matrix = students.value.map(student => {
+    const semAvg = {}
+    ;[1, 2].forEach(sem => {
+      const semMonths = monthsForSemester(sem)
+      const examSubMap = {}
+      subjects.value.forEach(sub => {
+        const match = examBySem[sem].find(s => s.student_id === student.id && s.subject_id === sub.id)
+        examSubMap[sub.id] = match?.score ?? ''
+      })
+
+      const mAvgs = semMonths.map(m => {
+        const scores = mScores
+          .filter(s => s.student_id === student.id && s.month === m)
+          .map(s => ({ score: s.score }))
+        return computeMonthlyAverage(scores)
+      })
+
+      const examArray = Object.values(examSubMap).filter(s => s !== '').map(s => ({ score: s }))
+      const examAvg   = computeMonthlyAverage(examArray)
+      semAvg[sem] = computeSemesterAverage(mAvgs, examAvg)
+    })
+
+    return {
+      student_id: student.id,
+      full_name:  student.full_name,
+      gender:     (student.gender || '').toLowerCase(),
+      semester1:  semAvg[1],
+      semester2:  semAvg[2],
+      average:    computeYearlyAverage([semAvg[1], semAvg[2]])
     }
   })
 
@@ -303,6 +367,8 @@ async function handleExport() {
     if (scoreMode.value === 'monthly') {
       metadata.month = months.find(m => m.id === selectedMonth.value)?.name || ''
       await generateMonthlyScorePDF(rankedList.value, metadata)
+    } else if (scoreMode.value === 'yearly') {
+      await generateYearlyScorePDF(rankedList.value, metadata)
     } else {
       metadata.semester = selectedSemester.value
       await generateSemesterScorePDF(rankedList.value, metadata)
@@ -394,6 +460,7 @@ watch(() => yearStore.selectedYearId, async () => {
           <select class="form-select" v-model="scoreMode">
             <option value="monthly">របាយការណ៍ប្រចាំខែ</option>
             <option value="semester">របាយការណ៍ឆមាស</option>
+            <option value="yearly">របាយការណ៍ប្រចាំឆ្នាំ</option>
           </select>
         </div>
         <div v-if="scoreMode === 'monthly'" class="form-group">
@@ -402,7 +469,7 @@ watch(() => yearStore.selectedYearId, async () => {
             <option v-for="m in months" :key="m.id" :value="m.id">{{ m.name }}</option>
           </select>
         </div>
-        <div v-else class="form-group">
+        <div v-else-if="scoreMode === 'semester'" class="form-group">
           <label class="form-label">ឆមាស</label>
           <select class="form-select" v-model="selectedSemester">
             <option v-for="cfg in semesterConfigs" :key="cfg.semester" :value="cfg.semester">
@@ -558,7 +625,7 @@ watch(() => yearStore.selectedYearId, async () => {
               </template>
 
               <!-- Semester headers -->
-              <template v-else>
+              <template v-else-if="scoreMode === 'semester'">
                 <tr>
                   <th rowspan="2" style="width:40px;">ល.រ</th>
                   <th rowspan="2" style="min-width:150px; text-align:left;">ឈ្មោះសិស្ស</th>
@@ -576,6 +643,18 @@ watch(() => yearStore.selectedYearId, async () => {
                 </tr>
               </template>
 
+              <!-- Yearly headers -->
+              <template v-else>
+                <tr>
+                  <th style="width:40px;">ល.រ</th>
+                  <th style="min-width:160px; text-align:left;">ឈ្មោះសិស្ស</th>
+                  <th class="summary-col">មធ្យមភាគ<br/>ឆមាស ១</th>
+                  <th class="summary-col">មធ្យមភាគ<br/>ឆមាស ២</th>
+                  <th class="summary-col highlight">មធ្យមភាគ<br/>ប្រចាំឆ្នាំ</th>
+                  <th class="summary-col highlight">លំដាប់</th>
+                </tr>
+              </template>
+
             </thead>
             <tbody>
               <tr v-for="(row, idx) in scoreMatrix" :key="row.student_id">
@@ -590,7 +669,7 @@ watch(() => yearStore.selectedYearId, async () => {
                 </template>
 
                 <!-- Semester scores -->
-                <template v-else>
+                <template v-else-if="scoreMode === 'semester'">
                   <td v-for="sub in subjects" :key="sub.id">
                     {{ row.examSubjects[sub.id] !== '' ? row.examSubjects[sub.id] : '—' }}
                   </td>
@@ -602,6 +681,12 @@ watch(() => yearStore.selectedYearId, async () => {
                   >
                     {{ avg > 0 ? avg : '—' }}
                   </td>
+                </template>
+
+                <!-- Yearly scores -->
+                <template v-else>
+                  <td class="avg-cell">{{ row.semester1 > 0 ? row.semester1 : '—' }}</td>
+                  <td class="avg-cell">{{ row.semester2 > 0 ? row.semester2 : '—' }}</td>
                 </template>
 
                 <td class="avg-cell highlight" :class="{ 'text-danger': row.average < 5 }">
