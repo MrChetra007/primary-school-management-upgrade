@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { GREGORIAN_MONTHS_KM, DAYS_OF_WEEK_KM, toKhmerNumber, toKhmerLunarDate } from "khmer-chhankitek-calendar";
 
 const props = defineProps({
@@ -12,6 +12,9 @@ const emit = defineEmits(["update:modelValue"]);
 const open = ref(false);
 const viewDate = ref(new Date());
 const pickerRef = ref(null);
+const dropdownRef = ref(null);
+const dropUp = ref(false);
+const hAlign = ref("left");
 
 const year = computed(() => viewDate.value.getFullYear());
 const month = computed(() => viewDate.value.getMonth());
@@ -81,10 +84,12 @@ function selectDay(day) {
 
 function prevMonth() {
   viewDate.value = new Date(year.value, month.value - 1, 1);
+  positionDropdown();
 }
 
 function nextMonth() {
   viewDate.value = new Date(year.value, month.value + 1, 1);
+  positionDropdown();
 }
 
 function goToday() {
@@ -97,10 +102,31 @@ function goToday() {
   open.value = false;
 }
 
+function clearValue() {
+  emit("update:modelValue", "");
+}
+
+async function positionDropdown() {
+  await nextTick();
+  const el = pickerRef.value;
+  const dd = dropdownRef.value;
+  if (!el || !dd) return;
+  const rect = el.getBoundingClientRect();
+  const ddH = dd.offsetHeight || 340;
+  const ddW = dd.offsetWidth || 300;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove = rect.top;
+  dropUp.value = spaceBelow < ddH + 12 && spaceAbove > spaceBelow;
+  hAlign.value = window.innerWidth - rect.left < ddW + 12 ? "right" : "left";
+}
+
 function toggle() {
   open.value = !open.value;
-  if (open.value && selectedDate.value) {
-    viewDate.value = new Date(selectedDate.value.getFullYear(), selectedDate.value.getMonth(), 1);
+  if (open.value) {
+    if (selectedDate.value) {
+      viewDate.value = new Date(selectedDate.value.getFullYear(), selectedDate.value.getMonth(), 1);
+    }
+    positionDropdown();
   }
 }
 
@@ -110,15 +136,44 @@ function onClickOutside(e) {
   }
 }
 
-onMounted(() => document.addEventListener("click", onClickOutside));
-onUnmounted(() => document.removeEventListener("click", onClickOutside));
+function onReposition() {
+  if (open.value) positionDropdown();
+}
+
+onMounted(() => {
+  document.addEventListener("click", onClickOutside);
+  window.addEventListener("resize", onReposition);
+  window.addEventListener("scroll", onReposition, true);
+});
+onUnmounted(() => {
+  document.removeEventListener("click", onClickOutside);
+  window.removeEventListener("resize", onReposition);
+  window.removeEventListener("scroll", onReposition, true);
+});
 </script>
 
 <template>
   <div ref="pickerRef" class="khmer-date-picker">
     <div class="picker-input" :class="{ 'picker-input--open': open }" @click="toggle">
+      <svg class="picker-cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16">
+        <rect x="3" y="4.5" width="18" height="16" rx="2.5" />
+        <path d="M3 9h18M8 2.5v4M16 2.5v4" stroke-linecap="round" />
+      </svg>
       <span v-if="displayText" class="picker-text">{{ displayText }}</span>
       <span v-else class="picker-placeholder">{{ placeholder }}</span>
+
+      <button
+        v-if="selectedDate"
+        class="picker-clear"
+        type="button"
+        aria-label="សម្អាតកាលបរិច្ឆេទ"
+        @click.stop="clearValue"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+          <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round" />
+        </svg>
+      </button>
+
       <svg class="picker-chevron" :class="{ 'picker-chevron--up': open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
         <path d="M6 9l6 6 6-6" />
       </svg>
@@ -129,7 +184,12 @@ onUnmounted(() => document.removeEventListener("click", onClickOutside));
     </div>
 
     <transition name="fade">
-      <div v-if="open" class="picker-dropdown">
+      <div
+        v-if="open"
+        ref="dropdownRef"
+        class="picker-dropdown"
+        :class="{ 'picker-dropdown--up': dropUp, 'picker-dropdown--right': hAlign === 'right' }"
+      >
         <div class="picker-header">
           <button class="picker-nav" @click="prevMonth" type="button" aria-label="ខែមុន">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -161,7 +221,8 @@ onUnmounted(() => document.removeEventListener("click", onClickOutside));
         </div>
 
         <div class="picker-footer">
-          <button class="picker-today-btn" type="button" @click="goToday">ថ្ងៃនេះ</button>
+          <button class="picker-action" type="button" @click="goToday">ថ្ងៃនេះ</button>
+          <button v-if="selectedDate" class="picker-action picker-action--muted" type="button" @click.stop="clearValue">សម្អាត</button>
         </div>
       </div>
     </transition>
@@ -183,18 +244,22 @@ onUnmounted(() => document.removeEventListener("click", onClickOutside));
   border-radius: 8px;
   font-size: 13px;
   color: var(--text-primary, #1f2937);
-  background: white;
+  background: var(--bg-card, #fff);
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;
   user-select: none;
   min-height: 40px;
 }
 .picker-input:hover {
-  border-color: var(--primary-500, #3b82f6);
+  border-color: var(--primary-500, #4a7fa5);
 }
 .picker-input--open {
-  border-color: var(--primary-500, #3b82f6);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  border-color: var(--primary-500, #4a7fa5);
+  box-shadow: 0 0 0 3px rgba(74, 127, 165, 0.15);
+}
+.picker-cal-icon {
+  flex-shrink: 0;
+  color: var(--primary-500, #4a7fa5);
 }
 .picker-text {
   flex: 1;
@@ -203,6 +268,24 @@ onUnmounted(() => document.removeEventListener("click", onClickOutside));
 .picker-placeholder {
   flex: 1;
   color: var(--text-muted, #9ca3af);
+}
+.picker-clear {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--gray-100, #f3f4f6);
+  color: var(--text-muted, #6b7280);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.picker-clear:hover {
+  background: var(--bg-danger, #fff5f5);
+  color: var(--color-danger, #9b2c2c);
 }
 .picker-chevron {
   flex-shrink: 0;
@@ -227,26 +310,34 @@ onUnmounted(() => document.removeEventListener("click", onClickOutside));
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  right: 0;
   z-index: 200;
-  background: white;
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  background: var(--bg-card, #fff);
   border: 1px solid var(--border-default, #d1d5db);
-  border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  padding: 12px;
-  min-width: 280px;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
+  padding: 14px;
+}
+.picker-dropdown--up {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+.picker-dropdown--right {
+  left: auto;
+  right: 0;
 }
 
 .picker-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .picker-nav {
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: 9px;
   border: none;
   background: transparent;
   color: var(--text-primary, #1f2937);
@@ -254,10 +345,11 @@ onUnmounted(() => document.removeEventListener("click", onClickOutside));
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 .picker-nav:hover {
-  background: var(--bg-secondary, #f3f4f6);
+  background: var(--primary-50, #f0f4f8);
+  color: var(--primary-700, #2c5282);
 }
 .picker-header-title {
   font-size: 14px;
@@ -275,68 +367,83 @@ onUnmounted(() => document.removeEventListener("click", onClickOutside));
   text-align: center;
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-muted, #9ca3af);
+  color: var(--text-secondary, #4b5563);
   padding: 4px 0;
 }
 
 .picker-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 3px;
 }
 .picker-day {
   aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 9px;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-primary, #1f2937);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
 .picker-day:hover {
-  background: var(--bg-secondary, #f3f4f6);
+  background: var(--primary-50, #f0f4f8);
+  color: var(--primary-700, #2c5282);
 }
 .picker-day--empty {
   cursor: default;
 }
+.picker-day--empty:hover {
+  background: transparent;
+}
 .picker-day--today {
   font-weight: 700;
-  color: var(--primary-500, #3b82f6);
-  background: rgba(59, 130, 246, 0.06);
+  color: var(--primary-700, #2c5282);
+  box-shadow: inset 0 0 0 1.5px var(--primary-500, #4a7fa5);
 }
 .picker-day--selected {
-  background: var(--primary-500, #1e5fa5);
-  color: white;
+  background: var(--primary-500, #4a7fa5);
+  color: #fff;
   font-weight: 700;
+  box-shadow: 0 2px 8px rgba(74, 127, 165, 0.35);
 }
 .picker-day--selected:hover {
-  background: var(--primary-600, #184d8a);
+  background: var(--primary-700, #2c5282);
+  color: #fff;
 }
 
 .picker-footer {
-  margin-top: 10px;
+  margin-top: 12px;
   padding-top: 10px;
   border-top: 1px solid var(--border-default, #e5e7eb);
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 8px;
 }
-.picker-today-btn {
-  background: transparent;
+.picker-action {
+  flex: 1;
   border: none;
   font-size: 12px;
   font-weight: 600;
-  color: var(--primary-500, #1e5fa5);
+  color: var(--primary-700, #2c5282);
+  background: var(--primary-50, #f0f4f8);
   cursor: pointer;
-  padding: 6px 16px;
-  border-radius: 6px;
+  padding: 8px 16px;
+  border-radius: 9px;
   transition: background 0.15s;
   font-family: inherit;
 }
-.picker-today-btn:hover {
-  background: rgba(30, 95, 165, 0.08);
+.picker-action:hover {
+  background: var(--primary-100, #d9e8f5);
+}
+.picker-action--muted {
+  color: var(--text-secondary, #4b5563);
+  background: var(--gray-100, #f3f4f6);
+}
+.picker-action--muted:hover {
+  background: var(--gray-200, #e5e7eb);
 }
 
 .fade-enter-active,

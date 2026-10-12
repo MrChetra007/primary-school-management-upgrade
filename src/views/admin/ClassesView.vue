@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
 import { useSchoolStore } from '@/stores/school'
 import { formatDate, toInputDate } from '@/utils/formatDate'
+import KhmerDatePicker from '@/components/shared/KhmerDatePicker.vue'
 import { CheckIcon, XCircleIcon, BuildingOfficeIcon, SunIcon, MoonIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { useToast } from '@/composables/useToast'
 
@@ -271,11 +272,11 @@ async function doDelete() {
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
             <div class="form-group">
               <label class="form-label">ថ្ងៃចាប់ផ្ដើម</label>
-              <input type="date" class="form-input" v-model="form.start_date" />
+              <KhmerDatePicker v-model="form.start_date" placeholder="ជ្រើសរើសថ្ងៃចាប់ផ្ដើម" />
             </div>
             <div class="form-group">
               <label class="form-label">ថ្ងៃបញ្ចប់</label>
-              <input type="date" class="form-input" v-model="form.end_date" />
+              <KhmerDatePicker v-model="form.end_date" placeholder="ជ្រើសរើសថ្ងៃបញ្ចប់" />
             </div>
           </div>
 
