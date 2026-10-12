@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAcademicYearStore } from '@/stores/academicYear'
+import { usePlanStore } from '@/stores/plan'
 import { computeMonthlyAverage, computeSemesterAverage, computeYearlyAverage, computeRank } from '@/utils/scoreCalculator'
 import { generateMonthlyScorePDF, generateSemesterScorePDF, generateYearlyScorePDF } from '@/utils/exportPdf'
 import { BuildingOfficeIcon, DocumentIcon } from '@heroicons/vue/24/outline'
@@ -10,6 +11,8 @@ import { isFemale } from '@/utils/gender'
 
 const router = useRouter()
 const yearStore = useAcademicYearStore()
+const planStore = usePlanStore()
+const hasHonorBoard = computed(() => planStore.hasFeature('honor_board'))
 
 // ─── State ────────────────────────────────────────────────────────────────────
 const classes   = ref([])
@@ -438,14 +441,20 @@ watch(() => yearStore.selectedYearId, async () => {
       </div>
       <button
         class="btn btn-secondary"
-        @click="handleNavigateToHonorBoard"
+        :class="{ 'btn-pro-locked': !hasHonorBoard }"
+        @click="hasHonorBoard ? handleNavigateToHonorBoard() : router.push('/upgrade')"
         :disabled="loading || exporting || rankedList.length === 0"
+        :title="hasHonorBoard ? '' : 'មុខងារនេះអាចប្រើបានតែក្នុងគម្រោង Pro'"
       >
-        
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <svg v-if="!hasHonorBoard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
         </svg>
         ទាញយកតារាងកិត្តិយស
+        <span v-if="!hasHonorBoard" class="pro-chip">PRO</span>
       </button>
       <button
         class="btn btn-secondary"
@@ -928,4 +937,16 @@ watch(() => yearStore.selectedYearId, async () => {
 .semester-mode { font-size: 11px; }
 .semester-mode .sub-col { height: 70px; }
 .semester-mode .vertical-text { font-size: 10px; }
+
+.btn-pro-locked { opacity: 0.85; }
+.pro-chip {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  padding: 2px 6px;
+  border-radius: 99px;
+  line-height: 1.4;
+}
 </style>

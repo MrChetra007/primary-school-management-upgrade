@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
+import { usePlanStore } from '@/stores/plan'
 import { supabase } from '@/lib/supabase'
 import { computeMonthlyAverage, computeSemesterAverage, computeRank } from '@/utils/scoreCalculator'
 import { 
@@ -21,6 +22,9 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const academicYearStore = useAcademicYearStore()
+const planStore = usePlanStore()
+const hasCertificates = computed(() => planStore.hasFeature('certificates'))
+const hasHonorBoard = computed(() => planStore.hasFeature('honor_board'))
 const { showToast } = useToast()
 const loading = ref(true)
 const classInfo = ref(null)
@@ -373,20 +377,26 @@ function toKhmerNum(num) {
         <button 
           v-if="rankedList.length > 0"
           class="btn btn-secondary btn-action" 
-          @click="router.push(`/teacher/scores/certificates?mode=${mode}&month=${selectedMonth}&semester=${selectedSemester}`)"
+          :class="{ 'btn-pro-locked': !hasCertificates }"
+          @click="hasCertificates ? router.push(`/teacher/scores/certificates?mode=${mode}&month=${selectedMonth}&semester=${selectedSemester}`) : router.push('/upgrade')"
+          :title="hasCertificates ? '' : 'មុខងារនេះអាចប្រើបានតែក្នុងគម្រោង Pro'"
         >
           <AcademicCapIcon class="w-4 h-4" />
           <span class="btn-label">លិខិតសរសើរ</span>
+          <span v-if="!hasCertificates" class="pro-chip">PRO</span>
         </button>
         <button
           class="btn btn-secondary btn-action"
-          @click="handleNavigateToHonorBoard"
+          :class="{ 'btn-pro-locked': !hasHonorBoard }"
+          @click="hasHonorBoard ? handleNavigateToHonorBoard() : router.push('/upgrade')"
           :disabled="loading || exporting || rankedList.length === 0"
+          :title="hasHonorBoard ? '' : 'មុខងារនេះអាចប្រើបានតែក្នុងគម្រោង Pro'"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
           </svg>
           <span class="btn-label">តារាងកិត្តិយស</span>
+          <span v-if="!hasHonorBoard" class="pro-chip">PRO</span>
         </button>
         <button class="btn btn-primary btn-action" @click="handleExport" :disabled="loading || exporting || rankedList.length === 0">
           <span v-if="exporting" class="spinner" />
@@ -855,5 +865,17 @@ function toKhmerNum(num) {
   .btn-action .btn-label {
     display: none;
   }
+}
+
+.btn-pro-locked { opacity: 0.85; }
+.pro-chip {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  padding: 2px 6px;
+  border-radius: 99px;
+  line-height: 1.4;
 }
 </style>

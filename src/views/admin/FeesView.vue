@@ -214,6 +214,7 @@ async function savePayment() {
 
 // ── Helpers ──
 function periodLabel(f) {
+  if (f.cycle === 'one_time') return 'ថ្លៃម្ដង'
   if (f.cycle === 'monthly') return khmerMonths[(f.month || 1) - 1]
   if (f.cycle === 'semester') return `ឆមាស ${f.semester}`
   return 'ប្រចាំឆ្នាំ'

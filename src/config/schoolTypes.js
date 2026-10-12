@@ -3,14 +3,23 @@
  * Single config map for per-school-type behaviour (Phase 1 of the SaaS plan).
  * Labels MUST come from here — never hardcode "ថ្នាក់ទី" / grade rules in views.
  *
- * school_type lives on `schools.school_type` ('primary' | 'english' | 'computer').
+ * school_type lives on `schools.school_type` ('primary' | 'english' | 'computer' | 'private').
+ * feeCycles = which billing cycles the fee module offers for this school type.
  */
+
+export const FEE_CYCLE_LABELS = {
+  monthly: 'ប្រចាំខែ',
+  semester: 'ប្រចាំឆមាស',
+  yearly: 'ប្រចាំឆ្នាំ',
+  one_time: 'ថ្លៃម្ដង (វគ្គ)',
+}
 
 export const SCHOOL_TYPES = {
   primary: {
     id: 'primary',
     labelKm: 'សាលាបឋមសិក្សា',
     defaultFeeCycle: 'monthly',
+    feeCycles: ['monthly', 'semester', 'yearly'],
     defaultScoringMode: 'subject_scores',
     usesGradeParsing: true,
     maxGrade: 6,
@@ -29,6 +38,7 @@ export const SCHOOL_TYPES = {
     id: 'english',
     labelKm: 'សាលាភាសាអង់គ្លេស',
     defaultFeeCycle: 'monthly',
+    feeCycles: ['monthly', 'semester', 'yearly'],
     defaultScoringMode: 'simple_result',
     usesGradeParsing: false,
     maxGrade: null,
@@ -47,6 +57,7 @@ export const SCHOOL_TYPES = {
     id: 'computer',
     labelKm: 'សាលាកុំព្យូទ័រ',
     defaultFeeCycle: 'one_time',
+    feeCycles: ['one_time', 'monthly'],
     defaultScoringMode: 'simple_result',
     usesGradeParsing: false,
     maxGrade: null,
@@ -59,6 +70,25 @@ export const SCHOOL_TYPES = {
       subject: 'មុខវិជ្ជា',
       rollup: 'បន្តវគ្គ',
       rollupComplete: 'បញ្ចប់វគ្គ'
+    }
+  },
+  private: {
+    id: 'private',
+    labelKm: 'សាលាឯកជន (ទូទៅ)',
+    defaultFeeCycle: 'monthly',
+    feeCycles: ['monthly', 'semester', 'yearly', 'one_time'],
+    defaultScoringMode: 'subject_scores',
+    usesGradeParsing: false,
+    maxGrade: null,
+    labels: {
+      student: 'សិស្ស',
+      teacher: 'គ្រូបង្រៀន',
+      class: 'ថ្នាក់',
+      grade: 'កម្រិត',
+      term: 'ឆ្នាំសិក្សា',
+      subject: 'មុខវិជ្ជា',
+      rollup: 'បន្តថ្នាក់',
+      rollupComplete: 'បញ្ចប់ការសិក្សា'
     }
   }
 }

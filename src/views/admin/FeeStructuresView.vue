@@ -4,13 +4,18 @@ import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useAcademicYearStore } from '@/stores/academicYear'
+import { useSchoolStore } from '@/stores/school'
+import { FEE_CYCLE_LABELS } from '@/config/schoolTypes'
 import { useToast } from '@/composables/useToast'
 import { ArrowLeftIcon, PlusIcon, PencilSquareIcon, TrashIcon, BanknotesIcon } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
 const auth = useAuthStore()
 const yearStore = useAcademicYearStore()
+const school = useSchoolStore()
 const { showToast } = useToast()
+
+const feeCycles = computed(() => school.typeConfig.feeCycles || ['monthly', 'semester', 'yearly'])
 
 const structures = ref([])
 const classes = ref([])
@@ -25,7 +30,7 @@ const emptyForm = () => ({
   academic_year_id: yearStore.selectedYearId,
   class_id: '',
   name: '',
-  cycle: 'monthly',
+  cycle: school.typeConfig.defaultFeeCycle || 'monthly',
   semester: '',
   amount: '',
   currency: 'KHR',
@@ -125,7 +130,7 @@ async function doDelete() {
 }
 
 function cycleLabel(c) {
-  return { monthly: 'ប្រចាំខែ', semester: 'ប្រចាំឆមាស', yearly: 'ប្រចាំឆ្នាំ' }[c] || c
+  return FEE_CYCLE_LABELS[c] || c
 }
 
 function fmt(n, currency = 'KHR') {
@@ -231,9 +236,7 @@ function fmt(n, currency = 'KHR') {
           <div class="form-group">
             <label class="form-label">វដ្ត</label>
             <select class="form-select" v-model="form.cycle">
-              <option value="monthly">ប្រចាំខែ</option>
-              <option value="semester">ប្រចាំឆមាស</option>
-              <option value="yearly">ប្រចាំឆ្នាំ</option>
+              <option v-for="c in feeCycles" :key="c" :value="c">{{ FEE_CYCLE_LABELS[c] || c }}</option>
             </select>
           </div>
           <div v-if="form.cycle === 'semester'" class="form-group">
